@@ -156,7 +156,16 @@ func registerRoutes(r *core.Router, hs Handlers) {
 		hs.AdminUpload, hs.AdminChat, hs.AdminMenu, hs.AdminImage,
 		hs.AdminModeration, hs.AdminLibrary,
 	}
-	if got := reflect.ValueOf(hs).NumField(); got != wantRegistrars {
+	// reflect.NumField() 会把匿名嵌入的 fx.In 也算作一个字段，统计时需跳过
+	v := reflect.ValueOf(hs)
+	got := 0
+	for i := 0; i < v.NumField(); i++ {
+		if v.Type().Field(i).Anonymous {
+			continue
+		}
+		got++
+	}
+	if got != wantRegistrars {
 		logger.Fatalf("Handlers 字段数 %d != %d，有 handler 忘记加进 Handlers 结构体", got, wantRegistrars)
 	}
 	if len(registrars) != wantRegistrars {

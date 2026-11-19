@@ -1,64 +1,36 @@
 <template>
   <div class="dashboard" v-loading="loading">
-    <!-- 统计卡片区域 -->
+    <!-- 统计卡片区域：Together AI Stats Bar —— 纯排版大数字，无 icon 盒 -->
     <el-row class="stats-row" :gutter="24">
       <el-col :span="6">
         <el-card class="stats-card" shadow="hover">
-          <div class="card-content">
-            <div class="card-icon user-icon">
-              <el-icon><User /></el-icon>
-            </div>
-            <div class="card-info">
-              <div class="card-number">{{ stats.users }}</div>
-              <div class="card-label">用户总数</div>
-              <div class="card-desc">今日新增: {{ stats.todayUsers || 0 }}</div>
-            </div>
-          </div>
+          <div class="card-label">用户总数</div>
+          <div class="card-number">{{ stats.users }}</div>
+          <div class="card-desc">今日新增 {{ stats.todayUsers || 0 }}</div>
         </el-card>
       </el-col>
 
       <el-col :span="6">
         <el-card class="stats-card" shadow="hover">
-          <div class="card-content">
-            <div class="card-icon chat-icon">
-              <el-icon><ChatDotRound /></el-icon>
-            </div>
-            <div class="card-info">
-              <div class="card-number">{{ stats.chats }}</div>
-              <div class="card-label">对话总数</div>
-              <div class="card-desc">今日: {{ stats.todayChats }}</div>
-            </div>
-          </div>
+          <div class="card-label">对话总数</div>
+          <div class="card-number">{{ stats.chats }}</div>
+          <div class="card-desc">今日 {{ stats.todayChats }}</div>
         </el-card>
       </el-col>
 
       <el-col :span="6">
         <el-card class="stats-card" shadow="hover">
-          <div class="card-content">
-            <div class="card-icon token-icon">
-              <el-icon><TrendCharts /></el-icon>
-            </div>
-            <div class="card-info">
-              <div class="card-number">{{ formatNumber(stats.power || stats.tokens) }}</div>
-              <div class="card-label">积分消耗</div>
-              <div class="card-desc">今日: {{ formatNumber(stats.todayPower || stats.todayTokens) }}</div>
-            </div>
-          </div>
+          <div class="card-label">积分消耗</div>
+          <div class="card-number">{{ formatNumber(stats.power || stats.tokens) }}</div>
+          <div class="card-desc">今日 {{ formatNumber(stats.todayPower || stats.todayTokens) }}</div>
         </el-card>
       </el-col>
 
       <el-col :span="6">
         <el-card class="stats-card" shadow="hover">
-          <div class="card-content">
-            <div class="card-icon income-icon">
-              <el-icon><Money /></el-icon>
-            </div>
-            <div class="card-info">
-              <div class="card-number">￥{{ stats.income.toFixed(2) }}</div>
-              <div class="card-label">总收入</div>
-              <div class="card-desc">今日: ￥{{ stats.todayIncome?.toFixed(2) || '0.00' }}</div>
-            </div>
-          </div>
+          <div class="card-label">总收入</div>
+          <div class="card-number">￥{{ stats.income.toFixed(2) }}</div>
+          <div class="card-desc">今日 ￥{{ stats.todayIncome?.toFixed(2) || '0.00' }}</div>
         </el-card>
       </el-col>
     </el-row>
@@ -67,61 +39,33 @@
     <el-row class="stats-row" :gutter="24">
       <el-col :span="6">
         <el-card class="stats-card" shadow="hover">
-          <div class="card-content">
-            <div class="card-icon image-icon">
-              <el-icon><Picture /></el-icon>
-            </div>
-            <div class="card-info">
-              <div class="card-number">{{ stats.imageJobs }}</div>
-              <div class="card-label">图片生成</div>
-              <div class="card-desc">今日: {{ stats.todayImageJobs }}</div>
-            </div>
-          </div>
+          <div class="card-label">图片生成</div>
+          <div class="card-number">{{ stats.imageJobs }}</div>
+          <div class="card-desc">今日 {{ stats.todayImageJobs }}</div>
         </el-card>
       </el-col>
 
       <el-col :span="6">
         <el-card class="stats-card" shadow="hover">
-          <div class="card-content">
-            <div class="card-icon video-icon">
-              <el-icon><VideoPlay /></el-icon>
-            </div>
-            <div class="card-info">
-              <div class="card-number">{{ stats.videoJobs }}</div>
-              <div class="card-label">视频生成</div>
-              <div class="card-desc">今日: {{ stats.todayVideoJobs }}</div>
-            </div>
-          </div>
+          <div class="card-label">视频生成</div>
+          <div class="card-number">{{ stats.videoJobs }}</div>
+          <div class="card-desc">今日 {{ stats.todayVideoJobs }}</div>
         </el-card>
       </el-col>
 
       <el-col :span="6">
         <el-card class="stats-card" shadow="hover">
-          <div class="card-content">
-            <div class="card-icon music-icon">
-              <el-icon><Headset /></el-icon>
-            </div>
-            <div class="card-info">
-              <div class="card-number">{{ stats.musicJobs }}</div>
-              <div class="card-label">音乐生成</div>
-              <div class="card-desc">今日: {{ stats.todayMusicJobs }}</div>
-            </div>
-          </div>
+          <div class="card-label">音乐生成</div>
+          <div class="card-number">{{ stats.musicJobs }}</div>
+          <div class="card-desc">今日 {{ stats.todayMusicJobs }}</div>
         </el-card>
       </el-col>
 
       <el-col :span="6">
         <el-card class="stats-card" shadow="hover">
-          <div class="card-content">
-            <div class="card-icon order-icon">
-              <el-icon><ShoppingCart /></el-icon>
-            </div>
-            <div class="card-info">
-              <div class="card-number">{{ stats.orders }}</div>
-              <div class="card-label">订单总数</div>
-              <div class="card-desc">今日: {{ stats.todayOrders }}</div>
-            </div>
-          </div>
+          <div class="card-label">订单总数</div>
+          <div class="card-number">{{ stats.orders }}</div>
+          <div class="card-desc">今日 {{ stats.todayOrders }}</div>
         </el-card>
       </el-col>
     </el-row>
@@ -297,9 +241,10 @@ onMounted(() => {
       chartUsers.setOption({
         tooltip: {
           trigger: 'axis',
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-          borderColor: '#ddd',
-          textStyle: { color: '#666' },
+          backgroundColor: '#ffffff',
+          borderColor: 'rgba(0, 0, 0, 0.08)',
+          textStyle: { color: '#010120' },
+          extraCssText: 'box-shadow: rgba(1, 1, 32, 0.1) 0px 4px 10px; border-radius: 4px;',
         },
         grid: {
           left: '3%',
@@ -310,16 +255,16 @@ onMounted(() => {
         xAxis: {
           type: 'category',
           data: x,
-          axisLine: { lineStyle: { color: '#ddd' } },
+          axisLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.08)' } },
           axisTick: { show: false },
-          axisLabel: { color: '#999' },
+          axisLabel: { color: 'rgba(0, 0, 0, 0.6)' },
         },
         yAxis: {
           type: 'value',
           axisLine: { show: false },
           axisTick: { show: false },
-          axisLabel: { color: '#999' },
-          splitLine: { lineStyle: { color: '#f0f0f0' } },
+          axisLabel: { color: 'rgba(0, 0, 0, 0.6)' },
+          splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.08)' } },
         },
         series: [
           {
@@ -329,11 +274,11 @@ onMounted(() => {
             symbol: 'circle',
             symbolSize: 6,
             lineStyle: {
-              color: '#8B5CF6',
-              width: 3,
+              color: '#010120',
+              width: 2,
             },
             itemStyle: {
-              color: '#8B5CF6',
+              color: '#010120',
             },
             areaStyle: {
               color: {
@@ -345,11 +290,11 @@ onMounted(() => {
                 colorStops: [
                   {
                     offset: 0,
-                    color: 'rgba(139, 92, 246, 0.3)',
+                    color: 'rgba(1, 1, 32, 0.08)',
                   },
                   {
                     offset: 1,
-                    color: 'rgba(139, 92, 246, 0.05)',
+                    color: 'rgba(1, 1, 32, 0)',
                   },
                 ],
               },
@@ -365,9 +310,10 @@ onMounted(() => {
       chartIncome.setOption({
         tooltip: {
           trigger: 'axis',
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-          borderColor: '#ddd',
-          textStyle: { color: '#666' },
+          backgroundColor: '#ffffff',
+          borderColor: 'rgba(0, 0, 0, 0.08)',
+          textStyle: { color: '#010120' },
+          extraCssText: 'box-shadow: rgba(1, 1, 32, 0.1) 0px 4px 10px; border-radius: 4px;',
         },
         grid: {
           left: '3%',
@@ -378,16 +324,16 @@ onMounted(() => {
         xAxis: {
           type: 'category',
           data: x,
-          axisLine: { lineStyle: { color: '#ddd' } },
+          axisLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.08)' } },
           axisTick: { show: false },
-          axisLabel: { color: '#999' },
+          axisLabel: { color: 'rgba(0, 0, 0, 0.6)' },
         },
         yAxis: {
           type: 'value',
           axisLine: { show: false },
           axisTick: { show: false },
-          axisLabel: { color: '#999' },
-          splitLine: { lineStyle: { color: '#f0f0f0' } },
+          axisLabel: { color: 'rgba(0, 0, 0, 0.6)' },
+          splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.08)' } },
         },
         series: [
           {
@@ -397,11 +343,11 @@ onMounted(() => {
             symbol: 'circle',
             symbolSize: 6,
             lineStyle: {
-              color: '#10B981',
-              width: 3,
+              color: '#bdbbff',
+              width: 2,
             },
             itemStyle: {
-              color: '#10B981',
+              color: '#bdbbff',
             },
             areaStyle: {
               color: {
@@ -413,11 +359,11 @@ onMounted(() => {
                 colorStops: [
                   {
                     offset: 0,
-                    color: 'rgba(16, 185, 129, 0.3)',
+                    color: 'rgba(189, 187, 255, 0.12)',
                   },
                   {
                     offset: 1,
-                    color: 'rgba(16, 185, 129, 0.05)',
+                    color: 'rgba(189, 187, 255, 0)',
                   },
                 ],
               },
@@ -452,102 +398,60 @@ onMounted(() => {
     margin-bottom: 24px;
   }
 
+  // Together AI contained card：hairline 边框 + 8px 圆角 + 深蓝着色阴影
   .stats-card {
-    border: none;
-    border-radius: 12px;
+    --el-card-border-color: rgba(0, 0, 0, 0.08);
+    --el-card-border-radius: 8px;
+    --el-card-bg-color: var(--card-bg);
+    border: 1px solid var(--admin-container-border, rgba(0, 0, 0, 0.08));
+    border-radius: 8px;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: box-shadow 0.2s ease;
     background: var(--card-bg);
 
     &:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--el-box-shadow, 0 8px 25px rgba(0, 0, 0, 0.1));
+      box-shadow: var(--ta-shadow-lg, rgba(1, 1, 32, 0.14) 0px 8px 24px);
     }
 
     :deep(.el-card__body) {
-      padding: 24px;
+      padding: 24px 28px;
     }
   }
 
-  .card-content {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .card-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    color: white;
-    flex-shrink: 0;
-
-    &.user-icon {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    &.chat-icon {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-
-    &.token-icon {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    &.income-icon {
-      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-    }
-
-    &.order-icon {
-      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    }
-
-    &.image-icon {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    &.video-icon {
-      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    }
-
-    &.music-icon {
-      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-    }
-  }
-
-  .card-info {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .card-number {
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--theme-text-color-primary);
-    margin-bottom: 4px;
-    line-height: 1;
-  }
-
+  // Together AI Stats Bar：Mono 大写小标签在上 → 大数字 → 小说明
   .card-label {
-    font-size: 16px;
-    color: var(--el-text-color-regular);
-    margin-bottom: 4px;
+    font-family: var(--ta-font-mono, 'PP Neue Montreal Mono', Georgia, monospace);
+    font-size: 11px;
     font-weight: 500;
+    letter-spacing: 0.055px;
+    text-transform: uppercase;
+    color: var(--theme-text-color-secondary);
+    margin-bottom: 12px;
+  }
+
+  // 大数字：weight 500 负字距，绝不加粗
+  .card-number {
+    font-size: 40px;
+    font-weight: 500;
+    color: var(--theme-text-color-primary);
+    line-height: 1.1;
+    letter-spacing: -1.2px;
+    margin-bottom: 8px;
   }
 
   .card-desc {
-    font-size: 14px;
+    font-size: 13px;
+    letter-spacing: -0.16px;
     color: var(--theme-text-color-secondary);
   }
 
   .chart-card,
   .list-card {
-    border: none;
-    border-radius: 12px;
+    --el-card-border-color: rgba(0, 0, 0, 0.08);
+    --el-card-border-radius: 8px;
+    --el-card-bg-color: var(--card-bg);
+    border: 1px solid var(--admin-container-border, rgba(0, 0, 0, 0.08));
+    border-radius: 8px;
     overflow: hidden;
     height: 100%;
     background: var(--card-bg);
@@ -566,12 +470,13 @@ onMounted(() => {
     align-items: center;
     margin-bottom: 20px;
     padding-bottom: 16px;
-    border-bottom: 1px solid var(--el-border-color);
+    border-bottom: 1px solid var(--admin-container-border, rgba(0, 0, 0, 0.08));
 
     h3 {
       margin: 0;
       font-size: 18px;
-      font-weight: 600;
+      font-weight: 500;
+      letter-spacing: -0.36px;
       color: var(--theme-text-color-primary);
     }
   }
@@ -600,14 +505,16 @@ onMounted(() => {
       gap: 12px;
 
       .order-id {
-        font-size: 14px;
+        font-family: var(--ta-font-mono, 'PP Neue Montreal Mono', Georgia, monospace);
+        font-size: 13px;
         color: var(--theme-text-color-secondary);
       }
 
       .order-amount {
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--el-color-success, #10b981);
+        font-family: var(--ta-font-mono, 'PP Neue Montreal Mono', Georgia, monospace);
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--theme-text-color-primary);
       }
     }
 

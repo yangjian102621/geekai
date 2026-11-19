@@ -1,5 +1,9 @@
 package types
 
+import (
+	"encoding/json"
+)
+
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // * Copyright 2023 The Geek-AI Authors. All rights reserved.
 // * Use of this source code is governed by a Apache-2.0 license
@@ -16,6 +20,34 @@ type ModerationConfig struct {
 	Gitee       ModerationGiteeConfig   `json:"gitee,omitempty"`
 	Baidu       ModerationBaiduConfig   `json:"baidu,omitempty"`
 	Tencent     ModerationTencentConfig `json:"tencent,omitempty"`
+}
+
+func (c *ModerationConfig) UnmarshalJSON(b []byte) error {
+	type moderationAlias ModerationConfig
+	var aux struct {
+		Enable      json.RawMessage `json:"enable,omitempty"`
+		EnableGuide json.RawMessage `json:"enable_guide,omitempty"`
+		*moderationAlias
+	}
+	if err := json.Unmarshal(b, &aux); err != nil {
+		return err
+	}
+	// 兼容历史数据中布尔值被存为字符串的情况
+	if len(aux.Enable) > 0 {
+		enable, err := decodeBool(aux.Enable)
+		if err != nil {
+			return err
+		}
+		c.Enable = enable
+	}
+	if len(aux.EnableGuide) > 0 {
+		enableGuide, err := decodeBool(aux.EnableGuide)
+		if err != nil {
+			return err
+		}
+		c.EnableGuide = enableGuide
+	}
+	return nil
 }
 
 const (

@@ -12,7 +12,7 @@ body,
 }
 
 body {
-  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif;
+  font-family: var(--ta-font-sans, 'The Future', Arial, Helvetica, PingFang SC, Microsoft YaHei, sans-serif);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -35,19 +35,20 @@ body {
     padding-bottom: 30px;
     -webkit-transition: left 0.3s ease-in-out;
     transition: left 0.3s ease-in-out;
-    background: #f0f0f0;
+    // Together AI：白画布 / 午夜蓝画布由主题变量决定
+    background: var(--admin-page-bg, #ffffff);
 
     ::-webkit-scrollbar {
       width: 8px; /* 滚动条宽度 */
     }
 
     ::-webkit-scrollbar-thumb {
-      background-color: #666666;
-      border-radius: 8px;
+      background-color: var(--admin-scrollbar-thumb, #d4d4d8);
+      border-radius: 4px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background-color: #999999;
+      background-color: var(--admin-scrollbar-thumb-hover, #b8b8be);
     }
 
     .content {
@@ -57,7 +58,11 @@ body {
 
       .container {
         padding: 15px 20px 30px 20px;
-        background: #ffffff;
+        // Together AI contained card：hairline 边框 + 8px 圆角 + 深蓝着色阴影
+        background: var(--admin-container-bg, #ffffff);
+        border: 1px solid var(--admin-container-border, rgba(0, 0, 0, 0.08));
+        border-radius: 8px;
+        box-shadow: var(--ta-shadow, rgba(1, 1, 32, 0.1) 0px 4px 10px);
         margin-bottom: 20px;
         max-width: 100%;
       }
@@ -67,7 +72,7 @@ body {
       }
 
       .el-table th {
-        background-color: #f5f7fa;
+        background-color: var(--el-table-header-bg-color, transparent);
       }
 
       .pagination {
@@ -87,7 +92,7 @@ body {
       }
 
       .el-table tr:hover {
-        background: #f6faff;
+        background: var(--el-table-row-hover-bg-color, rgba(0, 0, 0, 0.02));
       }
 
       .mgb20 {

@@ -158,11 +158,11 @@ const logout = function () {
   overflow: hidden;
   height: 50px;
   font-size: 22px;
+  // Together AI nav：白/午夜蓝画布 + hairline 底边
   background: var(--admin-header-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--admin-header-border);
   color: var(--theme-text-color-primary);
+  letter-spacing: -0.22px;
   transition: background 0.2s ease, border-color 0.2s ease;
 
   .collapse-btn {

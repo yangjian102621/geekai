@@ -137,19 +137,19 @@ const doLogin = function (verifyData) {
 
 <style lang="scss" scoped>
 .bg {
+  // Together AI：浅色画布 + 洋红/橙渐变插画背景（canvas 兜底，品牌色仅用于渐变）
   position: absolute;
   left: 0;
   right: 0;
   top: 0;
   bottom: 0;
-  background: #8d4bbb;
-  // background-image url("~@/assets/img/transparent-bg.png")
-  // background-repeat:repeat;
-  background-image: url('@/assets/img/admin-login-bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  filter: blur(10px); /* 调整模糊程度，可以根据需要修改值 */
+  background: var(--ta-canvas, #ffffff);
+  background-image: linear-gradient(
+    135deg,
+    rgba(239, 44, 193, 0.08) 0%,
+    rgba(252, 76, 2, 0.05) 50%,
+    rgba(189, 187, 255, 0.1) 100%
+  );
   z-index: 0;
 }
 
@@ -173,32 +173,37 @@ const doLogin = function (verifyData) {
     .contain {
       width: 100%;
       padding: 40px;
-      color: #ffffff;
-      border-radius: 10px;
-      background: rgba(0, 0, 0, 0.4);
+      color: var(--ta-ink, #000000);
+      // Together AI contained card：hairline 边框 + 8px 圆角 + 深蓝着色阴影
+      border: 1px solid var(--ta-hairline-light, rgba(0, 0, 0, 0.08));
+      border-radius: 8px;
+      background: var(--ta-elevated-light, #ffffff);
+      box-shadow: var(--ta-shadow, rgba(1, 1, 32, 0.1) 0px 4px 10px);
 
       .logo {
         text-align: center;
 
         .el-image {
-          width: 120px;
+          width: 96px;
           cursor: pointer;
-          border-radius: 50%;
+          border-radius: 4px;
         }
       }
 
       .header {
         width: 100%;
-        //margin-bottom 20px
-        padding: 10px;
+        padding: 10px 0 16px;
         font-size: 26px;
+        font-weight: 500;
+        letter-spacing: -0.58px;
         text-align: center;
+        color: var(--ta-ink, #000000);
       }
 
       .content {
         width: 100%;
         height: auto;
-        border-radius: 3px;
+        border-radius: 4px;
 
         .el-input {
           margin: 10px 0;
@@ -208,7 +213,8 @@ const doLogin = function (verifyData) {
           margin-bottom: 16px;
 
           .el-input__inner {
-            border: 1px solid #dcdfe6 !important;
+            border: 1px solid var(--ta-hairline-light, rgba(0, 0, 0, 0.08)) !important;
+            border-radius: 4px !important;
 
             .el-icon-user,
             .el-icon-lock {
@@ -223,7 +229,8 @@ const doLogin = function (verifyData) {
           .login-btn {
             width: 100%;
             font-size: 16px;
-            letter-spacing: 2px;
+            font-weight: 500;
+            letter-spacing: -0.32px;
           }
         }
 
@@ -236,8 +243,8 @@ const doLogin = function (verifyData) {
     }
 
     .foot-container {
-      background: rgba(0, 0, 0, 0.3);
-      --text-color: #ffffff;
+      background: transparent;
+      --text-color: rgba(0, 0, 0, 0.6);
     }
   }
 }

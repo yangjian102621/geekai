@@ -79,74 +79,133 @@ watch(
     theme.value = val
   }
 )
+// 菜单信息架构：仪表盘 + 8 个语义分组，统一「分组 → 页面」两级心智模型。
+// 分组按使用频率自上而下：日常运营（用户/交易）→ 能力供给（模型/AI/应用）→ 质量与安全 → 平台运维。
+// 注意：叶子 index 必须与 router.js 中 /admin/* 路由路径一致，勿改。
 const items = [
   {
     icon: 'home',
     index: '/admin/dashboard',
     title: '仪表盘',
   },
-
   {
     icon: 'user-fill',
-    index: '/admin/user',
+    index: 'users',
     title: '用户管理',
-  },
-  {
-    icon: 'menu',
-    index: '1',
-    title: '应用管理',
     subs: [
       {
-        index: '/admin/app',
-        title: '应用列表',
-        icon: 'sub-menu',
+        icon: 'user-fill',
+        index: '/admin/user',
+        title: '用户列表',
       },
       {
-        index: '/admin/app/type',
-        title: '应用分类',
-        icon: 'chuangzuo',
+        icon: 'power',
+        index: '/admin/powerLog',
+        title: '积分日志',
+      },
+      {
+        icon: 'log',
+        index: '/admin/loginLog',
+        title: '登录日志',
       },
     ],
   },
-
   {
-    icon: 'api-key',
-    index: '/admin/apikey',
-    title: 'API-KEY',
-  },
-  {
-    icon: 'menu',
-    index: '/admin/library',
-    title: '公共资料库',
+    icon: 'recharge',
+    index: 'trading',
+    title: '交易中心',
+    subs: [
+      {
+        icon: 'recharge',
+        index: '/admin/product',
+        title: '充值产品',
+      },
+      {
+        icon: 'order',
+        index: '/admin/order',
+        title: '充值订单',
+      },
+      {
+        icon: 'reward',
+        index: '/admin/redeem',
+        title: '兑换码',
+      },
+    ],
   },
   {
     icon: 'model',
-    index: '/admin/chat/model',
-    title: '模型管理',
+    index: 'ai-center',
+    title: '模型服务',
+    subs: [
+      {
+        icon: 'model',
+        index: '/admin/chat/model',
+        title: '语言模型',
+      },
+      {
+        icon: 'api-key',
+        index: '/admin/apikey',
+        title: 'API-KEY',
+      },
+      {
+        icon: 'control',
+        index: '/admin/functions',
+        title: '函数管理',
+      },
+    ],
   },
   {
-    icon: 'recharge',
-    index: '/admin/product',
-    title: '充值产品',
-  },
-  {
-    icon: 'order',
-    index: '/admin/order',
-    title: '充值订单',
-  },
-  {
-    icon: 'reward',
-    index: '/admin/redeem',
-    title: '兑换码',
-  },
-  {
-    icon: 'control',
-    index: '/admin/functions',
-    title: '函数管理',
+    icon: 'video',
+    index: 'media-center',
+    title: '多模态任务',
+    subs: [
+      {
+        icon: 'jimeng',
+        index: '/admin/jimeng/jobs',
+        title: '即梦绘图任务',
+      },
+      {
+        icon: 'jimeng',
+        index: '/admin/jimeng/config',
+        title: '即梦设置',
+      },
+      {
+        icon: 'video',
+        index: '/admin/video/config',
+        title: '视频生成配置',
+      },
+      {
+        icon: 'list',
+        index: '/admin/records/videos',
+        title: '视频生成记录',
+      },
+    ],
   },
   {
     icon: 'menu',
-    index: '2',
+    index: 'content-center',
+    title: '应用与内容',
+    subs: [
+      {
+        icon: 'menu',
+        index: '/admin/app',
+        title: '应用列表',
+      },
+      {
+        icon: 'chuangzuo',
+        index: '/admin/app/type',
+        title: '应用分类',
+      },
+      {
+        icon: 'linggan',
+        index: '/admin/library',
+        title: '公共资料库',
+      },
+    ],
+  },
+  {
+    icon: 'list',
+    index: 'records',
     title: '创作记录',
     subs: [
       {
@@ -162,52 +221,14 @@ const items = [
       {
         icon: 'mp3',
         index: '/admin/records/suno',
-        title: 'Suno音乐',
+        title: '音乐记录',
       },
-      
-    ],
-  },
-  {
-    icon: 'jimeng',
-    index: '/admin/jimeng',
-    title: '即梦AI',
-    subs: [
-      {
-        icon: 'list',
-        index: '/admin/jimeng/jobs',
-        title: '任务列表',
-      },
-
-      {
-        icon: 'config',
-        index: '/admin/jimeng/config',
-        title: '即梦设置',
-      },
-    ],
-  },
-  {
-    icon: 'video',
-    title: '视频生成',
-    index: '/admin/video',
-    subs: [
-      {
-        icon: 'config',
-        index: '/admin/video/config',
-        title: '生成配置',
-      },
-
-      {
-        icon: 'list',
-        index: '/admin/records/videos',
-        title: '生成记录',
-      },
-      
     ],
   },
   {
     icon: 'moderation',
-    index: '/admin/config/moderation',
-    title: '文本审查',
+    index: 'moderation-center',
+    title: '内容安全',
     subs: [
       {
         icon: 'list',
@@ -222,16 +243,15 @@ const items = [
     ],
   },
   {
-    icon: 'role',
-    index: '/admin/manger',
-    title: '管理员',
-  },
-
-  {
     icon: 'config',
-    index: 'config-center',
-    title: '系统设置',
+    index: 'platform-center',
+    title: '平台管理',
     subs: [
+      {
+        icon: 'role',
+        index: '/admin/manger',
+        title: '管理员',
+      },
       {
         icon: 'config',
         index: '/admin/config/basic',
@@ -242,11 +262,10 @@ const items = [
         index: '/admin/config/power',
         title: '积分配置',
       },
-
       {
         icon: 'menu',
         index: '/admin/config/menu',
-        title: '菜单配置',
+        title: '门户菜单',
       },
       {
         icon: 'recharge',
@@ -274,17 +293,10 @@ const items = [
         title: '插件配置',
       },
       {
+        icon: 'wechat',
         index: '/admin/config/wechat',
         title: '微信配置',
-        icon: 'wechat',
       },
-    ],
-  },
-  {
-    icon: 'linggan',
-    index: 'content-config',
-    title: '文案配置',
-    subs: [
       {
         icon: 'speaker',
         index: '/admin/config/notice',
@@ -303,19 +315,9 @@ const items = [
       {
         icon: 'xmind',
         index: '/admin/config/markmap',
-        title: '思维导图',
+        title: '思维导图页',
       },
     ],
-  },
-  {
-    icon: 'log',
-    index: '/admin/powerLog',
-    title: '用户积分日志',
-  },
-  {
-    icon: 'log',
-    index: '/admin/loginLog',
-    title: '用户登录日志',
   },
 ]
 
@@ -336,9 +338,8 @@ setMenuItems(items)
   top: 0;
   bottom: 0;
   overflow-y: scroll;
+  // Together AI nav：白/午夜蓝画布 + hairline 分隔
   background: var(--admin-sidebar-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border-right: 1px solid var(--admin-sidebar-border);
   transition: background 0.2s ease, border-color 0.2s ease;
 
@@ -356,14 +357,14 @@ setMenuItems(items)
     img {
       height: 36px;
       padding: 2px;
-      border-radius: 100%;
+      border-radius: 4px;
       background: #fff;
-      border: 2px solid #754ff6;
     }
 
     .text {
       color: var(--admin-sidebar-text);
-      font-weight: bold;
+      font-weight: 500;
+      letter-spacing: -0.42px;
       padding: 12px 0 12px 10px;
       transition: width 2s ease, color 0.2s ease;
     }
@@ -384,27 +385,38 @@ setMenuItems(items)
 
     .el-menu-item {
       transition: background 0.2s ease, color 0.2s ease;
-      margin: 2px 8px;
-      border-radius: 8px;
+      margin: 1px 12px;
+      border-radius: 4px;
+      letter-spacing: -0.16px;
+      font-weight: 400;
+      height: 40px;
+      line-height: 40px;
 
       &:hover {
         background: var(--admin-header-hover);
+        color: var(--admin-sidebar-text);
       }
 
+      // Together AI：active 无彩底，仅纯黑文字 + hairline 左指示条
       &.is-active {
-        background: var(--admin-sidebar-active-bg);
+        background: var(--admin-tags-item-bg, transparent);
         color: var(--admin-sidebar-text);
-        box-shadow: inset 3px 0 0 var(--admin-sidebar-active-border);
+        font-weight: 500;
+        box-shadow: inset 2px 0 0 var(--admin-sidebar-text);
       }
     }
 
     .el-sub-menu__title {
       transition: background 0.2s ease;
-      margin: 2px 8px;
-      border-radius: 8px;
+      margin: 1px 12px;
+      border-radius: 4px;
+      letter-spacing: -0.16px;
+      height: 40px;
+      line-height: 40px;
 
       &:hover {
         background: var(--admin-header-hover);
+        color: var(--admin-sidebar-text);
       }
     }
 

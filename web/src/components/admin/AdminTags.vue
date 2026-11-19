@@ -123,12 +123,10 @@ const handleTags = (command) => {
   position: relative;
   height: 30px;
   overflow: hidden;
+  // Together AI：画布表面 + hairline 底边，无模糊无投影
   background: var(--admin-tags-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   padding: 5px 120px 5px 10px;
   border-bottom: 1px solid var(--admin-tags-border);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   transition: background 0.2s ease, border-color 0.2s ease;
 
   ul {
@@ -141,7 +139,7 @@ const handleTags = (command) => {
       align-items: center;
       float: left;
       margin: 3px 5px 2px 3px;
-      border-radius: 6px;
+      border-radius: 4px;
       font-size: 12px;
       overflow: hidden;
       cursor: pointer;
@@ -158,10 +156,10 @@ const handleTags = (command) => {
     }
 
     .tags-li.active {
-      background: var(--admin-tags-active-bg);
-      border-color: rgba(107, 85, 255, 0.4);
+      background: var(--admin-tags-item-bg, transparent);
+      border-color: var(--theme-text-color-primary, #000000);
       .tags-li-title {
-        color: var(--el-color-primary);
+        color: var(--theme-text-color-primary);
         font-weight: 500;
       }
     }
@@ -194,7 +192,7 @@ const handleTags = (command) => {
 
 .tags.dark {
   .tags-li.active {
-    border-color: rgba(107, 85, 255, 0.5);
+    border-color: #ffffff;
   }
 }
 </style>
