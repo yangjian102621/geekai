@@ -73,8 +73,9 @@ func expectAPIPower(mock sqlmock.Sqlmock, refund bool) {
 	}
 	mock.ExpectQuery("SELECT .*geekai_users").WithArgs(7).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "username", "power"}).AddRow(7, "alice", balance))
+	// 末尾两个 AnyArg 对应 PowerLog 新增的 ref_type / ref_id 幂等键列（旧方法不填，落 NULL）
 	mock.ExpectExec("INSERT INTO `geekai_power_logs`").
-		WithArgs(7, "alice", kind, 2, balance, "test-model", sqlmock.AnyArg(), mark, sqlmock.AnyArg()).
+		WithArgs(7, "alice", kind, 2, balance, "test-model", sqlmock.AnyArg(), mark, sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 }
