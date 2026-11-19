@@ -112,7 +112,7 @@ func main() {
 		fx.Provide(handler.NewLibraryHandler),
 		fx.Provide(admin.NewLibraryHandler),
 		fx.Invoke(func(h *handler.LibraryHandler) { h.RegisterRoutes() }),
-		fx.Invoke(func(h *admin.LibraryHandler) { h.RegisterRoutes() }),
+		fx.Invoke(func(r *core.Router, h *admin.LibraryHandler) { h.RegisterRoutes(r) }),
 
 		fx.Provide(func() embed.FS {
 			return xdbFS
@@ -249,8 +249,8 @@ func main() {
 		fx.Provide(moderation.NewTencentAIModeration),
 		fx.Provide(moderation.NewServiceManager),
 		fx.Provide(admin.NewModerationHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.ModerationHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.ModerationHandler) {
+			h.RegisterRoutes(r)
 		}),
 
 		// 注册路由
@@ -286,42 +286,42 @@ func main() {
 		}),
 
 		// 管理后台路由注册
-		fx.Invoke(func(s *core.AppServer, h *admin.ConfigHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.ConfigHandler) {
+			h.RegisterRoutes(r)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.ManagerHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.ManagerHandler) {
+			h.RegisterRoutes(r)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.ApiKeyHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.ApiKeyHandler) {
+			h.RegisterRoutes(r)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.UserHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.UserHandler) {
+			h.RegisterRoutes(r)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.ChatAppHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.ChatAppHandler) {
+			h.RegisterRoutes(r)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.RedeemHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.RedeemHandler) {
+			h.RegisterRoutes(r)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.DashboardHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.DashboardHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatModelHandler) {
 			h.RegisterRoutes()
 		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.ChatModelHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.ChatModelHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.PaymentHandler) {
 			h.RegisterRoutes()
 			h.StartSyncOrders()
 		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.ProductHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.ProductHandler) {
+			h.RegisterRoutes(r)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.OrderHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.OrderHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.OrderHandler) {
 			h.RegisterRoutes()
@@ -336,13 +336,13 @@ func main() {
 		}),
 
 		fx.Provide(admin.NewFunctionHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.FunctionHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.FunctionHandler) {
+			h.RegisterRoutes(r)
 		}),
 
 		fx.Provide(admin.NewUploadHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.UploadHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.UploadHandler) {
+			h.RegisterRoutes(r)
 		}),
 
 		fx.Provide(handler.NewFunctionHandler),
@@ -350,18 +350,18 @@ func main() {
 			h.RegisterRoutes()
 		}),
 		fx.Provide(admin.NewChatHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.ChatHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.ChatHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Invoke(func(s *core.AppServer, h *handler.PowerLogHandler) {
 			h.RegisterRoutes()
 		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.PowerLogHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.PowerLogHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Provide(admin.NewMenuHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.MenuHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.MenuHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Provide(handler.NewMenuHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.MenuHandler) {
@@ -388,18 +388,18 @@ func main() {
 		fx.Invoke(func(s *core.AppServer, h *handler.JimengHandler) {
 			h.RegisterRoutes()
 		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.AdminJimengHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.AdminJimengHandler) {
+			h.RegisterRoutes(r)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.VideoHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.VideoHandler) {
+			h.RegisterRoutes(r)
 		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.SunoHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.SunoHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Provide(admin.NewChatAppTypeHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.ChatAppTypeHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.ChatAppTypeHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Provide(handler.NewChatAppTypeHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.ChatAppTypeHandler) {
@@ -440,8 +440,8 @@ func main() {
 			})
 		}),
 		fx.Provide(admin.NewImageHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.ImageHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(r *core.Router, h *admin.ImageHandler) {
+			h.RegisterRoutes(r)
 		}),
 		fx.Provide(handler.NewRealtimeHandler),
 		fx.Invoke(func(s *core.AppServer, h *handler.RealtimeHandler) {

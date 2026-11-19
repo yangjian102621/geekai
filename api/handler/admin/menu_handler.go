@@ -28,8 +28,9 @@ func NewMenuHandler(app *core.AppServer, db *gorm.DB) *MenuHandler {
 }
 
 // RegisterRoutes 注册路由
-func (h *MenuHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/admin/menu/")
+func (h *MenuHandler) RegisterRoutes(r *core.Router) {
+	// 需要管理员授权的接口（改造前漏挂管理员鉴权中间件，本次修复）
+	group := r.AdminGroup("/api/admin/menu/")
 	group.POST("save", h.Save)
 	group.GET("list", h.List)
 	group.POST("enable", h.Enable)

@@ -37,8 +37,9 @@ func NewAdminJimengHandler(app *core.AppServer, db *gorm.DB, jimengClient *jimen
 }
 
 // RegisterRoutes 注册即梦AI管理后台路由
-func (h *AdminJimengHandler) RegisterRoutes() {
-	rg := h.App.Engine.Group("/api/admin/jimeng/")
+func (h *AdminJimengHandler) RegisterRoutes(r *core.Router) {
+	// 需要管理员授权的接口（改造前漏挂管理员鉴权中间件，本次修复）
+	rg := r.AdminGroup("/api/admin/jimeng/")
 	rg.GET("/jobs", h.Jobs)
 	rg.GET("/jobs/:id", h.JobDetail)
 	rg.POST("/jobs/remove", h.BatchRemove)

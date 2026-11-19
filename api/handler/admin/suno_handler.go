@@ -10,7 +10,6 @@ package admin
 import (
 	"fmt"
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/service"
@@ -35,11 +34,9 @@ func NewSunoHandler(app *core.AppServer, db *gorm.DB, userService *service.UserS
 }
 
 // RegisterRoutes 注册路由
-func (h *SunoHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/admin/suno/")
-
+func (h *SunoHandler) RegisterRoutes(r *core.Router) {
 	// 需要管理员授权的接口
-	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	group := r.AdminGroup("/api/admin/suno/")
 	{
 		group.POST("list", h.SunoList)
 		group.GET("remove", h.Remove)

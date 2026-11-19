@@ -29,8 +29,9 @@ func NewPowerLogHandler(app *core.AppServer, db *gorm.DB) *PowerLogHandler {
 }
 
 // RegisterRoutes 注册路由
-func (h *PowerLogHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/admin/powerLog/")
+func (h *PowerLogHandler) RegisterRoutes(r *core.Router) {
+	// 需要管理员授权的接口（改造前漏挂管理员鉴权中间件，本次修复；保持纯只读）
+	group := r.AdminGroup("/api/admin/powerLog/")
 	group.POST("list", h.List)
 }
 

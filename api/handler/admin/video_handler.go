@@ -10,7 +10,6 @@ package admin
 import (
 	"fmt"
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/service"
@@ -41,9 +40,9 @@ func NewVideoHandler(app *core.AppServer, db *gorm.DB, userService *service.User
 }
 
 // RegisterRoutes 注册视频生成管理后台路由
-func (h *VideoHandler) RegisterRoutes() {
-	rg := h.App.Engine.Group("/api/admin/video/")
-	rg.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+func (h *VideoHandler) RegisterRoutes(r *core.Router) {
+	// 需要管理员授权的接口
+	rg := r.AdminGroup("/api/admin/video/")
 	{
 		rg.GET("config", h.GetConfig)
 		rg.POST("config/update", h.UpdateConfig)
