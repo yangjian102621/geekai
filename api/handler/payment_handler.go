@@ -11,7 +11,6 @@ import (
 	"embed"
 	"fmt"
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/payment"
@@ -74,19 +73,19 @@ func NewPaymentHandler(
 }
 
 // RegisterRoutes 注册路由
-func (h *PaymentHandler) RegisterRoutes() {
-	rg := h.App.Engine.Group("/api/payment/")
-
-	// 支付回调接口（公开）
-	rg.POST("notify/alipay", h.AlipayNotify)
-	rg.GET("notify/epay", h.EPayNotify)
-	rg.POST("notify/wxpay", h.WxpayNotify)
-	rg.POST("notify/stripe", h.StripeNotify)
+func (h *PaymentHandler) RegisterRoutes(r *core.Router) {
+	// 支付回调接口（公开）：由第三方网关服务器发起，天然不带用户 token。
+	// 误收进 UserGroup 的直接后果是"用户已付款、回调被 401、积分永不到账"。
+	public := r.PublicGroup("/api/payment/")
+	public.POST("notify/alipay", h.AlipayNotify)
+	public.GET("notify/epay", h.EPayNotify)
+	public.POST("notify/wxpay", h.WxpayNotify)
+	public.POST("notify/stripe", h.StripeNotify)
 
 	// 需要用户登录的接口
-	rg.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	group := r.UserGroup("/api/payment/")
 	{
-		rg.POST("create", h.CreateOrder)
+		group.POST("create", h.CreateOrder)
 	}
 }
 

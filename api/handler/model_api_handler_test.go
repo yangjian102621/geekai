@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/store/model"
@@ -20,7 +19,7 @@ import (
 	gormlogger "gorm.io/gorm/logger"
 )
 
-func modelAPITestHandler(t *testing.T) (*ModelAPIHandler, sqlmock.Sqlmock) {
+func modelAPITestHandler(t *testing.T) (*ModelAPIHandler, *gin.Engine, sqlmock.Sqlmock) {
 	t.Helper()
 	sqlDB, mock, err := sqlmock.New()
 	if err != nil {
@@ -37,9 +36,10 @@ func modelAPITestHandler(t *testing.T) (*ModelAPIHandler, sqlmock.Sqlmock) {
 		}
 	})
 	gin.SetMode(gin.TestMode)
-	app := &core.AppServer{Engine: gin.New(), Config: &types.AppConfig{}}
-	app.Engine.Use(middleware.ParameterHandlerMiddleware())
-	return NewModelAPIHandler(app, db, service.NewUserService(db)), mock
+	engine := gin.New()
+	// 走生产同一条构造路径：Thumb / Parameter / errorHandler 三个全局中间件一次装配完毕
+	app := core.NewServerWithEngine(engine, &types.AppConfig{}, nil)
+	return NewModelAPIHandler(app, db, service.NewUserService(db)), engine, mock
 }
 
 func modelAPIRequest(engine *gin.Engine, method, path, token, body string) *httptest.ResponseRecorder {
@@ -60,10 +60,10 @@ func expectModelAPIAuth(mock sqlmock.Sqlmock, key string, status bool, expiry in
 }
 
 func TestModelAPIAuthenticationAndCatalog(t *testing.T) {
-	h, mock := modelAPITestHandler(t)
-	h.RegisterRoutes()
+	h, engine, mock := modelAPITestHandler(t)
+	h.RegisterRoutes(h.App.Router)
 	for _, key := range []string{"", "raw-site-jwt", "Bearer upstream-key", "Bearer sk-short", "Bearer sk-thinkbuddy-" + strings.Repeat("a", 43)} {
-		w := modelAPIRequest(h.App.Engine, "GET", "/v1/models", key, "")
+		w := modelAPIRequest(engine, "GET", "/v1/models", key, "")
 		if w.Code != 401 || !strings.Contains(w.Body.String(), `"error"`) {
 			t.Fatalf("invalid credentials accepted: %d %s", w.Code, w.Body.String())
 		}
@@ -71,7 +71,7 @@ func TestModelAPIAuthenticationAndCatalog(t *testing.T) {
 	key := modelTokenPrefix + strings.Repeat("a", 43)
 	mock.ExpectQuery("SELECT .*thinkbuddy_model_tokens.*token_hash").WithArgs(modelTokenHash(key)).
 		WillReturnRows(sqlmock.NewRows([]string{"user_id"}))
-	if w := modelAPIRequest(h.App.Engine, "GET", "/v1/models", "Bearer "+key, ""); w.Code != 401 {
+	if w := modelAPIRequest(engine, "GET", "/v1/models", "Bearer "+key, ""); w.Code != 401 {
 		t.Fatalf("revoked token accepted: %d", w.Code)
 	}
 	for _, account := range []struct {
@@ -79,7 +79,7 @@ func TestModelAPIAuthenticationAndCatalog(t *testing.T) {
 		expiry int64
 	}{{false, 0}, {true, time.Now().Unix() - 1}} {
 		expectModelAPIAuth(mock, key, account.status, account.expiry)
-		if w := modelAPIRequest(h.App.Engine, "GET", "/v1/models", "Bearer "+key, ""); w.Code != 403 {
+		if w := modelAPIRequest(engine, "GET", "/v1/models", "Bearer "+key, ""); w.Code != 403 {
 			t.Fatalf("unavailable account accepted: %d", w.Code)
 		}
 	}
@@ -88,7 +88,7 @@ func TestModelAPIAuthenticationAndCatalog(t *testing.T) {
 		WithArgs("chat", true, true, 8).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "value", "created_at", "key_id"}).
 			AddRow(1, "test-model", time.Unix(10, 0), 99).AddRow(8, "test-model", time.Unix(10, 0), 99))
-	w := modelAPIRequest(h.App.Engine, "GET", "/v1/models", "Bearer "+key, "")
+	w := modelAPIRequest(engine, "GET", "/v1/models", "Bearer "+key, "")
 	var catalog struct {
 		Object string
 		Data   []struct {
@@ -112,15 +112,15 @@ func (a *tokenHashArgument) Match(value driver.Value) bool {
 }
 
 func TestModelTokenRotationAndRevocation(t *testing.T) {
-	h, mock := modelAPITestHandler(t)
-	h.RegisterRoutes()
+	h, engine, mock := modelAPITestHandler(t)
+	h.RegisterRoutes(h.App.Router)
 	for _, method := range []string{"GET", "POST", "DELETE"} {
-		if w := modelAPIRequest(h.App.Engine, method, "/api/user/model-token", "", ""); w.Code != 401 {
+		if w := modelAPIRequest(engine, method, "/api/user/model-token", "", ""); w.Code != 401 {
 			t.Fatalf("unprotected token management: %d", w.Code)
 		}
 	}
 	// 管理操作从已认证的用户上下文取身份，忽略请求中的 user_id。
-	account := h.App.Engine.Group("/test-token", func(c *gin.Context) {
+	account := engine.Group("/test-token", func(c *gin.Context) {
 		c.Set(types.LoginUserCache, model.User{Id: 7, Status: true})
 	})
 	account.POST("", h.RotateToken)
@@ -132,7 +132,7 @@ func TestModelTokenRotationAndRevocation(t *testing.T) {
 		mock.ExpectExec("INSERT INTO `thinkbuddy_model_tokens`.*ON DUPLICATE KEY UPDATE").
 			WithArgs(7, digest, sqlmock.AnyArg()).WillReturnResult(sqlmock.NewResult(0, 1))
 		mock.ExpectCommit()
-		w := modelAPIRequest(h.App.Engine, "POST", "/test-token", "", `{"user_id":999}`)
+		w := modelAPIRequest(engine, "POST", "/test-token", "", `{"user_id":999}`)
 		var result struct {
 			Code int
 			Data struct{ Token string }
@@ -143,13 +143,13 @@ func TestModelTokenRotationAndRevocation(t *testing.T) {
 	}
 	mock.ExpectQuery("SELECT .*thinkbuddy_model_tokens.*user_id").WithArgs(7).
 		WillReturnRows(sqlmock.NewRows([]string{"user_id", "token_hash", "created_at"}).AddRow(7, "private-hash", time.Now()))
-	if w := modelAPIRequest(h.App.Engine, "GET", "/test-token", "", ""); !strings.Contains(w.Body.String(), `"enabled":true`) || strings.Contains(w.Body.String(), "private-hash") {
+	if w := modelAPIRequest(engine, "GET", "/test-token", "", ""); !strings.Contains(w.Body.String(), `"enabled":true`) || strings.Contains(w.Body.String(), "private-hash") {
 		t.Fatalf("unsafe token status: %s", w.Body.String())
 	}
 	mock.ExpectBegin()
 	mock.ExpectExec("DELETE FROM `thinkbuddy_model_tokens` WHERE user_id = \\?").WithArgs(7).WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectCommit()
-	if w := modelAPIRequest(h.App.Engine, "DELETE", "/test-token", "", ""); !strings.Contains(w.Body.String(), `"code":0`) {
+	if w := modelAPIRequest(engine, "DELETE", "/test-token", "", ""); !strings.Contains(w.Body.String(), `"code":0`) {
 		t.Fatalf("revoke failed: %s", w.Body.String())
 	}
 }

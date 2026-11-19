@@ -9,7 +9,6 @@ package handler
 
 import (
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/store/model"
 	"geekai/store/vo"
@@ -29,12 +28,12 @@ func NewChatAppHandler(app *core.AppServer, db *gorm.DB) *ChatAppHandler {
 }
 
 // RegisterRoutes 注册路由
-func (h *ChatAppHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/app/")
-	group.GET("list", h.List)
+func (h *ChatAppHandler) RegisterRoutes(r *core.Router) {
+	// 公开接口：匿名首页应用陈列
+	r.PublicGroup("/api/app/").GET("list", h.List)
 
 	// 需要用户授权的接口
-	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	group := r.UserGroup("/api/app/")
 	{
 		group.GET("list/user", h.ListByUser)
 		group.POST("create", h.Create)

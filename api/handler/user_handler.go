@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/store"
@@ -71,26 +70,27 @@ func NewUserHandler(
 }
 
 // RegisterRoutes 注册路由
-func (h *UserHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/user/")
-
-	// 公开接口，不需要授权
-	group.POST("register", h.Register)
-	group.POST("login", h.Login)
-	group.POST("login/mobile", h.MobileLogin)
-	group.GET("login/tokengine/config", h.TokengineConfig)
-	group.GET("login/tokengine/start", h.TokengineStart)
-	group.GET("login/tokengine/callback", h.TokengineCallback)
-	group.POST("login/tokengine/complete", h.TokengineComplete)
-	group.POST("resetPass", h.ResetPass)
-	group.GET("login/qrcode", h.GetWxLoginQRCode)
-	group.POST("login/callback", h.WxLoginCallback)
-	group.GET("login/status", h.GetWxLoginState)
-	group.GET("logout", h.Logout)
-	group.POST("wxAuthLogin", h.WxAuthLogin)
+func (h *UserHandler) RegisterRoutes(r *core.Router) {
+	// 公开接口，不需要授权。
+	// 注意：logout 也在公开段 —— 登出必须允许"token 已失效"的用户调用，
+	// 否则用户会卡在无法登出、而服务端会话 key 仍在有效期内继续可用。
+	public := r.PublicGroup("/api/user/")
+	public.POST("register", h.Register)
+	public.POST("login", h.Login)
+	public.POST("login/mobile", h.MobileLogin)
+	public.GET("login/tokengine/config", h.TokengineConfig)
+	public.GET("login/tokengine/start", h.TokengineStart)
+	public.GET("login/tokengine/callback", h.TokengineCallback)
+	public.POST("login/tokengine/complete", h.TokengineComplete)
+	public.POST("resetPass", h.ResetPass)
+	public.GET("login/qrcode", h.GetWxLoginQRCode)
+	public.POST("login/callback", h.WxLoginCallback)
+	public.GET("login/status", h.GetWxLoginState)
+	public.GET("logout", h.Logout)
+	public.POST("wxAuthLogin", h.WxAuthLogin)
 
 	// 需要用户授权的接口
-	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	group := r.UserGroup("/api/user/")
 	{
 		group.GET("session", h.Session)
 		group.GET("profile", h.Profile)

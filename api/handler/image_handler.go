@@ -10,7 +10,6 @@ package handler
 import (
 	"fmt"
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/image"
@@ -47,15 +46,14 @@ func NewImageJobHandler(app *core.AppServer, db *gorm.DB, service *image.Service
 }
 
 // RegisterRoutes 注册路由
-func (h *ImageJobHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/image/")
-
-	// 公开接口，不需要授权
-	group.GET("imgWall", h.ImgWall)
-	group.GET("models", h.GetModels)
+func (h *ImageJobHandler) RegisterRoutes(r *core.Router) {
+	// 公开接口，不需要授权：匿名作品墙与模型陈列
+	public := r.PublicGroup("/api/image/")
+	public.GET("imgWall", h.ImgWall)
+	public.GET("models", h.GetModels)
 
 	// 需要用户授权的接口
-	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	group := r.UserGroup("/api/image/")
 	{
 		group.POST("image", h.Image)
 		group.GET("jobs", h.JobList)

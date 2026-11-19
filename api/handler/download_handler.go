@@ -53,14 +53,14 @@ func NewDownloadHandler(app *core.AppServer) *DownloadHandler {
 	}
 }
 
-func (h *DownloadHandler) RegisterRoutes() {
-	v1 := h.App.Engine.Group("/api/v1")
+func (h *DownloadHandler) RegisterRoutes(r *core.Router) {
+	// 公开接口：桌面客户端自动更新，发生在启动 / 登录之前，无 token
+	v1 := r.PublicGroup("/api/v1")
 	v1.GET("/latest", h.Latest)
 	v1.GET("/download", withDownloadWriteDeadline(), h.Download)
 
 	// 安装包与清单直接由后端静态目录提供，nginx 的 /update/ 会转发到这里。
-	updates := h.App.Engine.Group("", withDownloadWriteDeadline(), withUpdateCacheControl())
-	updates.Static("/update", h.updateDir)
+	r.StaticFiles("/update", h.updateDir, withDownloadWriteDeadline(), withUpdateCacheControl())
 }
 
 func (h *DownloadHandler) readManifest() (updateManifest, error) {
