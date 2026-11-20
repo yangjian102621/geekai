@@ -88,7 +88,6 @@ type Handlers struct {
 	Captcha     *handler.CaptchaHandler
 	Mj          *handler.MidJourneyHandler
 	ChatModel   *handler.ChatModelHandler
-	ModelAPI    *handler.ModelAPIHandler
 	Payment     *handler.PaymentHandler
 	Order       *handler.OrderHandler
 	Product     *handler.ProductHandler
@@ -137,7 +136,7 @@ type Handlers struct {
 
 // wantRegistrars 是"必须被注册的路由注册器总数"，同时等价于 Handlers 的字段数。
 // 任何"加了字段忘了加切片"或"加了 handler 忘了加字段"都会在启动期炸掉，而不是静默不生效。
-const wantRegistrars = 53
+const wantRegistrars = 52
 
 // registerRoutes 是 main.go 里唯一的路由注册点。
 // 新增 handler 必须同时在 Handlers 结构体里加字段、在下面的切片里加一项。
@@ -145,7 +144,7 @@ func registerRoutes(r *core.Router, hs Handlers) {
 	registrars := []core.RouteRegistrar{
 		// 用户侧
 		hs.User, hs.ChatApp, hs.Chat, hs.Net, hs.Download, hs.Sms, hs.Redeem,
-		hs.Captcha, hs.Mj, hs.ChatModel, hs.ModelAPI, hs.Payment, hs.Order,
+		hs.Captcha, hs.Mj, hs.ChatModel, hs.Payment, hs.Order,
 		hs.Product, hs.Config, hs.PowerLog, hs.Jimeng, hs.WxGzh, hs.Invite,
 		hs.Function, hs.Menu, hs.MarkMap, hs.ImageJob, hs.Suno, hs.Video,
 		hs.ChatAppType, hs.Test, hs.Prompt, hs.Realtime, hs.Library, hs.ClientEvent,
@@ -257,7 +256,6 @@ func main() {
 		fx.Provide(handler.NewCaptchaHandler),
 		fx.Provide(handler.NewMidJourneyHandler),
 		fx.Provide(handler.NewChatModelHandler),
-		fx.Provide(handler.NewModelAPIHandler),
 		fx.Provide(handler.NewPaymentHandler),
 		fx.Provide(handler.NewOrderHandler),
 		fx.Provide(handler.NewProductHandler),

@@ -75,7 +75,7 @@ export default defineConfig(({ mode }) => {
                 changeOrigin: true,
                 ws: true,
               },
-              '/v1': {
+              '/v1/events': {
                 target: apiHost,
                 changeOrigin: true,
               },

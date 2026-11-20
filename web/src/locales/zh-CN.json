@@ -1,24 +1,4 @@
 {
-  "model_api": {
-    "title": "模型 API",
-    "description": "连接 ThinkBuddy 桌面端或其他兼容客户端，使用本站积分调用模型。",
-    "base_url": "接口地址",
-    "protocol": "接口协议",
-    "token": "模型令牌",
-    "enabled": "模型令牌已启用",
-    "disabled": "尚未生成模型令牌",
-    "create": "生成令牌",
-    "reset": "重置令牌",
-    "revoke": "停用令牌",
-    "processing": "处理中…",
-    "copy": "复制",
-    "copied": "已复制",
-    "save_once": "令牌仅在本次生成后显示，请及时保存。每个账号保留一个令牌，重置后旧令牌立即失效。",
-    "confirm_reset": "重置后旧令牌将立即失效，已连接的客户端需要重新填写。确定重置？",
-    "confirm_revoke": "停用后，使用此令牌的客户端将无法继续调用模型。确定停用？",
-    "action_error": "操作失败，请重试。",
-    "copy_error": "复制失败，请选中令牌手动复制。"
-  },
   "space": {
     "title": "个人空间",
     "subtitle": "查看你的积分与账号信息",

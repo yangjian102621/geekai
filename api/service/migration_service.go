@@ -133,7 +133,6 @@ func (s *MigrationService) fullTableMigration() {
 		&model.AdminUser{},
 		&model.ChatApp{},
 		&model.ApiKey{},
-		&model.ModelToken{},
 		&model.AppType{},
 		&model.ChatModel{},
 		&model.User{},

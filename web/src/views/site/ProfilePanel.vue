@@ -20,7 +20,6 @@
         </div>
       </dl>
     </div>
-    <ModelTokenPanel :user-id="user.id" />
   </div>
 </template>
 
@@ -28,7 +27,6 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Coins, Phone, UserRound } from 'lucide-vue-next'
-import ModelTokenPanel from './ModelTokenPanel.vue'
 import { formatNumber } from '@/services/site'
 
 const props = defineProps({

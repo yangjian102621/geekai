@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// RequestChatCompletion 共用后台的模型密钥配置，用户模型令牌不会发给上游。
+// RequestChatCompletion 使用后台配置的模型密钥请求上游对话接口。
 func RequestChatCompletion(ctx context.Context, db *gorm.DB, keyID uint, body []byte, key *model.ApiKey) (*http.Response, error) {
 	query := db.Where("enabled = ? AND type = ?", true, "chat")
 	if keyID > 0 {
