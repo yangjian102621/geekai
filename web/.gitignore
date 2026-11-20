@@ -8,4 +8,5 @@ lerna-debug.log*
 node_modules
 dist
 dist.tar.gz
+.vite
 vite.config.*.timestamp-*.mjs
