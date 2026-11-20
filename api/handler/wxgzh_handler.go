@@ -32,8 +32,9 @@ func NewWxGzhHandler(server *core.AppServer) *WxGzhHandler {
 	}
 }
 
-func (h *WxGzhHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/wx/")
+func (h *WxGzhHandler) RegisterRoutes(r *core.Router) {
+	// 公开接口：微信服务器签名校验，无 token
+	group := r.PublicGroup("/api/wx/")
 	group.GET("verify", h.WechatVerify)
 }
 

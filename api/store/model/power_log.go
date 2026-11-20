@@ -16,7 +16,18 @@ type PowerLog struct {
 	Model     string          `gorm:"column:model;type:varchar(255);not null;comment:模型" json:"model"`
 	Remark    string          `gorm:"column:remark;type:varchar(512);not null;comment:备注" json:"remark"`
 	Mark      types.PowerMark `gorm:"column:mark;type:tinyint(1);not null;comment:资金类型（0：支出，1：收入）" json:"mark"`
-	CreatedAt time.Time       `gorm:"column:created_at;type:datetime;not null;comment:创建时间" json:"created_at"`
+	// RefType / RefId 是账本幂等键：两者组合成唯一索引 uk_power_ref，
+	// 让"同一个业务事件"（同一订单、同一任务）在整个数据库里最多入账一次。
+	//
+	// 这两个字段【必须】是可空指针（*string / *uint），不能是 string / uint：
+	// AutoMigrate 在每次服务启动时对存量表执行 ALTER TABLE ... ADD UNIQUE INDEX，
+	// 存量历史行没有业务关联键。若列定义为 NOT NULL DEFAULT ''/0，
+	// 所有存量行会取到相同的 ('',0)，建索引时互相撞唯一键，迁移直接失败，
+	// 结果是整个服务起不来。用指针时 MySQL 允许唯一索引上存在多个 NULL
+	// （NULL 之间互不相等），存量行全部为 NULL 即可安全建索引。
+	RefType *string `gorm:"column:ref_type;type:varchar(32);uniqueIndex:uk_power_ref;comment:关联业务类型" json:"ref_type,omitempty"`
+	RefId   *uint   `gorm:"column:ref_id;type:int(11);uniqueIndex:uk_power_ref;comment:关联业务ID" json:"ref_id,omitempty"`
+	CreatedAt time.Time `gorm:"column:created_at;type:datetime;not null;comment:创建时间" json:"created_at"`
 }
 
 func (m *PowerLog) TableName() string {

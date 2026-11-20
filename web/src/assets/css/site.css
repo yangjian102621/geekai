@@ -1,0 +1,1144 @@
+/* ============================================================
+   门户站点样式（自 React web 移植）
+   ------------------------------------------------------------
+   ThinkBuddy Design System —— 暖纸与大地色方向：
+   1. 暖奶油画布（#faf9f5）而非纯白/冷灰 —— 纸张感
+   2. 暖近黑文字（#141413）承担全部信息层级
+   3. 青铜琥珀是唯一强调色，且必须稀缺
+   4. 深度靠色块对比（奶油 ↔ 深墨）而非阴影
+   5. 标题走衬线 + 400 字重 + 负字距，正文走人文无衬线
+   Tailwind 色板见 tailwind.config.js；此处保留 CSS 变量供自定义类使用。
+   ============================================================ */
+:root {
+  --color-canvas: #faf9f5;
+  --color-surface-soft: #f5f2ea;
+  --color-surface-card: #f0ebe0;
+  --color-cream-strong: #e8e1d3;
+  --color-hairline: #e3ddd1;
+  --color-hairline-soft: #ece7dc;
+  --color-ink: #141413;
+  --color-body-strong: #252523;
+  --color-body: #3d3d3a;
+  --color-muted: #6b6862;
+  --color-muted-soft: #757168;
+  --color-dark: #191816;
+  --color-on-dark: #faf9f5;
+  --color-on-dark-soft: #a09d96;
+  --color-primary: #8a5a2b;
+  --color-primary-hover: #75491f;
+  --color-coral: #b7874e;
+  --color-coral-soft: #f6ecdd;
+  --color-teal-soft: #e5f1ee;
+  --color-amber-soft: #f9eed9;
+
+  --shadow-soft: 0 1px 3px rgba(20, 20, 19, 0.07);
+  --shadow-lift: 0 8px 24px -14px rgba(20, 20, 19, 0.22);
+}
+
+/* 以下规则仅作用于门户站点页面（body.site），
+   避免污染 /admin 后台的全局样式。 */
+body.site {
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto,
+    "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+}
+
+body.site ::selection {
+  background: var(--color-coral-soft);
+  color: var(--color-ink);
+}
+
+body.site html,
+body.site {
+  min-height: 100%;
+}
+
+/* ============================================================
+   排版基元
+   ============================================================ */
+.site .display {
+  font-weight: 400;
+  letter-spacing: -0.028em;
+  line-height: 1.04;
+  color: var(--color-ink);
+}
+.site .display-tight {
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
+
+/* 章节眉题：等宽小字 + 宽字距，编辑式细节 */
+.site .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.site .eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: var(--color-coral);
+}
+
+/* 段落交替底色：靠色块而非阴影分节 */
+.site .section-soft {
+  background-color: var(--color-surface-soft);
+}
+.site .section-canvas {
+  background-color: var(--color-canvas);
+}
+.site .section-dark {
+  background-color: var(--color-dark);
+  color: var(--color-on-dark);
+}
+
+/* 通用链接：赤陶色，是系统里少数用色的地方 */
+.site .text-link {
+  color: var(--color-primary);
+  transition: color 160ms ease;
+}
+.site .text-link:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ============================================================
+   Hero —— flat 奶油画布，不叠光晕与网格
+   ============================================================ */
+.site .hero-bg {
+  background-color: var(--color-canvas);
+  background-image: radial-gradient(
+    ellipse 78% 52% at 50% -14%,
+    rgba(183, 135, 78, 0.09),
+    transparent 72%
+  );
+}
+
+.site .hero-grid-overlay {
+  display: none;
+}
+
+.site .hero-aurora {
+  position: absolute;
+  top: -30%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 62%;
+  height: 78%;
+  background: radial-gradient(ellipse, rgba(183, 135, 78, 0.13), transparent 68%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.75;
+}
+
+.site .hero-glow {
+  display: none;
+}
+
+/* 标题里的强调：文字仍是墨色，只用一道琥珀细线做记号笔式强调 */
+.site .hero-highlight {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--color-coral);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.24em;
+  text-decoration-skip-ink: none;
+}
+
+/* ============================================================
+   顶部导航
+   ============================================================ */
+.site .topnav {
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease;
+}
+.site .topnav-scrolled {
+  background-color: rgba(250, 249, 245, 0.92);
+  backdrop-filter: saturate(140%) blur(12px);
+  -webkit-backdrop-filter: saturate(140%) blur(12px);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+/* ============================================================
+   演示卡片
+   ============================================================ */
+.site .demo-card-visual {
+  background: var(--color-surface-card);
+  border-bottom: 1px solid var(--color-hairline);
+  overflow: hidden;
+  position: relative;
+  cursor: zoom-in;
+}
+.site .demo-card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  z-index: 1;
+  transition: transform 600ms cubic-bezier(0.2, 0, 0.2, 1);
+}
+.site .demo-card-visual:hover .demo-card-img {
+  transform: scale(1.03);
+}
+
+.site .lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(20, 20, 19, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 220ms ease;
+  cursor: zoom-out;
+}
+.site .lightbox-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+.site .lightbox-overlay img {
+  max-width: 92vw;
+  max-height: 90vh;
+  border-radius: 12px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+  transform: scale(0.96);
+  transition: transform 220ms ease;
+}
+.site .lightbox-overlay.active img {
+  transform: scale(1);
+}
+
+/* ============================================================
+   能力卡片 —— 奶油卡、无阴影、hairline 边，hover 才轻微抬起
+   ============================================================ */
+.site .feature-card {
+  position: relative;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease,
+    transform 200ms ease;
+}
+.site .feature-card:hover {
+  border-color: var(--tone, var(--color-coral));
+  transform: translateY(-2px);
+}
+
+.site .feature-icon-wrap {
+  background: var(--tone-soft, var(--color-coral-soft));
+  color: var(--tone, var(--color-primary));
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
+}
+.site .feature-card:hover .feature-icon-wrap {
+  background: var(--tone, var(--color-primary));
+  color: var(--color-on-dark);
+}
+
+/* ============================================================
+   时间线
+   ============================================================ */
+.site .timeline-line {
+  background: var(--color-hairline);
+}
+.site .timeline-dot {
+  background: var(--color-canvas);
+  border: 2px solid var(--color-coral);
+}
+
+/* ============================================================
+   集成生态 chip
+   ============================================================ */
+.site .ecosystem-chip {
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  color: var(--color-body-strong);
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    background-color 180ms ease;
+}
+.site .ecosystem-chip:hover {
+  border-color: var(--color-coral);
+  color: var(--color-primary);
+  background: var(--color-coral-soft);
+}
+
+/* ============================================================
+   下载卡片
+   ============================================================ */
+.site .download-card-recommended {
+  border-color: var(--color-coral);
+  box-shadow: var(--shadow-soft);
+}
+
+/* ============================================================
+   按钮 —— 实色、无渐变、无彩影；hover 只加深
+   ============================================================ */
+.site .btn-primary {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border: 1px solid var(--color-primary);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+.site .btn-primary:hover {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+.site .btn-primary:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.site .btn-secondary {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+.site .btn-secondary:hover {
+  border-color: var(--color-ink);
+  background-color: var(--color-surface-soft);
+}
+.site .btn-secondary:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   Footer —— 深墨收尾，永不反色
+   ============================================================ */
+.site .footer-grid {
+  display: grid;
+  grid-template-columns: 1.5fr repeat(3, 1fr);
+  gap: 32px;
+}
+@media (max-width: 768px) {
+  .site .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+.site .footer-shell {
+  position: relative;
+  background-color: var(--color-dark);
+  color: var(--color-on-dark-soft);
+}
+.site .footer-shell::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: rgba(250, 249, 245, 0.1);
+}
+/* 页脚 logo：源图是纯黑线条画，brightness(0) + invert(1) 反白 */
+.site .footer-logo {
+  filter: brightness(0) invert(1);
+}
+
+/* ============================================================
+   导航链接
+   ============================================================ */
+.site .nav-link {
+  position: relative;
+  transition: color 180ms ease;
+}
+.site .nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 1px;
+  background: var(--color-coral);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 200ms ease;
+}
+.site .nav-link:hover::after {
+  transform: scaleX(1);
+}
+
+/* ============================================================
+   数字统计条 —— 衬线大数字，琥珀只给加号
+   ============================================================ */
+.site .stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin: 36px auto 0;
+  padding: 24px 28px;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  border-radius: 12px;
+  max-width: 760px;
+}
+.site .stat-item {
+  text-align: center;
+  min-width: 90px;
+}
+.site .stat-number {
+  font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--color-ink);
+}
+.site .stat-plus {
+  font-size: 22px;
+  margin-left: 2px;
+  color: var(--color-coral);
+}
+.site .stat-label {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--color-muted);
+}
+.site .stat-divider {
+  width: 1px;
+  height: 34px;
+  background: var(--color-hairline);
+}
+@media (max-width: 640px) {
+  .site .stats-bar {
+    gap: 16px;
+    padding: 18px;
+  }
+  .site .stat-number {
+    font-size: 26px;
+  }
+  .site .stat-divider {
+    display: none;
+  }
+}
+
+/* ============================================================
+   大字排版区
+   ============================================================ */
+.site .bigtext-section {
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.site .bigtext-title {
+  font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-size: clamp(30px, 6vw, 68px);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  margin-bottom: 24px;
+  white-space: nowrap;
+  color: var(--color-ink);
+}
+.site .bigtext-subtitle {
+  font-size: clamp(14px, 2vw, 17px);
+  color: var(--color-muted);
+  max-width: 640px;
+  margin: 0 auto 52px;
+  line-height: 1.7;
+}
+.site .bigtext-words {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 12px;
+}
+.site .big-word {
+  font-size: clamp(13px, 2vw, 16px);
+  font-weight: 500;
+  color: var(--color-body-strong);
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 520ms ease,
+    transform 520ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+  transition-delay: var(--d, 0ms);
+}
+.site .big-word.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.site [data-reveal].reveal-visible .big-word {
+  opacity: 1;
+  transform: translateY(0);
+}
+.site .big-word:hover {
+  color: var(--color-primary);
+  border-color: var(--color-coral);
+  background: var(--color-coral-soft);
+}
+
+/* ============================================================
+   滚动渐入
+   ============================================================ */
+.site [data-reveal] {
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 560ms ease,
+    transform 560ms ease;
+}
+.site [data-reveal].reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ============================================================
+   打字机
+   ============================================================ */
+.site .typed-line {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+.site .typed-cursor {
+  color: var(--color-coral);
+  font-weight: 400;
+  animation: typed-blink 1s steps(2) infinite;
+  margin-left: 1px;
+}
+@keyframes typed-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ============================================================
+   移动端菜单
+   ============================================================ */
+.site .mobile-menu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 280ms ease;
+}
+.site .mobile-menu-open {
+  max-height: 480px;
+}
+
+/* ============================================================
+   定价页
+   ============================================================ */
+.site .billing-toggle {
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+  color: var(--color-muted);
+}
+.site .billing-toggle-active {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-soft);
+}
+.site .pricing-card {
+  transition:
+    border-color 200ms ease,
+    transform 200ms ease;
+}
+.site .pricing-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-muted-soft);
+}
+/* 推荐档位靠深墨描边区分，而不是高亮色块 */
+.site .pricing-card-featured {
+  border-color: var(--color-ink);
+}
+.site .faq-item summary {
+  list-style: none;
+}
+.site .faq-item summary::-webkit-details-marker {
+  display: none;
+}
+.site .faq-item summary::after {
+  content: "+";
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--color-muted-soft);
+  transition: color 160ms ease;
+}
+.site .faq-item[open] summary::after {
+  content: "−";
+  color: var(--color-primary);
+}
+.site .faq-item[open] {
+  border-color: var(--color-hairline);
+  background: var(--color-canvas);
+}
+
+/* ============================================================
+   顶部导航登录态
+   ============================================================ */
+.site .auth-login-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-ink);
+  background: transparent;
+  border: 1px solid var(--color-hairline);
+  border-radius: 8px;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+  cursor: pointer;
+}
+.site .auth-login-btn:hover {
+  border-color: var(--color-ink);
+  background: var(--color-surface-soft);
+}
+.site .auth-user-name {
+  display: inline-flex;
+  align-items: center;
+  max-width: 140px;
+  padding: 5px 11px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-body-strong);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: 999px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.site .auth-logout-btn {
+  margin-left: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 160ms ease;
+  display: inline-flex;
+  align-items: center;
+}
+.site .auth-logout-btn:hover {
+  color: var(--color-primary);
+}
+
+/* ============================================================
+   邀请页
+   ============================================================ */
+.site .invite-hero {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-canvas);
+  background-image: radial-gradient(
+    ellipse 72% 50% at 50% -10%,
+    rgba(183, 135, 78, 0.1),
+    transparent 72%
+  );
+  color: var(--color-ink);
+}
+.site .invite-hero-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 88% 84%, rgba(183, 135, 78, 0.07) 0%, transparent 55%),
+    radial-gradient(circle at 10% 26%, rgba(183, 135, 78, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+}
+.site .invite-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  color: var(--color-body-strong);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  margin-bottom: 22px;
+}
+.site .invite-hero-title {
+  font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: 18px;
+  color: var(--color-ink);
+}
+@media (min-width: 640px) {
+  .site .invite-hero-title {
+    font-size: 58px;
+  }
+}
+
+/* 强调行：赤陶色（全页仅此一处大字用色） */
+.site .invite-hero-title-accent {
+  color: var(--color-primary);
+}
+
+.site .invite-hero-subtitle {
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--color-body);
+  max-width: 620px;
+  margin: 0 auto 32px;
+}
+.site .invite-hero-cta-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 44px;
+}
+.site .invite-cta-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 13px 28px;
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  border: 1px solid var(--color-primary);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+.site .invite-cta-primary:hover {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+.site .invite-cta-primary:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.site .invite-cta-primary-lg {
+  padding: 16px 38px;
+  font-size: 16px;
+}
+.site .invite-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 24px;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+.site .invite-cta-secondary:hover {
+  border-color: var(--color-ink);
+  background-color: var(--color-surface-soft);
+}
+.site .invite-hero-stats {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 24px 40px;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  border-radius: 12px;
+}
+.site .invite-hero-stat-num {
+  font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-size: 40px;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--color-ink);
+}
+.site .invite-hero-stat-label {
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-top: 8px;
+  text-align: center;
+}
+.site .invite-hero-stat-divider {
+  width: 1px;
+  height: 34px;
+  background: var(--color-hairline);
+}
+
+.site .invite-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--color-hairline);
+  border-top-color: var(--color-primary);
+  animation: invite-spin 800ms linear infinite;
+}
+@keyframes invite-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.site .invite-progress-big {
+  max-width: 560px;
+  margin: 0 auto 28px;
+  padding: 24px 28px;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  border-radius: 12px;
+  text-align: left;
+}
+.site .invite-progress-bar-big {
+  background: var(--color-cream-strong);
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.site .invite-progress-fill-big {
+  background: var(--color-coral);
+  height: 100%;
+  border-radius: 999px;
+  transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.site .invite-hero-user {
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--color-muted);
+}
+.site .invite-hero-user span:last-child {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.site .invite-share-section {
+  padding: 60px 0 40px;
+}
+.site .invite-share-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 48px;
+  padding: 40px;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  border-radius: 12px;
+  align-items: center;
+}
+@media (max-width: 768px) {
+  .site .invite-share-card {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 28px;
+    text-align: center;
+  }
+}
+.site .invite-share-qr-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.site .invite-share-link-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.site .invite-link-label {
+  display: block;
+  margin-bottom: 10px;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.site .invite-share-link-row {
+  display: flex;
+  gap: 10px;
+}
+@media (max-width: 768px) {
+  .site .invite-share-link-row {
+    flex-direction: column;
+  }
+}
+.site .invite-share-link-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid var(--color-hairline);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--color-surface-soft);
+  color: var(--color-ink);
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+.site .invite-share-link-input:focus {
+  border-color: var(--color-primary);
+  background: var(--color-canvas);
+}
+.site .invite-copy-btn-big {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 22px;
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border: 1px solid var(--color-primary);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+.site .invite-copy-btn-big:hover {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.site .invite-section-title {
+  font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-size: 32px;
+  font-weight: 400;
+  color: var(--color-ink);
+  letter-spacing: -0.028em;
+  margin-bottom: 12px;
+}
+.site .invite-section-subtitle {
+  font-size: 15px;
+  color: var(--color-muted);
+}
+
+.site .invite-rewards-section {
+  background-color: var(--color-canvas);
+}
+.site .invite-steps-section {
+  background-color: var(--color-surface-soft);
+}
+
+.site .invite-big-card {
+  position: relative;
+  padding: 32px 28px;
+  border-radius: 12px;
+  border: 1px solid var(--color-hairline);
+  background: var(--color-canvas);
+  transition: border-color 200ms ease;
+}
+.site .invite-big-card:hover {
+  border-color: var(--color-muted-soft);
+}
+.site .invite-big-card-invitee {
+  background: var(--color-teal-soft);
+  border-color: #cfe3dd;
+}
+.site .invite-big-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  color: var(--color-ink);
+}
+.site .invite-big-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.site .invite-big-card-desc {
+  font-size: 14px;
+  color: var(--color-body);
+  line-height: 1.75;
+}
+
+.site .invite-step-card {
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  border-radius: 12px;
+  padding: 32px 28px;
+  text-align: center;
+  transition: border-color 200ms ease;
+}
+.site .invite-step-card:hover {
+  border-color: var(--color-muted-soft);
+}
+.site .invite-step-num {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-surface-card);
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+  font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-size: 20px;
+  font-weight: 400;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+.site .invite-step-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-bottom: 8px;
+}
+.site .invite-step-desc {
+  font-size: 14px;
+  color: var(--color-muted);
+  line-height: 1.7;
+}
+
+.site .invite-faq-section {
+  background-color: var(--color-surface-soft);
+}
+.site .invite-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.site .invite-faq-item {
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 160ms ease;
+}
+.site .invite-faq-item[open] {
+  border-color: var(--color-muted-soft);
+}
+.site .invite-faq-q {
+  padding: 18px 22px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.site .invite-faq-q::-webkit-details-marker {
+  display: none;
+}
+.site .invite-faq-q::after {
+  content: "+";
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--color-muted-soft);
+  margin-left: 16px;
+  flex-shrink: 0;
+}
+.site .invite-faq-item[open] .invite-faq-q::after {
+  content: "−";
+  color: var(--color-primary);
+}
+.site .invite-faq-a {
+  padding: 0 22px 18px;
+  font-size: 14px;
+  color: var(--color-body);
+  line-height: 1.8;
+}
+
+.site .invite-qr-wrapper {
+  display: inline-flex;
+  justify-content: center;
+  padding: 14px;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  border-radius: 8px;
+}
+.site .invite-qr-wrapper canvas {
+  display: block;
+  border-radius: 6px;
+}
+
+/* 底部 CTA：深墨带，靠独一份的色块收尾 */
+.site .invite-bottom-cta {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-dark);
+  color: var(--color-on-dark);
+}
+.site .invite-bottom-cta-title {
+  font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-size: 36px;
+  font-weight: 400;
+  letter-spacing: -0.028em;
+  margin-bottom: 14px;
+  color: var(--color-on-dark);
+}
+@media (max-width: 640px) {
+  .site .invite-bottom-cta-title {
+    font-size: 26px;
+  }
+}
+.site .invite-bottom-cta-sub {
+  font-size: 15px;
+  color: var(--color-on-dark-soft);
+  margin-bottom: 30px;
+}
+.site .invite-bottom-cta .invite-cta-primary {
+  background-color: var(--color-on-dark);
+  color: var(--color-ink);
+  border-color: var(--color-on-dark);
+}
+.site .invite-bottom-cta .invite-cta-primary:hover {
+  background-color: #ffffff;
+  border-color: #ffffff;
+}

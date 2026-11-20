@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/jimeng"
@@ -37,12 +36,12 @@ func NewJimengHandler(app *core.AppServer, jimengService *jimeng.Service, db *go
 }
 
 // RegisterRoutes 注册路由，新增统一任务接口
-func (h *JimengHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/jimeng/")
-	group.GET("power-config", h.GetPowerConfig)
+func (h *JimengHandler) RegisterRoutes(r *core.Router) {
+	// 公开接口：匿名展示即梦价格
+	r.PublicGroup("/api/jimeng/").GET("power-config", h.GetPowerConfig)
 
 	// 需要用户授权的接口
-	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	group := r.UserGroup("/api/jimeng/")
 	{
 		group.POST("task", h.CreateTask)
 		group.POST("jobs", h.Jobs)

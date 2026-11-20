@@ -11,7 +11,6 @@ import (
 	"bytes"
 	"fmt"
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/store/model"
@@ -41,11 +40,9 @@ func NewUserHandler(app *core.AppServer, db *gorm.DB, redisCli *redis.Client) *U
 }
 
 // RegisterRoutes 注册路由
-func (h *UserHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/admin/user/")
-
+func (h *UserHandler) RegisterRoutes(r *core.Router) {
 	// 需要管理员授权的接口
-	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	group := r.AdminGroup("/api/admin/user/")
 	{
 		group.GET("list", h.List)
 		group.POST("save", h.Save)

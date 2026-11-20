@@ -58,7 +58,7 @@ services:
       - LOG_LEVEL=info
       - CONFIG_FILE=config.toml
     ports:
-      - '5678:5678'
+      - '5000:5000'
     volumes:
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime
       - ./conf/config.toml:/var/www/app/config.toml

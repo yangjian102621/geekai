@@ -1,0 +1,163 @@
+@use 'font.scss' as *;
+// ============================================================
+// Together AI 暗色主题（DESIGN.md）
+// 午夜蓝 #010120 —— 不是灰黑，是深蓝色调的暗面世界；
+// 边框 rgba(255,255,255,0.12)；阴影深蓝着色；无 pill 圆角。
+// ============================================================
+:root[data-theme='dark'] {
+  --text-fb: #fff;
+  --text-color: rgba(255, 255, 255, 1) !important; // 主要的文本颜色
+  --normal-color: rgba(255, 255, 255, 0.7); // 普通颜色
+  --el-text-color-primary: #ffffff;
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  article {
+    font-family: $font-regular;
+  }
+  html,
+  body,
+  #app,
+  .wrapper {
+    background: var(--ta-dark, #010120);
+    background-color: var(--ta-dark, #010120);
+    font-family: $font-regular;
+  }
+  --btnColor: #ffffff;
+  --border-active: rgba(255, 255, 255, 0.12);
+  --card-bg: var(--ta-elevated, #0b0b2e);
+  --card-bg-secondary: #14143c;
+  --chat-bg: var(--ta-elevated, #0b0b2e);
+  --chat-wel-bg: #14143c;
+  --card-bg-table: #14143c;
+  --theme-bg: var(--ta-dark, #010120);
+  --theme-bg-color: var(--ta-dark, #010120);
+  --theme-bg-all: var(--ta-dark, #010120);
+  --sign-bg: #14143c;
+  --text-theme-color: #fff;
+  --text-color-primary: var(--ta-lavender, #bdbbff);
+  --theme-text-color-secondary: var(--ta-body-on-dark, rgba(255, 255, 255, 0.7));
+  --theme-text-color-primary: #ffffff;
+  --theme-text-primary: #ffffff;
+  --line-box: var(--ta-hairline-dark, rgba(255, 255, 255, 0.12));
+  --menu-active-bg: var(--ta-lavender-bg, rgba(189, 187, 255, 0.18));
+  --menu-active-color: var(--ta-lavender, #bdbbff);
+
+  // Element Plus 暗色表面：午夜蓝 + 白 12% 边框
+  --el-bg-color: var(--ta-elevated, #0b0b2e);
+  --el-bg-color-overlay: var(--ta-elevated, #0b0b2e);
+  --el-fill-color-blank: #14143c;
+  --el-fill-color-light: rgba(255, 255, 255, 0.06);
+  --el-color-primary: #bdbbff;
+  --el-color-primary-light-3: #d4d3ff;
+  --el-color-primary-light-5: #e4e3ff;
+  --el-color-primary-light-7: #f0efff;
+  --el-color-primary-light-8: #f5f4ff;
+  --el-color-primary-light-9: rgba(189, 187, 255, 0.18);
+  --el-color-primary-dark-2: #a5a3ff;
+  --el-button-text-color: #ffffff;
+  --el-text-color-regular: rgba(255, 255, 255, 0.7);
+  --el-border-color: var(--ta-hairline-dark, rgba(255, 255, 255, 0.12));
+  --el-border-color-light: var(--ta-hairline-dark, rgba(255, 255, 255, 0.12));
+  --el-input-focus-border-color: #bdbbff;
+  --chat-content-bg: rgba(255, 255, 255, 0.06);
+  --chat-user-content-bg: var(--ta-lavender-bg, rgba(189, 187, 255, 0.18));
+  --hover-deep-color: rgba(255, 255, 255, 0.06);
+  --tab-title-bg: #14143c; // 顶部tab栏背景切换
+  --tab-title-color: #ffffff; // 顶部tab栏文字切换
+  // 深黑色
+  --bg-deep-color: rgba(255, 255, 255, 0.8);
+  // layout
+  .more-menus li.moreTitle,
+  .twoTittle .title,
+  .setting-menus span.title,
+  .setting-menus li .el-icon,
+  .setting-menus li .iconfont,
+  .layout .tab-box .menu-list-item {
+  }
+  .more-menus span.title {
+    color: var(--text-theme-color);
+  }
+
+  // 操作按钮：暗面玻璃（frosted glass）
+  --btn-bg: var(--ta-glass-dark, rgba(255, 255, 255, 0.12));
+
+  .el-table {
+    // 表格：白 12% hairline + 午夜蓝内衬表头
+    --el-fill-color-darker: #14143c;
+    --el-border-color-darker: var(--ta-hairline-dark, rgba(255, 255, 255, 0.12));
+    --el-table-border-color: rgba(255, 255, 255, 0.08);
+    --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.04);
+    --el-table-current-row-bg-color: rgba(189, 187, 255, 0.12);
+    --el-table-header-bg-color: #14143c;
+    --el-table-header-text-color: rgba(255, 255, 255, 0.6);
+  }
+
+  // 加载动画
+  --el-mask-color: rgba(1, 1, 32, 0.8);
+  --van-toast-background: rgba(255, 255, 255, 0.3);
+
+  --code-bg-color: #14143c;
+  --code-text-color: #ffffff;
+
+  // vant 主题样式
+  --van-cell-background: var(--ta-elevated, #0b0b2e);
+  --van-cell-background-light: #14143c;
+  --van-button-default-background: var(--ta-elevated, #0b0b2e);
+  --van-background: var(--ta-dark, #010120);
+  --van-tabbar-background: var(--ta-elevated, #0b0b2e);
+  --van-nav-bar-background: var(--ta-elevated, #0b0b2e);
+  --van-dropdown-menu-background: var(--ta-elevated, #0b0b2e);
+
+  // 引用快样式
+  --quote-bg-color: #14143c;
+  --quote-text-color: #ffffff;
+
+  // el-dialog：深蓝着色阴影 + inset ring
+  --el-box-shadow: rgba(1, 1, 32, 0.5) 0px 8px 24px, 0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+
+  // 面板背景
+  --panel-bg: var(--ta-elevated, #0b0b2e);
+
+  // 登录注册页面专用变量（Together AI 暗面：午夜蓝 + 玻璃）
+  --login-bg: #010120;
+  --login-card-bg: rgba(255, 255, 255, 0.04);
+  --login-card-border: rgba(255, 255, 255, 0.12);
+  --login-title-color: #ffffff;
+  --login-subtitle-color: rgba(255, 255, 255, 0.7);
+  --login-text-color: #ffffff;
+  --login-placeholder-color: rgba(255, 255, 255, 0.4);
+  --login-input-bg: rgba(255, 255, 255, 0.08);
+  --login-soft-bg: rgba(255, 255, 255, 0.08);
+  --login-primary-color: #ffffff;
+  --login-primary-hover: #d4d3ff;
+  --login-link-color: #bdbbff;
+  --login-link-hover-bg: rgba(189, 187, 255, 0.18);
+
+  // ============================================================
+  // 管理后台 Together AI 暗面变量（午夜蓝 + 白 12% hairline）
+  // ============================================================
+  --admin-sidebar-bg: var(--ta-dark, #010120);
+  --admin-sidebar-border: var(--ta-hairline-dark, rgba(255, 255, 255, 0.12));
+  --admin-sidebar-active-bg: var(--ta-lavender-bg, rgba(189, 187, 255, 0.18));
+  --admin-sidebar-active-border: var(--ta-lavender, #bdbbff);
+  --admin-sidebar-text: #ffffff;
+  --admin-sidebar-text-muted: rgba(255, 255, 255, 0.6);
+  --admin-header-bg: var(--ta-dark, #010120);
+  --admin-header-border: var(--ta-hairline-dark, rgba(255, 255, 255, 0.12));
+  --admin-header-hover: rgba(255, 255, 255, 0.06);
+  --admin-tags-bg: var(--ta-dark, #010120);
+  --admin-tags-item-bg: transparent;
+  --admin-tags-active-bg: var(--ta-lavender-bg, rgba(189, 187, 255, 0.18));
+  --admin-tags-border: rgba(255, 255, 255, 0.12);
+  --admin-tags-active-border: #bdbbff;
+  --admin-page-bg: var(--ta-dark, #010120);
+  --admin-container-bg: var(--ta-elevated, #0b0b2e);
+  --admin-container-border: var(--ta-hairline-dark, rgba(255, 255, 255, 0.12));
+  --admin-scrollbar-thumb: #2a2a4a;
+  --admin-scrollbar-thumb-hover: #4a4a6e;
+}

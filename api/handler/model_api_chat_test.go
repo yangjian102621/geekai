@@ -16,8 +16,8 @@ import (
 )
 
 func TestModelAPIStreamingFlushAndCancellation(t *testing.T) {
-	h, mock := modelAPITestHandler(t)
-	h.RegisterRoutes()
+	h, engine, mock := modelAPITestHandler(t)
+	h.RegisterRoutes(h.App.Router)
 	cancelled := make(chan struct{})
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
@@ -32,7 +32,7 @@ func TestModelAPIStreamingFlushAndCancellation(t *testing.T) {
 	expectAPIModel(mock, 2)
 	expectAPIPower(mock, false)
 	expectAPIUpstream(mock, upstream.URL)
-	api := httptest.NewServer(h.App.Engine)
+	api := httptest.NewServer(engine)
 	defer api.Close()
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -73,8 +73,9 @@ func expectAPIPower(mock sqlmock.Sqlmock, refund bool) {
 	}
 	mock.ExpectQuery("SELECT .*geekai_users").WithArgs(7).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "username", "power"}).AddRow(7, "alice", balance))
+	// 末尾两个 AnyArg 对应 PowerLog 新增的 ref_type / ref_id 幂等键列（旧方法不填，落 NULL）
 	mock.ExpectExec("INSERT INTO `geekai_power_logs`").
-		WithArgs(7, "alice", kind, 2, balance, "test-model", sqlmock.AnyArg(), mark, sqlmock.AnyArg()).
+		WithArgs(7, "alice", kind, 2, balance, "test-model", sqlmock.AnyArg(), mark, sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 }
@@ -109,8 +110,8 @@ func TestModelAPIChatRelayAndBilling(t *testing.T) {
 		{name: "stream-interruption-after-output", response: "data: {\"choices\":[{\"delta\":{\"content\":\"你好\"}}]}\n\n", contentType: "text/event-stream", stream: true, status: 200, power: 2, streamError: true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			h, mock := modelAPITestHandler(t)
-			h.RegisterRoutes()
+			h, engine, mock := modelAPITestHandler(t)
+			h.RegisterRoutes(h.App.Router)
 			upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if r.URL.Path != "/v1/chat/completions" || r.Header.Get("Authorization") != "Bearer upstream-secret" {
 					t.Errorf("incorrect upstream: %s %s", r.URL.Path, r.Header.Get("Authorization"))
@@ -143,7 +144,7 @@ func TestModelAPIChatRelayAndBilling(t *testing.T) {
 				expectAPIPower(mock, true)
 			}
 			body := `{"model":"test-model","user_id":999,"messages":[{"role":"user","content":"  保留空格  "}],"tools":[{"type":"function","function":{"name":"search","parameters":{"type":"object"}}}],"stream":` + map[bool]string{true: "true", false: "false"}[tc.stream] + `}`
-			w := modelAPIRequest(h.App.Engine, "POST", "/v1/chat/completions", "Bearer "+key, body)
+			w := modelAPIRequest(engine, "POST", "/v1/chat/completions", "Bearer "+key, body)
 			if w.Code != tc.status {
 				t.Fatalf("status: %d %s", w.Code, w.Body.String())
 			}
@@ -178,8 +179,8 @@ func TestModelAPIChatRejectsBeforeCallingUpstream(t *testing.T) {
 		{"insufficient", `{"model":"test-model","messages":[{"role":"user"}]}`, true, true, 402},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			h, mock := modelAPITestHandler(t)
-			h.RegisterRoutes()
+			h, engine, mock := modelAPITestHandler(t)
+			h.RegisterRoutes(h.App.Router)
 			key := modelTokenPrefix + strings.Repeat("c", 43)
 			expectModelAPIAuth(mock, key, true, 0)
 			if tc.model {
@@ -190,7 +191,7 @@ func TestModelAPIChatRejectsBeforeCallingUpstream(t *testing.T) {
 				mock.ExpectExec("UPDATE `geekai_users`.*power >= \\?").WithArgs(2, 7, 2).WillReturnResult(sqlmock.NewResult(0, 0))
 				mock.ExpectRollback()
 			}
-			w := modelAPIRequest(h.App.Engine, "POST", "/v1/chat/completions", "Bearer "+key, tc.body)
+			w := modelAPIRequest(engine, "POST", "/v1/chat/completions", "Bearer "+key, tc.body)
 			if w.Code != tc.status {
 				t.Fatalf("%d %s", w.Code, w.Body.String())
 			}

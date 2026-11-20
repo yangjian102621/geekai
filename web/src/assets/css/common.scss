@@ -1,0 +1,215 @@
+// ============================================================
+// Together AI 设计令牌（DESIGN.md）
+// 白画布 · 午夜蓝 #010120 暗面 · 洋红/橙仅插画 · 4px 锐利几何
+// 负字距 The Future · Mono 大写标签 · 深蓝着色阴影
+// ============================================================
+:root {
+  // 品牌色（仅用于渐变插画，不用作 UI chrome）
+  --ta-magenta: #ef2cc1;
+  --ta-orange: #fc4c02;
+
+  // 表面
+  --ta-canvas: #ffffff; // 浅色画布
+  --ta-dark: #010120; // 午夜蓝暗面（暗色主题画布 / 深色区块）
+  --ta-elevated: #0b0b2e; // 暗面卡片：比 #010120 略亮的同级蓝
+  --ta-elevated-light: #ffffff; // 浅色卡片
+  --ta-glass-dark: rgba(255, 255, 255, 0.12); // 暗面玻璃
+  --ta-glass-light: rgba(0, 0, 0, 0.08); // 浅面 subtle tint
+
+  // 边框（Contained Level 1）
+  --ta-hairline-light: rgba(0, 0, 0, 0.08); // 浅面边框
+  --ta-hairline-dark: rgba(255, 255, 255, 0.12); // 暗面边框
+
+  // 文本
+  --ta-ink: #000000; // 浅面主文本
+  --ta-ink-40: rgba(0, 0, 0, 0.6); // 浅面次级文本（Black 40 降级）
+  --ta-ink-on-dark: #ffffff; // 暗面主文本
+  --ta-body-on-dark: rgba(255, 255, 255, 0.7); // 暗面次级文本
+
+  // 软强调（唯一的 UI 用强调色）
+  --ta-lavender: #bdbbff;
+  --ta-lavender-bg: rgba(189, 187, 255, 0.18);
+
+  // 阴影：始终深蓝着色，禁止暖色/纯黑阴影
+  --ta-shadow: rgba(1, 1, 32, 0.1) 0px 4px 10px;
+  --ta-shadow-lg: rgba(1, 1, 32, 0.14) 0px 8px 24px;
+
+  // 圆角：刻意克制，无 pill
+  --ta-rounded-sm: 4px; // 按钮/徽章/小交互元素（主圆角）
+  --ta-rounded-md: 8px; // 大容器/特性卡
+
+  // 字体
+  --ta-font-sans: 'The Future', Arial, 'PingFang SC', 'Microsoft YaHei', -apple-system,
+    'Segoe UI', Roboto, sans-serif;
+  --ta-font-mono: 'PP Neue Montreal Mono', Georgia, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+:root {
+  --sm-txt: rgba(43, 54, 116, 1);
+  --text-secondary: rgba(0, 0, 0, 0.6);
+  // Element Plus 主色：午夜蓝（Dark Solid CTA 的 UI 映射）
+  --el-color-primary: #010120;
+  --el-color-primary-light-3: #2a2a4a;
+  --el-color-primary-light-5: #4a4a6e;
+  --el-color-primary-light-7: #7a7aa0;
+  --el-color-primary-light-8: #a2a2c2;
+  --el-color-primary-light-9: rgba(0, 0, 0, 0.04);
+  --el-color-primary-dark-2: #000014;
+  --van-primary-color: #010120;
+  --el-border-radius-base: 4px;
+  --theme-btn-color: #010120;
+  --common-text-color: #010120;
+  --el-component-size: 36px;
+  --el-button-active-border-color: #000014;
+  --el-color-success: #10b981;
+  --el-color-success-light-9: rgba(16, 185, 129, 0.1);
+  --el-color-success-light-8: rgba(16, 185, 129, 0.24);
+  --el-message-text-color: #010120;
+  --theme-border-primary: rgba(0, 0, 0, 0.08); // 浅面边框（hairline）
+  --theme-border-hover: rgba(0, 0, 0, 0.24); // 主题边框hover颜色（黑加深，不用紫）
+  --text--hover: rgba(0, 0, 0, 0.6); // 主题色hover色系
+  --el-input-focus-border-color: #010120;
+  --little-btn-bg: rgba(0, 0, 0, 0.04);
+  --gray-btn-bg: rgba(0, 0, 0, 0.04);
+  --a-link-color: #010120;
+  --shadow-color: rgba(1, 1, 32, 0.1);
+  --sm-btn-bg: #010120;
+  --theme-text-tertiary: rgba(0, 0, 0, 0.6);
+  --theme-btn-fill-tertiary: rgba(0, 0, 0, 0.04);
+  --theme-text-btn-tertiary: #010120;
+}
+
+.el-dialog {
+  --el-dialog-border-radius: 8px;
+}
+.login-box {
+  --el-component-size: 48px;
+}
+.btn-go {
+  background: var(--el-color-primary);
+  color: #ffffff;
+  border-radius: 4px;
+  padding: 5px 10px;
+  &:hover {
+    color: #ffffff;
+    opacity: 0.9;
+  }
+}
+.btn-normal {
+  background: var(--el-color-primary);
+  color: #ffffff;
+  border-radius: 4px;
+  padding: 5px 10px;
+  &:hover {
+    color: #ffffff;
+    opacity: 0.9;
+  }
+}
+.flex {
+  display: flex;
+  align-items: center;
+}
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.theme-color-primary {
+  color: var(--el-color-primary);
+}
+.text-color-primary {
+  color: var(--text-color-primary);
+}
+.w100 {
+  width: 100%;
+}
+.el-input__wrapper {
+  //background: var(--card-bg);
+}
+.el-dialog__title {
+  font-weight: 500;
+  line-height: 28px;
+  letter-spacing: -0.22px;
+}
+// Together AI Dark Solid CTA：午夜蓝底白字，4px 锐利圆角，无粗体
+.el-button--primary {
+  border-radius: 4px;
+  --el-button-text-color: #ffffff;
+  --el-button-hover-text-color: #ffffff;
+  --el-button-bg-color: var(--el-color-primary);
+  --el-button-hover-bg-color: #2a2a4a;
+  --el-button-active-bg-color: var(--el-color-primary-dark-2);
+  --el-button-border-color: var(--el-color-primary);
+  --el-button-hover-border-color: #2a2a4a;
+  --el-button-active-border-color: var(--el-color-primary-dark-2);
+  --el-button-outline-color: rgba(1, 1, 32, 0.25);
+  font-weight: 500;
+  letter-spacing: -0.16px;
+}
+
+.el-button {
+  height: auto;
+  border-radius: 4px;
+  font-weight: 500;
+  letter-spacing: -0.16px;
+}
+/* 设置滚动条的宽度 */
+::-webkit-scrollbar {
+  width: 12px; /* 垂直滚动条宽度 */
+  height: 12px; /* 水平滚动条高度 */
+}
+
+/* 滚动条的轨道背景颜色 */
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1 !important; /* 滚动条轨道颜色 */
+  border-radius: 4px; /* 可选：轨道圆角 */
+}
+
+/* 滚动条滑块的颜色 */
+::-webkit-scrollbar-thumb {
+  background: #888 !important; /* 滑块颜色 */
+  border-radius: 4px; /* 可选：滑块圆角 */
+}
+
+/* 鼠标悬停在滑块上的颜色 */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; /* 悬停时的滑块颜色 */
+}
+//.el-message-box
+.el-message-box {
+  --el-messagebox-border-radius: 8px;
+  --el-messagebox-padding-primary: 24px;
+}
+.el-message-box__container {
+  padding-top: 7px;
+  .el-message-box__message {
+    --text-color: var(--theme-text-color-primary);
+    font-size: 16px;
+  }
+}
+.sm-btn-theme {
+  background-color: var(--theme-btn-fill-tertiary) !important;
+  color: var(--theme-text-btn-tertiary) !important;
+  border: none;
+}
+
+// Together AI badge：4px 锐利圆角，无 pill
+.el-tag,
+.el-tag.el-tag--primary {
+  --el-tag-bg-color: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+}
+.box-card {
+  padding: 20px;
+  background-color: var(--chat-bg);
+  border-radius: 8px;
+}
+.el-table th.el-table__cell {
+  background-color: var(--chat-bg);
+}

@@ -30,8 +30,9 @@ func NewProductHandler(app *core.AppServer, db *gorm.DB) *ProductHandler {
 }
 
 // RegisterRoutes 注册路由
-func (h *ProductHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/admin/product/")
+func (h *ProductHandler) RegisterRoutes(r *core.Router) {
+	// 需要管理员授权的接口（改造前漏挂管理员鉴权中间件，本次修复）
+	group := r.AdminGroup("/api/admin/product/")
 	group.POST("save", h.Save)
 	group.GET("list", h.List)
 	group.POST("enable", h.Enable)

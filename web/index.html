@@ -1,13 +1,25 @@
-<!doctype html>
-<html lang="zh-CN">
+<!DOCTYPE html>
+<html lang="zh-cn" data-theme="light">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1.0,user-scalable=no"
+    />
     <title>ThinkBuddy</title>
+    <!-- Together AI 品牌字体（DESIGN.md）：The Future + PP Neue Montreal Mono
+         为商业授权字体，需自托管 woff2 于 src/assets/fonts/ 并在 CSS @font-face 声明；
+         未接入前回退 Arial / 系统字体栈 -->
+    <!-- Add any global CSS files here if needed, e.g., <link rel="stylesheet" href="/css/global.css"> -->
+    <!-- Favicon can be linked here, e.g., <link rel="icon" href="/favicon.ico"> -->
   </head>
+
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <noscript>
+      <strong>请开启JavaScript支持</strong>
+    </noscript>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>

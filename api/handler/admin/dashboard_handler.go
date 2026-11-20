@@ -29,8 +29,9 @@ func NewDashboardHandler(app *core.AppServer, db *gorm.DB) *DashboardHandler {
 }
 
 // RegisterRoutes 注册路由
-func (h *DashboardHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/admin/dashboard/")
+func (h *DashboardHandler) RegisterRoutes(r *core.Router) {
+	// 需要管理员授权的接口（改造前漏挂管理员鉴权中间件，本次修复）
+	group := r.AdminGroup("/api/admin/dashboard/")
 	group.GET("stats", h.Stats)
 }
 

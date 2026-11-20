@@ -1,0 +1,29 @@
+// Together AI 字体体系（DESIGN.md）：
+// - The Future：唯一字体，负字距（display -2%，正文 -1.6%）
+// - PP Neue Montreal Mono：专用于 uppercase 大写标签 / 数据标注
+// Web Font 未接入前回退到 Arial / 系统字体栈
+$font-regular: 'The Future', Arial, 'PingFangSC-Regular', Roboto, -apple-system, system-ui,
+  'Segoe UI', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+$font-medium: 'The Future', Arial, 'PingFangSC-Medium', Roboto, -apple-system, system-ui,
+  'Segoe UI', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+$font-mono: 'PP Neue Montreal Mono', Georgia, 'SF Mono', Menlo, Consolas, monospace;
+
+.font-regular {
+  font-family: $font-regular;
+  font-weight: normal;
+  letter-spacing: -0.16px;
+}
+
+.font-medium {
+  font-family: $font-medium;
+  font-weight: 500;
+  letter-spacing: -0.16px;
+}
+
+// Together AI mono-label：大写 + 正字距（徽章 / 数据标注专用）
+.font-mono-label {
+  font-family: $font-mono;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.24px;
+}

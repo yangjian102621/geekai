@@ -9,7 +9,6 @@ package handler
 
 import (
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/store/model"
 	"geekai/store/vo"
@@ -29,11 +28,9 @@ func NewOrderHandler(app *core.AppServer, db *gorm.DB) *OrderHandler {
 }
 
 // RegisterRoutes 注册路由
-func (h *OrderHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/order/")
-
+func (h *OrderHandler) RegisterRoutes(r *core.Router) {
 	// 需要用户授权的接口
-	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	group := r.UserGroup("/api/order/")
 	{
 		group.GET("list", h.List)
 		group.GET("query", h.Query)

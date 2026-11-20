@@ -1,6 +1,11 @@
 package types
 
-import "os"
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"strconv"
+)
 
 // * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // * Copyright 2023 The Geek-AI Authors. All rights reserved.
@@ -18,6 +23,26 @@ func init() {
 	}
 }
 
+// decodeBool 兼容历史数据中布尔值被存为字符串（"true"/"false"/"1"/"0"）的情况
+func decodeBool(b []byte) (bool, error) {
+	var v any
+	if err := json.Unmarshal(b, &v); err != nil {
+		return false, err
+	}
+	switch val := v.(type) {
+	case bool:
+		return val, nil
+	case string:
+		parsed, err := strconv.ParseBool(val)
+		if err != nil {
+			return false, err
+		}
+		return parsed, nil
+	default:
+		return false, fmt.Errorf("无法将 %T 解析为 bool", v)
+	}
+}
+
 // CaptchaConfig 行为验证码配置
 type CaptchaConfig struct {
 	ApiKey  string `json:"api_key,omitempty"`
@@ -25,11 +50,53 @@ type CaptchaConfig struct {
 	Enabled bool   `json:"enabled,omitempty"`
 }
 
+func (c *CaptchaConfig) UnmarshalJSON(b []byte) error {
+	var aux struct {
+		ApiKey  string          `json:"api_key,omitempty"`
+		Type    string          `json:"type,omitempty"`
+		Enabled json.RawMessage `json:"enabled,omitempty"`
+	}
+	if err := json.Unmarshal(b, &aux); err != nil {
+		return err
+	}
+	c.ApiKey = aux.ApiKey
+	c.Type = aux.Type
+	if len(aux.Enabled) > 0 {
+		enabled, err := decodeBool(aux.Enabled)
+		if err != nil {
+			return err
+		}
+		c.Enabled = enabled
+	}
+	return nil
+}
+
 // WxLoginConfig 微信扫码登录配置
 type WxLoginConfig struct {
 	ApiKey    string `json:"api_key,omitempty"`
 	NotifyURL string `json:"notify_url,omitempty"` // 登录成功回调 URL
 	Enabled   bool   `json:"enabled,omitempty"`    // 是否启用微信登录
+}
+
+func (c *WxLoginConfig) UnmarshalJSON(b []byte) error {
+	var aux struct {
+		ApiKey    string          `json:"api_key,omitempty"`
+		NotifyURL string          `json:"notify_url,omitempty"`
+		Enabled   json.RawMessage `json:"enabled,omitempty"`
+	}
+	if err := json.Unmarshal(b, &aux); err != nil {
+		return err
+	}
+	c.ApiKey = aux.ApiKey
+	c.NotifyURL = aux.NotifyURL
+	if len(aux.Enabled) > 0 {
+		enabled, err := decodeBool(aux.Enabled)
+		if err != nil {
+			return err
+		}
+		c.Enabled = enabled
+	}
+	return nil
 }
 
 // 微信公众号配置

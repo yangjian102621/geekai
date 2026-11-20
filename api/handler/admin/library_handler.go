@@ -2,7 +2,6 @@ package admin
 
 import (
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/service/library"
 	"geekai/store/model"
 	"geekai/utils/resp"
@@ -21,10 +20,8 @@ func NewLibraryHandler(app *core.AppServer, service *library.Service) *LibraryHa
 	return &LibraryHandler{app: app, service: service}
 }
 
-func (h *LibraryHandler) RegisterRoutes() {
-	group := h.app.Engine.Group("/api/admin/library")
-	group.Use(middleware.AdminAuthMiddleware(h.app.Config.AdminSession.SecretKey, h.app.Redis))
-	h.RegisterManagementRoutes(group)
+func (h *LibraryHandler) RegisterRoutes(r *core.Router) {
+	h.RegisterManagementRoutes(r.AdminGroup("/api/admin/library"))
 }
 
 func (h *LibraryHandler) RegisterManagementRoutes(group *gin.RouterGroup) {

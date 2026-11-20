@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/service"
@@ -74,11 +73,9 @@ func NewConfigHandler(
 }
 
 // RegisterRoutes 注册路由
-func (h *ConfigHandler) RegisterRoutes() {
-	rg := h.App.Engine.Group("/api/admin/config")
-
+func (h *ConfigHandler) RegisterRoutes(r *core.Router) {
 	// 需要管理员登录的接口
-	rg.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	rg := r.AdminGroup("/api/admin/config")
 	{
 		rg.POST("update/base", h.UpdateBase)
 		rg.POST("update/power", h.UpdatePower)

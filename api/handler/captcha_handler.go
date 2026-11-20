@@ -26,10 +26,9 @@ func NewCaptchaHandler(app *core.AppServer, s *service.CaptchaService, sysConfig
 }
 
 // RegisterRoutes 注册路由
-func (h *CaptchaHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/captcha/")
-
+func (h *CaptchaHandler) RegisterRoutes(r *core.Router) {
 	// 无需授权的接口
+	group := r.PublicGroup("/api/captcha/")
 	group.GET("get", h.Get)
 	group.POST("check", h.Check)
 	group.GET("slide/get", h.SlideGet)

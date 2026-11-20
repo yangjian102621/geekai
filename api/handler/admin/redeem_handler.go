@@ -30,8 +30,9 @@ func NewRedeemHandler(app *core.AppServer, db *gorm.DB) *RedeemHandler {
 }
 
 // RegisterRoutes 注册路由
-func (h *RedeemHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/admin/redeem/")
+func (h *RedeemHandler) RegisterRoutes(r *core.Router) {
+	// 需要管理员授权的接口（改造前漏挂管理员鉴权中间件，本次修复；create/export 敏感）
+	group := r.AdminGroup("/api/admin/redeem/")
 	group.GET("list", h.List)
 	group.POST("create", h.Create)
 	group.POST("set", h.Set)

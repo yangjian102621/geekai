@@ -31,11 +31,10 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"reflect"
 	"runtime/debug"
 	"syscall"
 	"time"
-
-	"github.com/go-redis/redis/v8"
 
 	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"go.uber.org/fx"
@@ -67,6 +66,117 @@ func NewAppLifeCycle() *AppLifecycle {
 	return &AppLifecycle{}
 }
 
+// Handlers 汇总全部 52 个路由注册器。
+//
+// 为什么要显式列出而不是靠 fx 的 group / As：
+//  1. fx.As 会替换构造函数的返回类型，*handler.PaymentHandler 这类"既要注册路由、又要单独
+//     启动同步任务"的具体类型会失踪；
+//  2. fx 的 group 不保证顺序，gin 的路由注册顺序会变成不确定的。
+//
+// 显式字段 + 显式切片：DI 语义不变、顺序确定、注册表一目了然。
+type Handlers struct {
+	fx.In
+
+	// 用户侧（30 个）
+	ChatApp     *handler.ChatAppHandler
+	User        *handler.UserHandler
+	Chat        *handler.ChatHandler
+	Net         *handler.NetHandler
+	Download    *handler.DownloadHandler
+	Sms         *handler.SmsHandler
+	Redeem      *handler.RedeemHandler
+	Captcha     *handler.CaptchaHandler
+	Mj          *handler.MidJourneyHandler
+	ChatModel   *handler.ChatModelHandler
+	ModelAPI    *handler.ModelAPIHandler
+	Payment     *handler.PaymentHandler
+	Order       *handler.OrderHandler
+	Product     *handler.ProductHandler
+	Config      *handler.ConfigHandler
+	PowerLog    *handler.PowerLogHandler
+	Jimeng      *handler.JimengHandler
+	WxGzh       *handler.WxGzhHandler
+	Invite      *handler.InviteHandler
+	Function    *handler.FunctionHandler
+	Menu        *handler.MenuHandler
+	MarkMap     *handler.MarkMapHandler
+	ImageJob    *handler.ImageJobHandler
+	Suno        *handler.SunoHandler
+	Video       *handler.VideoHandler
+	ChatAppType *handler.ChatAppTypeHandler
+	Test        *handler.TestHandler
+	Prompt      *handler.PromptHandler
+	Realtime    *handler.RealtimeHandler
+	Library     *handler.LibraryHandler
+
+	// 管理后台（22 个）
+	AdminConfig      *admin.ConfigHandler
+	AdminManager     *admin.ManagerHandler
+	AdminApiKey      *admin.ApiKeyHandler
+	AdminUser        *admin.UserHandler
+	AdminChatApp     *admin.ChatAppHandler
+	AdminRedeem      *admin.RedeemHandler
+	AdminDashboard   *admin.DashboardHandler
+	AdminChatModel   *admin.ChatModelHandler
+	AdminProduct     *admin.ProductHandler
+	AdminOrder       *admin.OrderHandler
+	AdminPowerLog    *admin.PowerLogHandler
+	AdminJimeng      *admin.AdminJimengHandler
+	AdminVideo       *admin.VideoHandler
+	AdminSuno        *admin.SunoHandler
+	AdminChatAppType *admin.ChatAppTypeHandler
+	AdminFunction    *admin.FunctionHandler
+	AdminUpload      *admin.UploadHandler
+	AdminChat        *admin.ChatHandler
+	AdminMenu        *admin.MenuHandler
+	AdminImage       *admin.ImageHandler
+	AdminModeration  *admin.ModerationHandler
+	AdminLibrary     *admin.LibraryHandler
+}
+
+// wantRegistrars 是"必须被注册的路由注册器总数"，同时等价于 Handlers 的字段数。
+// 任何"加了字段忘了加切片"或"加了 handler 忘了加字段"都会在启动期炸掉，而不是静默不生效。
+const wantRegistrars = 52
+
+// registerRoutes 是 main.go 里唯一的路由注册点。
+// 新增 handler 必须同时在 Handlers 结构体里加字段、在下面的切片里加一项。
+func registerRoutes(r *core.Router, hs Handlers) {
+	registrars := []core.RouteRegistrar{
+		// 用户侧
+		hs.User, hs.ChatApp, hs.Chat, hs.Net, hs.Download, hs.Sms, hs.Redeem,
+		hs.Captcha, hs.Mj, hs.ChatModel, hs.ModelAPI, hs.Payment, hs.Order,
+		hs.Product, hs.Config, hs.PowerLog, hs.Jimeng, hs.WxGzh, hs.Invite,
+		hs.Function, hs.Menu, hs.MarkMap, hs.ImageJob, hs.Suno, hs.Video,
+		hs.ChatAppType, hs.Test, hs.Prompt, hs.Realtime, hs.Library,
+		// 管理后台
+		hs.AdminConfig, hs.AdminManager, hs.AdminApiKey, hs.AdminUser,
+		hs.AdminChatApp, hs.AdminRedeem, hs.AdminDashboard, hs.AdminChatModel,
+		hs.AdminProduct, hs.AdminOrder, hs.AdminPowerLog, hs.AdminJimeng,
+		hs.AdminVideo, hs.AdminSuno, hs.AdminChatAppType, hs.AdminFunction,
+		hs.AdminUpload, hs.AdminChat, hs.AdminMenu, hs.AdminImage,
+		hs.AdminModeration, hs.AdminLibrary,
+	}
+	// reflect.NumField() 会把匿名嵌入的 fx.In 也算作一个字段，统计时需跳过
+	v := reflect.ValueOf(hs)
+	got := 0
+	for i := 0; i < v.NumField(); i++ {
+		if v.Type().Field(i).Anonymous {
+			continue
+		}
+		got++
+	}
+	if got != wantRegistrars {
+		logger.Fatalf("Handlers 字段数 %d != %d，有 handler 忘记加进 Handlers 结构体", got, wantRegistrars)
+	}
+	if len(registrars) != wantRegistrars {
+		logger.Fatalf("路由注册器数量 %d != %d，有 handler 忘记加进 registerRoutes 切片", len(registrars), wantRegistrars)
+	}
+	for _, reg := range registrars {
+		reg.RegisterRoutes(r)
+	}
+	logger.Infof("registered %d route registrars", len(registrars))
+}
+
 func main() {
 	configFile := os.Getenv("CONFIG_FILE")
 	if configFile == "" {
@@ -93,12 +203,14 @@ func main() {
 			config.Path = configFile
 			return config
 		}),
-		// 创建应用服务
+		// 创建应用服务（构造即完备：Engine 中间件、静态资源与 Router 都在 NewServer 内部装配完毕）
 		fx.Provide(core.NewServer),
-		// 初始化
-		fx.Invoke(func(s *core.AppServer, client *redis.Client) {
-			s.Init(client)
+		// 对外唯一的路由注册入口：handler 只能拿到 *core.Router，拿不到 *gin.Engine
+		fx.Provide(func(s *core.AppServer) *core.Router {
+			return s.Router
 		}),
+		// 唯一的路由注册点：52 个 handler 一处登记、一处装配，顺序确定
+		fx.Invoke(registerRoutes),
 		fx.Provide(func(db *gorm.DB) *types.SystemConfig {
 			return core.LoadSystemConfig(db)
 		}),
@@ -113,8 +225,6 @@ func main() {
 		}),
 		fx.Provide(handler.NewLibraryHandler),
 		fx.Provide(admin.NewLibraryHandler),
-		fx.Invoke(func(h *handler.LibraryHandler) { h.RegisterRoutes() }),
-		fx.Invoke(func(h *admin.LibraryHandler) { h.RegisterRoutes() }),
 
 		fx.Provide(func() embed.FS {
 			return xdbFS
@@ -146,7 +256,6 @@ func main() {
 		fx.Provide(handler.NewMidJourneyHandler),
 		fx.Provide(handler.NewChatModelHandler),
 		fx.Provide(handler.NewModelAPIHandler),
-		fx.Invoke(func(h *handler.ModelAPIHandler) { h.RegisterRoutes() }),
 		fx.Provide(handler.NewPaymentHandler),
 		fx.Provide(handler.NewOrderHandler),
 		fx.Provide(handler.NewProductHandler),
@@ -244,6 +353,8 @@ func main() {
 
 		// 用户服务
 		fx.Provide(service.NewUserService),
+		// 积分账本服务：所有改变余额的操作都应经过它（事务 + 幂等键）
+		fx.Provide(service.NewLedgerService),
 
 		// 文本审查服务
 		fx.Provide(moderation.NewGiteeAIModeration),
@@ -251,175 +362,36 @@ func main() {
 		fx.Provide(moderation.NewTencentAIModeration),
 		fx.Provide(moderation.NewServiceManager),
 		fx.Provide(admin.NewModerationHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.ModerationHandler) {
-			h.RegisterRoutes()
-		}),
 
 		// 注册路由
-		fx.Invoke(func(s *core.AppServer, h *handler.ChatAppHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.UserHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.ChatHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.NetHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.DownloadHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.SmsHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.CaptchaHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.RedeemHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.MidJourneyHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.ConfigHandler) {
-			h.RegisterRoutes()
-		}),
 
 		// 管理后台路由注册
-		fx.Invoke(func(s *core.AppServer, h *admin.ConfigHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.ManagerHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.ApiKeyHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.UserHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.ChatAppHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.RedeemHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.DashboardHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.ChatModelHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.ChatModelHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.PaymentHandler) {
-			h.RegisterRoutes()
+		fx.Invoke(func(h *handler.PaymentHandler) {
 			h.StartSyncOrders()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.ProductHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.OrderHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.OrderHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.ProductHandler) {
-			h.RegisterRoutes()
 		}),
 
 		fx.Provide(handler.NewInviteHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.InviteHandler) {
-			h.RegisterRoutes()
-		}),
 
 		fx.Provide(admin.NewFunctionHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.FunctionHandler) {
-			h.RegisterRoutes()
-		}),
 
 		fx.Provide(admin.NewUploadHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.UploadHandler) {
-			h.RegisterRoutes()
-		}),
 
 		fx.Provide(handler.NewFunctionHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.FunctionHandler) {
-			h.RegisterRoutes()
-		}),
 		fx.Provide(admin.NewChatHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.ChatHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *handler.PowerLogHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.PowerLogHandler) {
-			h.RegisterRoutes()
-		}),
 		fx.Provide(admin.NewMenuHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.MenuHandler) {
-			h.RegisterRoutes()
-		}),
 		fx.Provide(handler.NewMenuHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.MenuHandler) {
-			h.RegisterRoutes()
-		}),
 		fx.Provide(handler.NewMarkMapHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.MarkMapHandler) {
-			h.RegisterRoutes()
-		}),
 		fx.Provide(handler.NewImageJobHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.ImageJobHandler) {
-			h.RegisterRoutes()
-		}),
 		fx.Provide(handler.NewSunoHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.SunoHandler) {
-			h.RegisterRoutes()
-		}),
 		fx.Provide(handler.NewVideoHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.VideoHandler) {
-			h.RegisterRoutes()
-		}),
 
 		// 即梦AI 路由
-		fx.Invoke(func(s *core.AppServer, h *handler.JimengHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.AdminJimengHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.VideoHandler) {
-			h.RegisterRoutes()
-		}),
-		fx.Invoke(func(s *core.AppServer, h *admin.SunoHandler) {
-			h.RegisterRoutes()
-		}),
 		fx.Provide(admin.NewChatAppTypeHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.ChatAppTypeHandler) {
-			h.RegisterRoutes()
-		}),
 		fx.Provide(handler.NewChatAppTypeHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.ChatAppTypeHandler) {
-			h.RegisterRoutes()
-		}),
 		fx.Provide(handler.NewTestHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.TestHandler) {
-			h.RegisterRoutes()
-		}),
 		fx.Provide(handler.NewPromptHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.PromptHandler) {
-			h.RegisterRoutes()
-		}),
 
 		// 微信公众号路由
-		fx.Invoke(func(s *core.AppServer, h *handler.WxGzhHandler) {
-			h.RegisterRoutes()
-		}),
 		fx.Invoke(func(s *core.AppServer, db *gorm.DB) {
 			go func() {
 				err := s.Run(db)
@@ -442,13 +414,7 @@ func main() {
 			})
 		}),
 		fx.Provide(admin.NewImageHandler),
-		fx.Invoke(func(s *core.AppServer, h *admin.ImageHandler) {
-			h.RegisterRoutes()
-		}),
 		fx.Provide(handler.NewRealtimeHandler),
-		fx.Invoke(func(s *core.AppServer, h *handler.RealtimeHandler) {
-			h.RegisterRoutes()
-		}),
 	)
 	// 启动应用程序
 	go func() {

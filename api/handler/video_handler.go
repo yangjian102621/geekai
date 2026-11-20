@@ -10,7 +10,6 @@ package handler
 import (
 	"fmt"
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/moderation"
@@ -47,11 +46,9 @@ func NewVideoHandler(app *core.AppServer, db *gorm.DB, service *video.Service, u
 }
 
 // RegisterRoutes 注册路由
-func (h *VideoHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/video/")
-
+func (h *VideoHandler) RegisterRoutes(r *core.Router) {
 	// 需要用户授权的接口
-	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	group := r.UserGroup("/api/video/")
 	{
 		group.POST("create", h.Create)
 		group.GET("list", h.List)

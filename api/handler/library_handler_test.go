@@ -45,9 +45,9 @@ func TestPublicLibraryRoutesAndAdminGuard(t *testing.T) {
 	}
 	service := library.NewService(repo)
 	engine := gin.New()
-	app := &core.AppServer{Engine: engine, Config: &types.AppConfig{}}
-	handler.NewLibraryHandler(app, service).RegisterRoutes()
-	admin.NewLibraryHandler(app, service).RegisterRoutes()
+	app := core.NewServerWithEngine(engine, &types.AppConfig{}, nil)
+	handler.NewLibraryHandler(app, service).RegisterRoutes(app.Router)
+	admin.NewLibraryHandler(app, service).RegisterRoutes(app.Router)
 	request := func(method, path, body string) *httptest.ResponseRecorder {
 		t.Helper()
 		req := httptest.NewRequest(method, path, strings.NewReader(body))

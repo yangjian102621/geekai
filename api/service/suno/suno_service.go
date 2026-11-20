@@ -37,9 +37,10 @@ type Service struct {
 	taskQueue     *store.RedisQueue
 	notifyQueue   *store.RedisQueue
 	userService   *service.UserService
+	ledgerService *service.LedgerService
 }
 
-func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Client, userService *service.UserService) *Service {
+func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Client, userService *service.UserService, ledgerService *service.LedgerService) *Service {
 	return &Service{
 		httpClient:    req.C().SetTimeout(time.Minute * 3),
 		db:            db,
@@ -47,6 +48,7 @@ func NewService(db *gorm.DB, manager *oss.UploaderManager, redisCli *redis.Clien
 		notifyQueue:   store.NewRedisQueue("Suno_Notify_Queue", redisCli),
 		uploadManager: manager,
 		userService:   userService,
+		ledgerService: ledgerService,
 	}
 }
 
@@ -401,20 +403,27 @@ func (s *Service) SyncTaskProgress() {
 				}
 			}
 
-			// 找出失败的任务，并恢复其扣减积分
+			// 找出失败的任务，并恢复其扣减积分。
+			// 走 LedgerService.RefundFailedJob：抢占式 power=0 + 同事务幂等账本。
 			s.db.Select("id", "user_id", "power", "task_id", "err_msg", "params").
 				Where("status", model.ImageStatusFailed).Where("power > ?", 0).Find(&jobs)
 			for _, job := range jobs {
-				err := s.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
-					Type:   types.PowerRefund,
-					Model:  job.Params.Model,
-					Remark: fmt.Sprintf("Suno 任务失败，退回积分。任务ID：%s，Err:%s", job.TaskId, job.ErrMsg),
+				_, err := s.ledgerService.RefundFailedJob(service.FailedJobRefund{
+					Table:   "geekai_suno_jobs",
+					JobId:   job.Id,
+					UserId:  job.UserId,
+					Power:   job.Power,
+					RefType: "job:suno",
+					Log: model.PowerLog{
+						Type:   types.PowerRefund,
+						Model:  job.Params.Model,
+						Remark: fmt.Sprintf("Suno 任务失败，退回积分。任务ID：%s，Err:%s", job.TaskId, job.ErrMsg),
+					},
 				})
 				if err != nil {
+					logger.Errorf("Suno 任务 %d 退款失败：%v", job.Id, err)
 					continue
 				}
-				// 更新任务状态
-				s.db.Model(&job).UpdateColumn("power", 0)
 			}
 			time.Sleep(time.Second * 10)
 		}

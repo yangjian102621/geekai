@@ -9,7 +9,6 @@ package admin
 
 import (
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/store/model"
@@ -31,11 +30,9 @@ func NewChatAppHandler(app *core.AppServer, db *gorm.DB) *ChatAppHandler {
 }
 
 // RegisterRoutes 注册路由
-func (h *ChatAppHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/admin/role/")
-
+func (h *ChatAppHandler) RegisterRoutes(r *core.Router) {
 	// 需要管理员授权的接口
-	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	group := r.AdminGroup("/api/admin/role/")
 	{
 		group.GET("list", h.List)
 		group.POST("save", h.Save)

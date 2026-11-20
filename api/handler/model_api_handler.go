@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/service"
 	"geekai/store/model"
 	"geekai/utils/resp"
@@ -32,15 +31,17 @@ func NewModelAPIHandler(app *core.AppServer, db *gorm.DB, users *service.UserSer
 	return &ModelAPIHandler{BaseHandler: BaseHandler{App: app, DB: db}, userService: users}
 }
 
-func (h *ModelAPIHandler) RegisterRoutes() {
-	account := h.App.Engine.Group("/api/user/model-token", middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+func (h *ModelAPIHandler) RegisterRoutes(r *core.Router) {
+	// 对外 API：自带独立的 Model Token 鉴权体系，不能套用户会话中间件
+	api := r.PublicGroup("/v1", h.authenticate)
+	api.GET("/models", h.Models)
+	api.POST("/chat/completions", h.ChatCompletions)
+
+	// 需要用户授权的接口：Model Token 自身的管理入口
+	account := r.UserGroup("/api/user/model-token")
 	account.GET("", h.TokenStatus)
 	account.POST("", h.RotateToken)
 	account.DELETE("", h.RevokeToken)
-
-	api := h.App.Engine.Group("/v1", h.authenticate)
-	api.GET("/models", h.Models)
-	api.POST("/chat/completions", h.ChatCompletions)
 }
 
 func modelAPIError(c *gin.Context, status int, code, message string) {

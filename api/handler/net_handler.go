@@ -9,7 +9,6 @@ package handler
 
 import (
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service/oss"
 	"geekai/store/model"
@@ -34,19 +33,18 @@ func NewNetHandler(app *core.AppServer, db *gorm.DB, manager *oss.UploaderManage
 }
 
 // RegisterRoutes 注册路由
-func (h *NetHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/upload")
-
+func (h *NetHandler) RegisterRoutes(r *core.Router) {
 	// 需要用户授权的接口
-	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	group := r.UserGroup("/api/upload")
 	{
 		group.POST("", h.Upload)
 		group.POST("list", h.List)
 		group.GET("remove", h.Remove)
 	}
 
-	// 公开接口，不需要授权
-	h.App.Engine.GET("/api/download", h.Download)
+	// 公开接口：历史遗留的匿名下载入口，本轮只做路由平移、保持公开。
+	// 收紧它（scheme/host 校验、Timeout、签名 URL）属于行为变更 + 产品决策，留待 Phase 3。
+	r.PublicGroup("").GET("/api/download", h.Download)
 }
 
 func (h *NetHandler) Upload(c *gin.Context) {

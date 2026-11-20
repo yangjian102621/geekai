@@ -10,7 +10,6 @@ package handler
 import (
 	"fmt"
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/moderation"
@@ -48,14 +47,12 @@ func NewSunoHandler(app *core.AppServer, db *gorm.DB, service *suno.Service, upl
 }
 
 // RegisterRoutes 注册路由
-func (h *SunoHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/suno/")
-
-	// 公开接口，不需要授权
-	group.GET("play", h.Play)
+func (h *SunoHandler) RegisterRoutes(r *core.Router) {
+	// 公开接口，不需要授权：匿名音频试听
+	r.PublicGroup("/api/suno/").GET("play", h.Play)
 
 	// 需要用户授权的接口
-	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	group := r.UserGroup("/api/suno/")
 	{
 		group.POST("create", h.Create)
 		group.GET("list", h.List)

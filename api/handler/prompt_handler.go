@@ -42,17 +42,14 @@ func NewPromptHandler(app *core.AppServer, db *gorm.DB, userService *service.Use
 }
 
 // RegisterRoutes 注册路由
-func (h *PromptHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/prompt/")
-
-	// 需要用户授权的接口
-	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis)).Use(middleware.RateLimitEvery(h.App.Redis, 30*time.Second))
-	{
-		group.POST("lyric", h.Lyric)
-		group.POST("image", h.Image)
-		group.POST("video", h.Video)
-		group.POST("meta", h.MetaPrompt)
-	}
+func (h *PromptHandler) RegisterRoutes(r *core.Router) {
+	// 需要用户授权的接口。
+	// 限流改为逐路由传入：UserGroup 在"建组时"一次性固定安全级别，不再提供事后 Use()。
+	group := r.UserGroup("/api/prompt/")
+	group.POST("lyric", middleware.RateLimitEvery(h.App.Redis, 30*time.Second), h.Lyric)
+	group.POST("image", middleware.RateLimitEvery(h.App.Redis, 30*time.Second), h.Image)
+	group.POST("video", middleware.RateLimitEvery(h.App.Redis, 30*time.Second), h.Video)
+	group.POST("meta", middleware.RateLimitEvery(h.App.Redis, 30*time.Second), h.MetaPrompt)
 }
 
 // Lyric 生成歌词

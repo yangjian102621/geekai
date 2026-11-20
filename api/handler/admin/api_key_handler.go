@@ -10,7 +10,6 @@ package admin
 import (
 	"fmt"
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/handler"
 	"geekai/store/model"
@@ -32,11 +31,9 @@ func NewApiKeyHandler(app *core.AppServer, db *gorm.DB) *ApiKeyHandler {
 }
 
 // RegisterRoutes 注册路由
-func (h *ApiKeyHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/admin/apikey/")
-
+func (h *ApiKeyHandler) RegisterRoutes(r *core.Router) {
 	// 需要管理员授权的接口
-	group.Use(middleware.AdminAuthMiddleware(h.App.Config.AdminSession.SecretKey, h.App.Redis))
+	group := r.AdminGroup("/api/admin/apikey/")
 	{
 		group.GET("list", h.List)
 		group.POST("save", h.Save)

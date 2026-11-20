@@ -43,11 +43,12 @@ type Service struct {
 	cancel      context.CancelFunc
 	running     bool
 	uploader    *oss.UploaderManager
-	userService *service.UserService
+	userService   *service.UserService
+	ledgerService *service.LedgerService
 }
 
 // NewService 创建即梦服务
-func NewService(db *gorm.DB, redisCli *redis.Client, uploader *oss.UploaderManager, client *Client, userService *service.UserService) *Service {
+func NewService(db *gorm.DB, redisCli *redis.Client, uploader *oss.UploaderManager, client *Client, userService *service.UserService, ledgerService *service.LedgerService) *Service {
 	taskQueue := store.NewRedisQueue("JimengTaskQueue", redisCli)
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Service{
@@ -59,7 +60,8 @@ func NewService(db *gorm.DB, redisCli *redis.Client, uploader *oss.UploaderManag
 		cancel:      cancel,
 		running:     false,
 		uploader:    uploader,
-		userService: userService,
+		userService:   userService,
+		ledgerService: ledgerService,
 	}
 }
 
@@ -522,19 +524,26 @@ func (s *Service) pollTaskStatus() {
 
 		}
 
-		// 找出失败的任务，并恢复其扣减积分
+		// 找出失败的任务，并恢复其扣减积分。
+		// 走 LedgerService.RefundFailedJob：抢占式 power=0 + 同事务幂等账本。
 		s.db.Where("status = ?", types.JMTaskStatusFailed).Where("power > ?", 0).Find(&jobs)
 		for _, job := range jobs {
-			err := s.userService.IncreasePower(job.UserId, job.Power, model.PowerLog{
-				Type:   types.PowerRefund,
-				Model:  job.ReqKey,
-				Remark: fmt.Sprintf("任务失败，退回积分。任务ID：%d", job.Id),
+			_, err := s.ledgerService.RefundFailedJob(service.FailedJobRefund{
+				Table:   "geekai_jimeng_jobs",
+				JobId:   job.Id,
+				UserId:  job.UserId,
+				Power:   job.Power,
+				RefType: "job:jimeng",
+				Log: model.PowerLog{
+					Type:   types.PowerRefund,
+					Model:  job.ReqKey,
+					Remark: fmt.Sprintf("任务失败，退回积分。任务ID：%d", job.Id),
+				},
 			})
 			if err != nil {
+				logger.Errorf("即梦任务 %d 退款失败：%v", job.Id, err)
 				continue
 			}
-			// 更新任务状态
-			s.db.Model(&job).UpdateColumn("power", 0)
 		}
 
 		time.Sleep(5 * time.Second)

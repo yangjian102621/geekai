@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/store/model"
@@ -41,11 +40,9 @@ func NewRealtimeHandler(server *core.AppServer, db *gorm.DB, userService *servic
 }
 
 // RegisterRoutes 注册路由
-func (h *RealtimeHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/realtime/")
-
-	// 需要用户授权的接口
-	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+func (h *RealtimeHandler) RegisterRoutes(r *core.Router) {
+	// 需要用户授权的接口。前缀保留尾斜杠，Any("") 命中 /api/realtime/
+	group := r.UserGroup("/api/realtime/")
 	{
 		group.Any("", h.Connection)
 		group.POST("voice", h.VoiceChat)

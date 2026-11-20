@@ -2,7 +2,7 @@
 
 ## 项目结构与模块组织
 - `api/`：Go + Gin 后端，包含 `core/` 业务、`handler/` 控制器、`service/` 接口调用以及 `store/` 数据访问，`config.toml` 存放默认配置，`Makefile` 用于多架构交叉构建。
-- `web/`：Vue3 + Vite 前端，源码集中在 `src/`，`public/` 为静态资源，`dist/` 存放构建结果并可被 `api/static/` 或 `desktop/` 引用。
+- `web/`：Vue3 + Vite 单一前端，同时承载门户站点（`/`、`/invite`、`/pricing`、`/space`，见 `src/views/site/`）与后台管理（`/admin/*`，见 `src/views/admin/`）；源码集中在 `src/`，`public/` 为静态资源，`dist/` 存放构建结果并可被 `api/static/` 或 `desktop/` 引用。
 - `desktop/`：Electron 客户端入口为 `index.js`，配合 `electron-builder` 可打包 AppImage/DMG/NSIS。
 - `miniprogram/`、`docs/`、`database/` 与 `config/` 分别承载小程序壳、部署文档、SQL 脚本及全局 YAML 配置；`build/` 包含 Dockerfile、安装脚本。
 
@@ -11,6 +11,14 @@
 - `cd api && go run main.go`：本地热调试；`make amd64` / `make arm64` 生成无 CGO 二进制至 `api/bin/` 便于镜像打包。
 - `cd web && pnpm install && pnpm dev --host`：Vite 开发模式；`pnpm build` 产出静态文件；`pnpm lint` 运行 ESLint 自动修复。
 - `cd desktop && npm install && npm run start`：调试 Electron；`npm run package` 通过 electron-builder 生成多平台安装包。
+
+## 项目架构要点
+- 后端基于 Gin + uber-go/fx 依赖注入；数据层为 GORM + MySQL，Redis 用于缓存与会话（JWT 鉴权），LevelDB 用于本地存储；中间件涵盖 CORS、鉴权与参数处理。
+- 前端为 Vue3 + Composition API，UI 组件采用 Element Plus + Vant（移动端），状态管理 Pinia，路由 Vue Router，样式为 Stylus + Tailwind，支持桌面/移动响应式与明暗主题切换。
+- 核心功能：多模型 AI 对话、绘图（MidJourney / Stable Diffusion / DALL-E）、音乐（Suno）、视频（Luma / KeLing）、用户与算力/订单/邀请体系及后台管理。
+- 关键数据模型：User、ChatItem、ChatMessage、ChatRole、ChatModel、Order、Product、AdminUser 及各 AI 服务的任务表。
+- API 分组：用户 `/api/user/*`、对话 `/api/chat/*`、AI 服务 `/api/mj/*`、`/api/dall/*`、`/api/suno/*`、`/api/video/*`、后台 `/api/admin/*`。
+- 文件存储支持本地、阿里云 OSS、MinIO 与七牛；数据库通过 GORM 自动迁移。
 
 ## 编码风格与命名规范
 - Go 代码必须经过 `gofmt`/`goimports`，保持 tab 缩进与驼峰命名；HTTP 路由遵循 `/api/v1/resources` 模式，与 handler 函数命名 (`ResourceHandler`) 对应。

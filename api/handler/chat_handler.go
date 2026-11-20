@@ -13,7 +13,6 @@ import (
 	"errors"
 	"fmt"
 	"geekai/core"
-	"geekai/core/middleware"
 	"geekai/core/types"
 	"geekai/service"
 	"geekai/service/moderation"
@@ -91,12 +90,14 @@ func NewChatHandler(app *core.AppServer,
 }
 
 // RegisterRoutes 注册路由
-func (h *ChatHandler) RegisterRoutes() {
-	group := h.App.Engine.Group("/api/chat/")
-	group.GET("detail", h.Detail)
-	group.GET("history", h.History)
+func (h *ChatHandler) RegisterRoutes(r *core.Router) {
+	// 公开接口：匿名可访问的对话详情 / 分享预览
+	public := r.PublicGroup("/api/chat/")
+	public.GET("detail", h.Detail)
+	public.GET("history", h.History)
+
 	// 其他接口需要用户授权
-	group.Use(middleware.UserAuthMiddleware(h.App.Config.Session.SecretKey, h.App.Redis))
+	group := r.UserGroup("/api/chat/")
 	{
 		group.Any("message", h.Chat)
 		group.GET("list", h.List)
