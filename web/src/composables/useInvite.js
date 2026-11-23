@@ -1,14 +1,15 @@
 // * 邀请数据：邀请码 + 统计汇总、系统配置中的邀请奖励。
 
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { buildInviteURL, fetchInviteCode, fetchInviteReward, fetchInviteStats } from '@/services/site'
 
-export function useInviteSummary(enabled) {
+export function useInviteSummary(shouldLoad) {
   const summary = ref(null)
   const isLoading = ref(false)
   const isError = ref(false)
 
   async function load() {
+    if (isLoading.value) return
     isLoading.value = true
     isError.value = false
     try {
@@ -28,7 +29,10 @@ export function useInviteSummary(enabled) {
     }
   }
 
-  if (enabled) load()
+  watch(shouldLoad, (enabled) => {
+    if (enabled) load()
+  }, { immediate: true })
+
   return { summary, isLoading, isError, refetch: load }
 }
 
