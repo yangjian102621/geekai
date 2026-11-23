@@ -84,7 +84,7 @@ onMounted(() => {
   // 判断是否登录
   checkAdminSession()
     .then(() => {
-      router.push('/admin')
+      router.replace({ name: 'admin-dashboard' })
     })
     .catch(() => {})
 
@@ -124,7 +124,7 @@ const doLogin = function (verifyData) {
   })
     .then((res) => {
       setAdminToken(res.data.token)
-      router.push('/admin')
+      router.replace({ name: 'admin-dashboard' })
     })
     .catch((e) => {
       ElMessage.error('登录失败，' + e.message)

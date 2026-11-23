@@ -117,6 +117,12 @@ func (h *UserHandler) TokengineCallback(c *gin.Context) {
 	}
 	identity, err := h.tokengineOAuth.Exchange(c.Request.Context(), code, saved.Verifier)
 	if err != nil {
+		reason, status := "invalid_exchange", 0
+		var failure *service.TokengineOAuthError
+		if errors.As(err, &failure) {
+			reason, status = failure.Reason, failure.StatusCode
+		}
+		logger.Warnw("tokengine_exchange_failed", "reason", reason, "upstream_status", status)
 		h.tokengineFailure(c, "Token 平台验证失败，请重试")
 		return
 	}

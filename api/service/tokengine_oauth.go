@@ -67,6 +67,11 @@ type TokengineUserProfile struct {
 
 func NewTokengineOAuth(config types.TokengineOAuthConfig) *TokengineOAuth {
 	config.BaseURL = strings.TrimRight(config.BaseURL, "/")
+	if config.InternalBaseURL == "" {
+		config.InternalBaseURL = config.BaseURL
+	} else {
+		config.InternalBaseURL = strings.TrimSuffix(config.InternalBaseURL, "/")
+	}
 	return &TokengineOAuth{
 		config: config,
 		client: &http.Client{
@@ -79,15 +84,11 @@ func NewTokengineOAuth(config types.TokengineOAuthConfig) *TokengineOAuth {
 }
 
 func (s *TokengineOAuth) Validate() error {
-	if !s.config.Enabled {
-		return errors.New("Token 平台登录未启用")
+	if err := s.validateProvider(); err != nil {
+		return err
 	}
 	if strings.TrimSpace(s.config.ClientID) == "" || len(s.config.ClientID) > 64 {
 		return errors.New("Token 平台客户端 ID 配置不正确")
-	}
-	base, err := oauthConfigURL(s.config.BaseURL)
-	if err != nil || base.Path != "" {
-		return errors.New("Token 平台地址配置不正确")
 	}
 	callback, err := oauthConfigURL(s.config.RedirectURL)
 	if err != nil || callback.Path != TokengineCallbackPath || callback.RawPath != "" {
@@ -96,13 +97,37 @@ func (s *TokengineOAuth) Validate() error {
 	return nil
 }
 
-func oauthConfigURL(raw string) (*url.URL, error) {
+func (s *TokengineOAuth) validateProvider() error {
+	if !s.config.Enabled {
+		return errors.New("Token 平台登录未启用")
+	}
+	base, err := oauthConfigURL(s.config.BaseURL)
+	if err != nil || base.Path != "" {
+		return errors.New("Token 平台地址配置不正确")
+	}
+	internal, err := parseOAuthURL(s.config.InternalBaseURL)
+	if err != nil || internal.Path != "" {
+		return errors.New("Token 平台内网地址配置不正确")
+	}
+	return nil
+}
+
+func parseOAuthURL(raw string) (*url.URL, error) {
 	u, err := url.Parse(raw)
-	if err != nil || u.Hostname() == "" || u.User != nil || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" {
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" ||
+		u.User != nil || u.RawQuery != "" || u.ForceQuery || strings.Contains(raw, "#") {
 		return nil, errors.New("invalid OAuth URL")
 	}
+	return u, nil
+}
+
+func oauthConfigURL(raw string) (*url.URL, error) {
+	u, err := parseOAuthURL(raw)
+	if err != nil {
+		return nil, err
+	}
 	loopback := u.Hostname() == "localhost" || u.Hostname() == "127.0.0.1" || u.Hostname() == "::1"
-	if u.Scheme != "https" && !(u.Scheme == "http" && loopback) {
+	if u.Scheme == "http" && !loopback {
 		return nil, errors.New("OAuth requires HTTPS outside localhost")
 	}
 	return u, nil
@@ -163,7 +188,7 @@ func (s *TokengineOAuth) Exchange(ctx context.Context, code, verifier string) (T
 		"code":          {code},
 		"code_verifier": {verifier},
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.config.BaseURL+"/oauth/token", strings.NewReader(form.Encode()))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.config.InternalBaseURL+"/oauth/token", strings.NewReader(form.Encode()))
 	if err != nil {
 		return identity, err
 	}
@@ -187,11 +212,10 @@ func (s *TokengineOAuth) UserInfo(ctx context.Context, accessToken string) (Toke
 	if strings.TrimSpace(accessToken) == "" || len(accessToken) > 16384 {
 		return identity, &TokengineOAuthError{Reason: "invalid_token", cause: ErrTokengineUnauthorized}
 	}
-	base, err := oauthConfigURL(s.config.BaseURL)
-	if !s.config.Enabled || err != nil || base.Path != "" {
+	if err := s.validateProvider(); err != nil {
 		return identity, &TokengineOAuthError{Reason: "identity_not_configured"}
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.config.BaseURL+"/oauth/userinfo", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.config.InternalBaseURL+"/oauth/userinfo", nil)
 	if err != nil {
 		return identity, &TokengineOAuthError{Reason: "invalid_identity_request", cause: err}
 	}
@@ -216,16 +240,15 @@ func (s *TokengineOAuth) UserInfo(ctx context.Context, accessToken string) (Toke
 
 // UserProfile accepts only a subject already verified by UserInfo.
 func (s *TokengineOAuth) UserProfile(ctx context.Context, subject, serviceToken string) (*TokengineUserProfile, error) {
-	base, err := oauthConfigURL(s.config.BaseURL)
 	serviceToken = strings.TrimSpace(serviceToken)
-	if !s.config.Enabled || err != nil || base.Path != "" || serviceToken == "" {
+	if err := s.validateProvider(); err != nil || serviceToken == "" {
 		return nil, &TokengineOAuthError{Reason: "profile_not_configured"}
 	}
 	id, err := strconv.ParseInt(strings.TrimPrefix(subject, "u_"), 10, 64)
 	if err != nil || id <= 0 || subject != "u_"+strconv.FormatInt(id, 10) {
 		return nil, &TokengineOAuthError{Reason: "invalid_profile_subject"}
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.config.BaseURL+"/api/user/"+strconv.FormatInt(id, 10), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.config.InternalBaseURL+"/api/user/"+strconv.FormatInt(id, 10), nil)
 	if err != nil {
 		return nil, &TokengineOAuthError{Reason: "invalid_profile_request", cause: err}
 	}
@@ -265,7 +288,11 @@ func (s *TokengineOAuth) readJSON(req *http.Request, target interface{}) error {
 		return &TokengineOAuthError{Reason: "invalid_token", StatusCode: response.StatusCode, cause: ErrTokengineUnauthorized}
 	}
 	if response.StatusCode != http.StatusOK {
-		return &TokengineOAuthError{Reason: "upstream_http_error", StatusCode: response.StatusCode}
+		reason := "upstream_http_error"
+		if req.URL.Path == "/oauth/token" && response.StatusCode == http.StatusBadRequest {
+			reason = tokengineTokenFailureReason(response.Body)
+		}
+		return &TokengineOAuthError{Reason: reason, StatusCode: response.StatusCode}
 	}
 	const limit = 1 << 20
 	body, err := io.ReadAll(io.LimitReader(response.Body, limit+1))
@@ -283,6 +310,38 @@ func (s *TokengineOAuth) readJSON(req *http.Request, target interface{}) error {
 		return &TokengineOAuthError{Reason: "invalid_response_json", StatusCode: response.StatusCode, cause: err}
 	}
 	return nil
+}
+
+func tokengineTokenFailureReason(body io.Reader) string {
+	var failure struct {
+		Code        string `json:"error"`
+		Description string `json:"error_description"`
+	}
+	if err := json.NewDecoder(io.LimitReader(body, 4096)).Decode(&failure); err != nil {
+		return "upstream_http_error"
+	}
+	switch failure.Description {
+	case "code is invalid, expired or already used":
+		return "invalid_authorization_code"
+	case "code was issued to another client":
+		return "authorization_code_client_mismatch"
+	case "redirect_uri mismatch":
+		return "redirect_uri_mismatch"
+	case "PKCE verification failed":
+		return "pkce_verification_failed"
+	case "user is banned or not found":
+		return "user_unavailable"
+	case "failed to sign access token":
+		return "access_token_signing_failed"
+	case "failed to store refresh token":
+		return "refresh_token_store_failed"
+	}
+	switch failure.Code {
+	case "invalid_request", "invalid_client", "invalid_grant", "unsupported_grant_type", "server_error":
+		return failure.Code
+	default:
+		return "upstream_http_error"
+	}
 }
 
 func tokengineNetworkFailureReason(err error) string {

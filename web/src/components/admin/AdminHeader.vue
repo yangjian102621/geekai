@@ -144,7 +144,7 @@ const logout = function () {
   httpGet('/api/admin/logout')
     .then(() => {
       removeAdminToken()
-      router.replace('/admin/login')
+      router.replace({ name: 'admin-login' })
     })
     .catch((e) => {
       ElMessage.error('注销失败: ' + e.message)

@@ -19,11 +19,6 @@
           </el-table-column>
           <el-table-column prop="description" label="介绍" min-width="180" show-overflow-tooltip />
           <el-table-column prop="sort_num" label="排序" width="80" />
-          <el-table-column label="发布状态" width="120">
-            <template #default="{ row }">
-              <el-switch :model-value="row.published" :loading="busy === 'publish-' + row.id" @change="setPublished(row, $event)" />
-            </template>
-          </el-table-column>
           <el-table-column label="操作" width="180">
             <template #default="{ row }">
               <el-button size="small" @click="editResource(row)">编辑</el-button>
@@ -199,20 +194,6 @@ async function saveResource() {
     tab.value = 'resources'
     ElMessage.success('发布目录已更新')
     await load()
-  } catch (error) {
-    showError(error)
-  } finally {
-    busy.value = ''
-  }
-}
-
-async function setPublished(row, published) {
-  if (busy.value) return
-  busy.value = 'publish-' + row.id
-  try {
-    await httpPost(prefix + '/resources', { ...row, published })
-    row.published = published
-    ElMessage.success(published ? '资料已上架' : '资料已下架')
   } catch (error) {
     showError(error)
   } finally {

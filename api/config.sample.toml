@@ -20,6 +20,7 @@ TokengineServiceToken = "" # Token 平台统一管理令牌：用户资料、赠
 [TokengineOAuth]
   Enabled = false
   BaseURL = "https://tokengine.hanyoai.com"
+  InternalBaseURL = "" # 可信集群 Service 地址，用于后端 OAuth 请求，留空复用 BaseURL
   ClientID = "geekai-web"
   RedirectURL = "http://localhost:3000/api/user/login/tokengine/callback"
 

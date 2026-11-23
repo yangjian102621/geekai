@@ -79,7 +79,7 @@ onMounted(async () => {
 
   await router.replace({ path: '/login', query })
   if (tokengine !== 'success') {
-    ElMessage.error(typeof message === 'string' ? message : 'TokEngine 平台登录失败，请重试')
+    ElMessage.error(typeof message === 'string' ? message : 'Tokengine 登录失败，请重试')
     return
   }
 
@@ -90,7 +90,7 @@ onMounted(async () => {
     ElMessage.success('登录成功！')
     handleRegisterSuccess()
   } catch (error) {
-    ElMessage.error(error.message || 'TokEngine 平台登录失败，请重试')
+    ElMessage.error(error.message || 'Tokengine 登录失败，请重试')
   }
 })
 </script>
