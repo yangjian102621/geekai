@@ -38,10 +38,11 @@ type AppConfig struct {
 }
 
 type TokengineOAuthConfig struct {
-	Enabled     bool
-	BaseURL     string
-	ClientID    string
-	RedirectURL string
+	Enabled         bool
+	BaseURL         string
+	InternalBaseURL string
+	ClientID        string
+	RedirectURL     string
 }
 
 type FirstUseGiftConfig struct {

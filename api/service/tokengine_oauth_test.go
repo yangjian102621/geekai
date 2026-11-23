@@ -43,6 +43,114 @@ func TestTokengineExchangeStillValidatesTokenAndIdentity(t *testing.T) {
 	}
 }
 
+func TestTokengineOAuthUsesInternalBaseURLForBackendRequests(t *testing.T) {
+	config := types.TokengineOAuthConfig{
+		Enabled: true, BaseURL: "https://provider.example", ClientID: "thinkbuddy-web",
+		RedirectURL: "https://thinkbuddy.example" + TokengineCallbackPath,
+	}
+	publicOAuth := NewTokengineOAuth(config)
+	config.InternalBaseURL = "http://provider.test.svc.cluster.local:3000/"
+	oauth := NewTokengineOAuth(config)
+
+	authorizeURL, err := oauth.AuthorizeURL("test-state", "test-verifier")
+	publicAuthorizeURL, publicErr := publicOAuth.AuthorizeURL("test-state", "test-verifier")
+	if err != nil || publicErr != nil || authorizeURL != publicAuthorizeURL ||
+		!strings.HasPrefix(authorizeURL, config.BaseURL+"/oauth/authorize?") {
+		t.Fatalf("authorization must use the public address: %q, %v", authorizeURL, err)
+	}
+	if key := oauth.IdentityKey("u_42"); key == "" || key != publicOAuth.IdentityKey("u_42") {
+		t.Fatal("the internal address changed the account identity key")
+	}
+
+	oauth.client.Transport = tokengineTestTransport(func(r *http.Request) (*http.Response, error) {
+		if r.URL.Scheme != "http" || r.URL.Host != "provider.test.svc.cluster.local:3000" {
+			t.Fatalf("backend request used %s://%s", r.URL.Scheme, r.URL.Host)
+		}
+		var body string
+		switch r.URL.Path {
+		case "/oauth/token":
+			if r.Method != http.MethodPost || r.ParseForm() != nil || r.Form.Get("redirect_uri") != config.RedirectURL ||
+				r.Form.Get("client_id") != config.ClientID || r.Form.Get("code_verifier") != "test-verifier" {
+				t.Error("internal token exchange changed the OAuth parameters")
+			}
+			body = `{"access_token":"test-token","token_type":"Bearer"}`
+		case "/oauth/userinfo":
+			if r.Header.Get("Authorization") != "Bearer test-token" {
+				t.Error("missing OAuth access token")
+			}
+			body = `{"sub":"u_42"}`
+		case "/api/user/42":
+			if r.Header.Get("Authorization") != "Bearer test-service-token" {
+				t.Error("missing management token")
+			}
+			body = `{"success":true,"data":{"id":42,"role":1,"status":1}}`
+		default:
+			t.Fatalf("unexpected internal endpoint: %s", r.URL.Path)
+		}
+		return &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(strings.NewReader(body))}, nil
+	})
+
+	identity, err := oauth.Exchange(context.Background(), "test-code", "test-verifier")
+	if err != nil || identity.Subject != "u_42" {
+		t.Fatalf("internal token exchange failed: %+v %v", identity, err)
+	}
+	profile, err := oauth.UserProfile(context.Background(), identity.Subject, "test-service-token")
+	if err != nil || profile == nil || profile.ID != 42 {
+		t.Fatalf("internal profile lookup failed: %+v %v", profile, err)
+	}
+}
+
+func TestTokengineOAuthRejectsInvalidInternalBaseURL(t *testing.T) {
+	for _, address := range []string{
+		"ftp://provider.test", "http://", "/", "//provider.test",
+		"http://user:password@provider.test", "http://provider.test/api/",
+		"http://provider.test/?route=api", "http://provider.test?", "http://provider.test#",
+	} {
+		config := types.TokengineOAuthConfig{
+			Enabled: true, BaseURL: "https://provider.example", ClientID: "thinkbuddy-web",
+			InternalBaseURL: address, RedirectURL: "https://thinkbuddy.example" + TokengineCallbackPath,
+		}
+		if err := NewTokengineOAuth(config).Validate(); err == nil {
+			t.Errorf("accepted invalid internal address %q", address)
+		}
+	}
+}
+
+func TestTokengineExchangeClassifiesTokenRejections(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		body   string
+		reason string
+	}{
+		{"redirect mismatch", `{"error":"invalid_grant","error_description":"redirect_uri mismatch"}`, "redirect_uri_mismatch"},
+		{"wrong verifier", `{"error":"invalid_grant","error_description":"PKCE verification failed"}`, "pkce_verification_failed"},
+		{"expired or used code", `{"error":"invalid_grant","error_description":"code is invalid, expired or already used"}`, "invalid_authorization_code"},
+		{"unknown description", `{"error":"invalid_grant","error_description":"provider-secret"}`, "invalid_grant"},
+		{"unknown error", `{"error":"provider-secret"}`, "upstream_http_error"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			oauth := NewTokengineOAuth(types.TokengineOAuthConfig{
+				Enabled: true, BaseURL: "https://provider.example", ClientID: "thinkbuddy-web",
+				RedirectURL: "http://localhost" + TokengineCallbackPath,
+			})
+			oauth.client.Transport = tokengineTestTransport(func(r *http.Request) (*http.Response, error) {
+				if r.URL.Path != "/oauth/token" {
+					t.Fatalf("unexpected request to %s", r.URL.Path)
+				}
+				return &http.Response{
+					StatusCode: http.StatusBadRequest,
+					Body:       io.NopCloser(strings.NewReader(tc.body)),
+				}, nil
+			})
+			_, err := oauth.Exchange(context.Background(), "test-code", "test-verifier")
+			var failure *TokengineOAuthError
+			if !errors.As(err, &failure) || failure.Reason != tc.reason || failure.StatusCode != http.StatusBadRequest {
+				t.Fatalf("expected %s with HTTP 400, got %v", tc.reason, err)
+			}
+		})
+	}
+}
+
 func TestTokengineUserInfoNeverForwardsCredentialsOnRedirect(t *testing.T) {
 	var forwarded atomic.Bool
 	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
