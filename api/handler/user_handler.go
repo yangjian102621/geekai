@@ -88,6 +88,7 @@ func (h *UserHandler) RegisterRoutes(r *core.Router) {
 	public.GET("login/status", h.GetWxLoginState)
 	public.GET("logout", h.Logout)
 	public.POST("wxAuthLogin", h.WxAuthLogin)
+	r.PublicGroup("/api/v1").POST("checkin", h.TokengineCheckin)
 
 	// 需要用户授权的接口
 	group := r.UserGroup("/api/user/")
@@ -779,41 +780,15 @@ func (h *UserHandler) BindEmail(c *gin.Context) {
 
 // SignIn 每日签到
 func (h *UserHandler) SignIn(c *gin.Context) {
-	// 获取当前日期
-	date := time.Now().Format("2006-01-02")
-
-	// 检查是否已经签到
-	userId := h.GetLoginUserId(c)
-	key := fmt.Sprintf("signin/%d/%s", userId, date)
-	var signIn bool
-	err := h.levelDB.Get(key, &signIn)
-	if err == nil && signIn {
-		resp.ERROR(c, "今日已签到，请明日再来！")
-		return
-	}
-
-	power := max(0, h.App.SysConfig.Base.DailyPower)
-	var granted bool
-	err = h.DB.WithContext(c.Request.Context()).Transaction(func(tx *gorm.DB) error {
-		var grantErr error
-		granted, grantErr = h.ledgerService.Grant(tx, userId, power, service.LedgerRef{Type: "signin:" + date, ID: userId}, model.PowerLog{
-			RewardKey: &key, // 沿用旧版签到键，避免迁移后当日重复领取。
-			Type:      types.PowerSignIn,
-			Model:     "SignIn",
-			Remark:    fmt.Sprintf("每日签到奖励，金额：%d", power),
-		})
-		return grantErr
-	})
+	_, alreadyCheckedIn, err := h.checkIn(c.Request.Context(), h.GetLoginUserId(c), false)
 	if err != nil {
-		logger.Errorw("signin_reward_failed", "user_id", userId)
 		resp.ERROR(c, "签到失败，请稍后重试")
 		return
 	}
-	if !granted {
+	if alreadyCheckedIn {
 		resp.ERROR(c, "今日已签到，请明日再来！")
 		return
 	}
-	h.levelDB.Put(key, true)
 	resp.SUCCESS(c)
 }
 

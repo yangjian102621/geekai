@@ -135,7 +135,10 @@ func (s *TokengineOAuth) AuthorizeURL(state, verifier string) (string, error) {
 
 // Include the provider origin so test and production identities cannot share an account.
 func (s *TokengineOAuth) IdentityKey(subject string) string {
-	u, _ := url.Parse(s.config.BaseURL)
+	u, err := oauthConfigURL(s.config.BaseURL)
+	if err != nil || u.Path != "" {
+		return ""
+	}
 	u.Scheme = strings.ToLower(u.Scheme)
 	u.Host = strings.ToLower(u.Host)
 	if u.Scheme == "https" && u.Port() == "443" {
