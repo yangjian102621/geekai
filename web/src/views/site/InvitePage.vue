@@ -1,7 +1,7 @@
 <template>
   <!-- 邀请页：访客浏览奖励规则；登录用户查看邀请码/二维码/统计；
        带 aff 参数的访问者走注册引导视图。 -->
-  <div class="page-wash-all">
+  <div class="invite-theme">
     <!-- 加载中（登录态） -->
     <section v-if="authLoading" class="invite-hero py-32">
       <div class="invite-hero-bg" />

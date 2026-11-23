@@ -1,34 +1,23 @@
 <template>
-  <div v-reveal class="page-wash-all">
+  <div v-reveal class="tb-home">
     <!-- Hero -->
-    <section class="hero-bg relative overflow-hidden pt-28 pb-24 lg:pt-36 lg:pb-32">
-      <div class="hero-aurora" aria-hidden="true" />
-      <div class="hero-grid-overlay absolute inset-0 pointer-events-none" />
-      <div class="relative max-w-shell mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div
-          class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-canvas border border-hairline text-body-strong text-xs font-medium tracking-wide mb-7"
-          data-reveal
-        >
-          <span class="w-1.5 h-1.5 rounded-full bg-coral" />
+    <section class="tb-hero">
+      <div class="tb-hero-grid" aria-hidden="true" />
+      <div class="tb-hero-noise" aria-hidden="true" />
+      <div class="tb-container tb-hero-inner">
+        <div class="tb-pill" data-reveal>
+          <span class="tb-pill-dot" />
           <span>{{ t('hero.badge') }}</span>
         </div>
-        <h1
-          class="font-serif text-[clamp(2rem,7.5vw,2.6rem)] sm:text-5xl lg:text-[3.75rem] font-normal tracking-[-0.03em] text-ink leading-[1.06] mb-7"
-          data-reveal
-        >
-          <span class="block text-ink">{{ t('hero.title_lead') }}</span>
-          <!-- 强调行：墨色文字 + 极淡赤陶底色，不用渐变字 -->
-          <span class="hero-highlight inline-block">{{ t('hero.title_highlight') }}</span>
+        <h1 class="tb-title" data-reveal>
+          <span class="tb-title-line">{{ t('hero.title_lead') }}</span>
+          <span class="tb-grad-text">{{ t('hero.title_highlight') }}</span>
         </h1>
-        <p class="max-w-2xl mx-auto text-base sm:text-lg text-body leading-relaxed mb-10" data-reveal>
-          {{ t('hero.subtitle') }}
-        </p>
-        <!-- relative z-30：hero 每行都带 data-reveal（transform 会生成层叠上下文），
-            否则下方的支持文案行会盖住下载下拉面板。 -->
-        <div class="relative z-30 flex flex-col sm:flex-row items-center justify-center gap-3 mb-8" data-reveal>
-          <DownloadMenu anchor="right" class-name="w-full sm:w-auto">
-            <a :href="downloadUrl ?? '#download'" class="btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-medium w-full sm:w-auto justify-center">
-              <svg class="download-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <p class="tb-sub" data-reveal>{{ t('hero.subtitle') }}</p>
+        <div class="tb-cta-row" data-reveal>
+          <DownloadMenu anchor="right" class-name="tb-dm">
+            <a :href="downloadUrl ?? '#download'" class="tb-btn tb-btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="7 10 12 15 17 10" />
                 <line x1="12" y1="15" x2="12" y2="3" />
@@ -38,130 +27,111 @@
             </a>
           </DownloadMenu>
         </div>
-        <p class="text-xs text-muted-soft mt-6" data-reveal>{{ t('hero.platforms') }}</p>
+        <p class="tb-platforms" data-reveal>{{ t('hero.platforms') }}</p>
       </div>
     </section>
 
     <!-- 产品演示 -->
-    <section class="py-20 lg:py-24 bg-canvas">
-      <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-14" data-reveal>
-          <h2 class="font-serif text-3xl sm:text-[2.6rem] font-normal tracking-[-0.03em] text-ink mb-3">{{ t('demo.title') }}</h2>
-          <p class="max-w-2xl mx-auto text-body">{{ t('demo.subtitle') }}</p>
+    <section class="tb-section tb-demo">
+      <div class="tb-container">
+        <div class="tb-head" data-reveal>
+          <h2 class="tb-h2">{{ t('demo.title') }}</h2>
+          <p class="tb-sub2">{{ t('demo.subtitle') }}</p>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div
-            v-for="card in demoCards"
-            :key="card.title"
-            class="bg-canvas border border-hairline rounded-xl overflow-hidden"
-            data-reveal
-          >
-            <div class="demo-card-visual h-44 relative" @click="lightbox = card.img">
-              <img :src="card.img" :alt="card.title" class="demo-card-img" />
+        <div class="tb-demo-grid">
+          <article v-for="card in demoCards" :key="card.title" class="tb-card" data-reveal>
+            <div class="tb-card-media" @click="lightbox = card.img">
+              <img :src="card.img" :alt="card.title" />
             </div>
-            <div class="p-6">
-              <h3 class="text-lg font-semibold text-ink mb-2">{{ card.title }}</h3>
-              <p class="text-sm text-body leading-relaxed">{{ card.desc }}</p>
+            <div class="tb-card-body">
+              <h3>{{ card.title }}</h3>
+              <p>{{ card.desc }}</p>
             </div>
-          </div>
+          </article>
         </div>
       </div>
     </section>
 
     <!-- 核心能力矩阵 -->
-    <section id="features" class="section-soft py-20 lg:py-24">
-      <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-14" data-reveal>
-          <h2 class="font-serif text-3xl sm:text-[2.6rem] font-normal tracking-[-0.03em] text-ink mb-3">{{ t('features.title') }}</h2>
-          <p class="text-body">{{ t('features.subtitle') }}</p>
-          <div class="stats-bar" data-reveal>
-            <div class="stat-item">
-              <div class="stat-number">6<span class="stat-plus">+</span></div>
-              <div class="stat-label">{{ t('stats.modules') }}</div>
+    <section id="features" class="tb-section tb-features">
+      <div class="tb-container">
+        <div class="tb-head" data-reveal>
+          <h2 class="tb-h2">{{ t('features.title') }}</h2>
+          <p class="tb-sub2">{{ t('features.subtitle') }}</p>
+          <div class="tb-stats" data-reveal>
+            <div class="tb-stat">
+              <b>6<span>+</span></b>
+              <i>{{ t('stats.modules') }}</i>
             </div>
-            <div class="stat-divider" />
-            <div class="stat-item">
-              <div class="stat-number">101<span class="stat-plus">+</span></div>
-              <div class="stat-label">{{ t('stats.apps') }}</div>
+            <div class="tb-stat">
+              <b>101<span>+</span></b>
+              <i>{{ t('stats.apps') }}</i>
             </div>
-            <div class="stat-divider" />
-            <div class="stat-item">
-              <div class="stat-number">30<span class="stat-plus">+</span></div>
-              <div class="stat-label">{{ t('stats.models') }}</div>
+            <div class="tb-stat">
+              <b>30<span>+</span></b>
+              <i>{{ t('stats.models') }}</i>
             </div>
-            <div class="stat-divider" />
-            <div class="stat-item">
-              <div class="stat-number">3</div>
-              <div class="stat-label">{{ t('stats.platforms') }}</div>
+            <div class="tb-stat">
+              <b>3</b>
+              <i>{{ t('stats.platforms') }}</i>
             </div>
           </div>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div
-            v-for="(f, i) in features"
-            :key="f.titleKey"
-            class="feature-card rounded-xl p-7"
-            :style="{ '--tone': tones[i % tones.length].tone, '--tone-soft': tones[i % tones.length].soft }"
-            data-reveal
-          >
-            <div class="feature-icon-wrap w-11 h-11 rounded-lg flex items-center justify-center mb-5" v-html="f.icon" />
-            <h3 class="text-lg font-semibold text-ink mb-2">{{ t(f.titleKey) }}</h3>
-            <p class="text-sm text-body leading-relaxed">{{ t(f.descKey) }}</p>
-          </div>
+        <div class="tb-feature-grid">
+          <article v-for="(f, i) in features" :key="f.titleKey" class="tb-feature" data-reveal>
+            <i class="tb-feature-icon" :style="{ background: tones[i % tones.length] }" v-html="f.icon" />
+            <h3>{{ t(f.titleKey) }}</h3>
+            <p>{{ t(f.descKey) }}</p>
+          </article>
         </div>
       </div>
     </section>
 
     <!-- 大字错位排版区 -->
-    <section class="bigtext-section py-20 lg:py-24 bg-canvas overflow-hidden">
-      <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="bigtext-title" data-reveal>{{ t('bigtext.title') }}</h2>
-        <p class="bigtext-subtitle" data-reveal>{{ t('bigtext.subtitle') }}</p>
-        <div class="bigtext-words" data-reveal>
-          <span v-for="(w, i) in bigWords" :key="w" class="big-word" :style="{ '--d': `${i * 120}ms` }">{{ w }}</span>
+    <section class="tb-section tb-big">
+      <div class="tb-container">
+        <h2 class="tb-big-title tb-grad-text" data-reveal>{{ t('bigtext.title') }}</h2>
+        <p class="tb-big-sub" data-reveal>{{ t('bigtext.subtitle') }}</p>
+        <div class="tb-words" data-reveal>
+          <span v-for="w in bigWords" :key="w" class="tb-word">{{ w }}</span>
         </div>
       </div>
     </section>
 
     <!-- 版本时间线 -->
-    <section id="versions" class="py-12 lg:py-16 section-soft">
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-8" data-reveal>
-          <h2 class="font-serif text-2xl sm:text-[2rem] font-normal tracking-[-0.025em] text-ink mb-2">{{ t('versions.title') }}</h2>
-          <p class="text-sm text-body">{{ t('versions.subtitle') }}</p>
+    <section id="versions" class="tb-section tb-versions">
+      <div class="tb-container tb-narrow">
+        <div class="tb-head" data-reveal>
+          <h2 class="tb-h2">{{ t('versions.title') }}</h2>
+          <p class="tb-sub2">{{ t('versions.subtitle') }}</p>
         </div>
-        <div class="relative pl-7" data-reveal>
-          <div class="timeline-line absolute left-2 top-2 bottom-2 w-0.5" />
-          <div v-for="item in versions" :key="item.v" class="relative mb-5">
-            <span class="timeline-dot absolute -left-7 top-1 w-3 h-3 rounded-full" />
-            <div class="flex flex-wrap items-baseline gap-2 mb-0.5">
-              <span class="text-base font-semibold text-ink">{{ item.v }}</span>
-              <span class="text-xs text-muted">{{ item.d }}</span>
+        <div class="tb-version-card" data-reveal>
+          <div class="tb-timeline">
+            <div v-for="item in versions" :key="item.v" class="tb-version-item">
+              <span class="tb-dot" />
+              <div class="tb-version-head">
+                <b>{{ item.v }}</b>
+                <span>{{ item.d }}</span>
+              </div>
+              <p>{{ item.h }}</p>
             </div>
-            <p class="text-xs text-body">{{ item.h }}</p>
           </div>
         </div>
       </div>
     </section>
 
     <!-- 集成生态 -->
-    <section id="ecosystem" class="bg-canvas py-20 lg:py-24">
-      <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-14" data-reveal>
-          <h2 class="font-serif text-3xl sm:text-[2.6rem] font-normal tracking-[-0.03em] text-ink mb-3">{{ t('ecosystem.title') }}</h2>
-          <p class="max-w-2xl mx-auto text-body">{{ t('ecosystem.subtitle') }}</p>
+    <section id="ecosystem" class="tb-section tb-eco">
+      <div class="tb-container">
+        <div class="tb-head" data-reveal>
+          <h2 class="tb-h2">{{ t('ecosystem.title') }}</h2>
+          <p class="tb-sub2">{{ t('ecosystem.subtitle') }}</p>
         </div>
-        <div class="space-y-10">
-          <div v-for="g in ecosystemGroups" :key="g.cat" data-reveal>
-            <h3 class="text-sm font-semibold text-muted uppercase tracking-wider mb-3">{{ g.cat }}</h3>
-            <div class="flex flex-wrap gap-2">
-              <span
-                v-for="it in g.items"
-                :key="it"
-                class="ecosystem-chip bg-canvas border border-hairline rounded-full px-4 py-2 text-sm font-medium text-body-strong"
-              >
-                {{ it }}
-              </span>
+        <div class="tb-eco-groups">
+          <div v-for="g in ecosystemGroups" :key="g.cat" class="tb-eco-group" data-reveal>
+            <h3 class="tb-group-title">{{ g.cat }}</h3>
+            <div class="tb-chips">
+              <span v-for="it in g.items" :key="it" class="tb-chip">{{ it }}</span>
             </div>
           </div>
         </div>
@@ -169,72 +139,67 @@
     </section>
 
     <!-- 下载区 -->
-    <section id="download" class="pb-12 lg:pb-16 section-soft">
-      <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-6" data-reveal>
-          <h2 class="font-serif text-2xl sm:text-[2rem] font-normal tracking-[-0.025em] text-ink mb-2">{{ t('download.title') }}</h2>
-          <p v-if="links.version" class="text-xs text-muted">v{{ links.version }}</p>
+    <section id="download" class="tb-section tb-download">
+      <div class="tb-container tb-narrow-sm">
+        <div class="tb-head" data-reveal>
+          <h2 class="tb-h2">{{ t('download.title') }}</h2>
+          <p v-if="links.version" class="tb-version">v{{ links.version }}</p>
         </div>
-        <div v-if="links.unreachable" class="flex items-center justify-center gap-2 mb-3 text-xs text-muted" data-reveal>
+        <div v-if="links.unreachable" class="tb-note" data-reveal>
           <span>⚠ {{ t('download.unreachable') }}</span>
-          <button type="button" class="text-brand-600 font-semibold hover:underline" @click="refreshDownloadLinks">
-            {{ t('download.retry') }}
-          </button>
+          <button type="button" @click="refreshDownloadLinks">{{ t('download.retry') }}</button>
         </div>
-        <p v-if="!links.unreachable && currentOs() === 'mac' && currentMacArch() === 'unknown'" class="text-xs text-muted text-center mb-3" data-reveal>
+        <p
+          v-if="!links.unreachable && currentOs() === 'mac' && currentMacArch() === 'unknown'"
+          class="tb-note"
+          data-reveal
+        >
           {{ t('download.mac_unknown_hint') }}
         </p>
-        <div class="bg-canvas border border-hairline rounded-xl overflow-hidden divide-y divide-hairline-soft" data-reveal>
+        <div class="tb-download-card" data-reveal>
           <template v-for="option in options" :key="option.key">
-            <a v-if="option.available" :href="option.href ?? undefined" class="flex items-center gap-4 px-5 py-4 hover:bg-surface-soft transition">
-              <span class="text-body"><PlatformIcon :platform="option.key" :size="22" /></span>
-              <span class="flex-1 text-left">
-                <span class="block text-sm font-semibold text-ink">{{ t(option.labelKey) }}</span>
-                <span class="block text-xs text-muted">{{ t(option.noteKey) }}</span>
+            <a v-if="option.available" :href="option.href ?? undefined" class="tb-download-row">
+              <span class="tb-dl-icon"><PlatformIcon :platform="option.key" :size="22" /></span>
+              <span class="tb-dl-text">
+                <span class="tb-dl-title">{{ t(option.labelKey) }}</span>
+                <span class="tb-dl-note">{{ t(option.noteKey) }}</span>
               </span>
               <span
                 v-if="option.badgeKey"
-                class="rounded-full border px-2 py-0.5 text-[10px] font-semibold"
-                :class="option.badgeKey === 'download.current' ? 'border-hairline text-muted' : 'border-brand-500/30 bg-brand-50 text-brand-600'"
+                class="tb-dl-badge"
+                :class="option.badgeKey === 'download.current' ? 'is-current' : 'is-new'"
               >
                 {{ t(option.badgeKey) }}
               </span>
-              <span class="text-muted-soft">
+              <span class="tb-dl-arrow">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
               </span>
             </a>
-            <div v-else class="flex items-center gap-4 px-5 py-4 opacity-55 cursor-not-allowed" :title="t('download.unavailable')">
-              <span class="text-muted"><PlatformIcon :platform="option.key" :size="22" /></span>
-              <span class="flex-1 text-left">
-                <span class="block text-sm font-semibold text-muted">{{ t(option.labelKey) }}</span>
-                <span class="block text-xs text-muted-soft">{{ t(option.noteKey) }}</span>
+            <div v-else class="tb-download-row is-disabled" :title="t('download.unavailable')">
+              <span class="tb-dl-icon"><PlatformIcon :platform="option.key" :size="22" /></span>
+              <span class="tb-dl-text">
+                <span class="tb-dl-title">{{ t(option.labelKey) }}</span>
+                <span class="tb-dl-note">{{ t(option.noteKey) }}</span>
               </span>
-              <span class="rounded-full border border-hairline px-2 py-0.5 text-[10px] font-semibold text-muted-soft">
-                {{ t('download.unavailable') }}
-              </span>
-              <span class="text-muted-soft opacity-40">
+              <span class="tb-dl-badge">{{ t('download.unavailable') }}</span>
+              <span class="tb-dl-arrow is-muted">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
               </span>
             </div>
           </template>
         </div>
-        <!-- 定价入口暂时隐藏 -->
-        <p class="hidden text-xs text-muted-soft mt-1 text-center">
-          {{ t('credits.more_pricing') }}
-          <RouterLink to="/pricing" class="text-brand-600 font-medium hover:underline">定价页</RouterLink>
-        </p>
       </div>
     </section>
 
     <!-- Lightbox -->
-    <div v-if="lightbox" class="lightbox-overlay active" @click="lightbox = null">
+    <div v-if="lightbox" class="tb-lightbox" @click="lightbox = null">
       <img :src="lightbox" alt="放大预览" @click.stop />
     </div>
   </div>
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ChevronDown } from 'lucide-vue-next'
 import DownloadMenu from '@/components/site/DownloadMenu.vue'
@@ -248,7 +213,6 @@ import {
   recommendedHref,
   refreshDownloadLinks,
 } from '@/composables/useDownloadLinks'
-import { computed } from 'vue'
 
 const vReveal = useReveal()
 const { t } = useI18n()
@@ -280,12 +244,14 @@ const ecosystemGroups = computed(() => [
   { cat: t('ecosystem.cat.models'), items: ['OpenAI Codex', 'Gemini', '通义', '豆包', 'Zhipu', '…数十家'] },
 ])
 
-// 能力卡图标只用三种低饱和冷色轮换：靛蓝 / 青蓝 / 紫灰。
-// 全站强调色保持稀缺，这里的色彩是“点缀”而不是主题色。
+// 能力卡图标底色：与参考站一致的一组低饱和渐变
 const tones = [
-  { tone: '#3b5bdb', soft: '#e9ebf7' },
-  { tone: '#2f7d8c', soft: '#e4edf1' },
-  { tone: '#6b5bd6', soft: '#eeebf5' },
+  'linear-gradient(135deg, #5457e8, #8b5cf6)',
+  'linear-gradient(135deg, #06b6d4, #3b82f6)',
+  'linear-gradient(135deg, #8b5cf6, #ec4899)',
+  'linear-gradient(135deg, #10b981, #0d9488)',
+  'linear-gradient(135deg, #f59e0b, #f43f5e)',
+  'linear-gradient(135deg, #22d3ee, #5457e8)',
 ]
 
 const features = [
@@ -303,3 +269,711 @@ const onKey = (e) => {
 onMounted(() => window.addEventListener('keydown', onKey))
 onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 </script>
+
+<style scoped>
+/* ============================================================
+   首页皮肤：沿用原 ThinkBuddy 内容结构，替换为参考站配色与字体
+   ============================================================ */
+.tb-home {
+  --tb-primary: #5457e8;
+  --tb-primary-dark: #3f42c8;
+  --tb-violet: #8b5cf6;
+  --tb-cyan: #22d3ee;
+  --tb-text: #14163a;
+  --tb-text-2: #565b7e;
+  --tb-text-3: #8a8eab;
+  --tb-line: rgba(84, 87, 232, 0.14);
+  --tb-bg: #f6f7fd;
+  --tb-soft: #f2f3fc;
+  --tb-grad: linear-gradient(120deg, #5457e8 0%, #8b5cf6 55%, #22d3ee 110%);
+  --tb-grad-btn: linear-gradient(135deg, #5457e8 0%, #7c5cfc 100%);
+  --tb-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', sans-serif;
+  --tb-font-num: 'Bahnschrift', 'DIN Alternate', 'Avenir Next Condensed', 'Segoe UI',
+    'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  font-family: var(--tb-font);
+  color: var(--tb-text);
+  background: var(--tb-bg);
+  line-height: 1.65;
+}
+
+.tb-home *,
+.tb-home *::before,
+.tb-home *::after {
+  box-sizing: border-box;
+}
+
+.tb-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.tb-narrow {
+  max-width: 960px;
+}
+.tb-narrow-sm {
+  max-width: 720px;
+}
+
+.tb-section {
+  padding: 72px 0;
+  position: relative;
+}
+.tb-head {
+  text-align: center;
+  margin-bottom: 44px;
+}
+.tb-h2 {
+  font-size: clamp(1.85rem, 3.4vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--tb-text);
+  margin: 0 0 14px;
+}
+.tb-sub2 {
+  font-size: 16px;
+  color: var(--tb-text-2);
+  max-width: 640px;
+  margin: 0 auto;
+}
+.tb-grad-text {
+  background: var(--tb-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ============================================================
+   Hero
+   ============================================================ */
+.tb-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 148px 0 96px;
+  background:
+    radial-gradient(900px 500px at 15% 0%, rgba(139, 92, 246, 0.12), transparent 60%),
+    radial-gradient(800px 480px at 85% 10%, rgba(34, 211, 238, 0.1), transparent 60%),
+    linear-gradient(180deg, #f7f8fe 0%, #eef0fc 55%, #f6f7fd 100%);
+}
+.tb-hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(84, 87, 232, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(84, 87, 232, 0.055) 1px, transparent 1px);
+  background-size: 54px 54px;
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, #000 30%, transparent 75%);
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, #000 30%, transparent 75%);
+  pointer-events: none;
+}
+.tb-hero-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.035'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.tb-hero-inner {
+  position: relative;
+  text-align: center;
+}
+.tb-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  color: var(--tb-text);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(84, 87, 232, 0.22);
+  box-shadow: 0 4px 20px rgba(84, 87, 232, 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  margin-bottom: 26px;
+}
+.tb-pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tb-grad);
+  box-shadow: 0 0 10px rgba(84, 87, 232, 0.6);
+  flex: none;
+}
+.tb-title {
+  font-size: clamp(2.2rem, 5.6vw, 3.9rem);
+  font-weight: 800;
+  line-height: 1.16;
+  letter-spacing: -0.02em;
+  margin: 0 0 24px;
+  color: var(--tb-text);
+}
+.tb-title-line {
+  display: block;
+}
+.tb-sub {
+  font-size: clamp(16px, 1.8vw, 19px);
+  color: var(--tb-text-2);
+  max-width: 680px;
+  margin: 0 auto 34px;
+}
+.tb-cta-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.tb-dm {
+  width: 100%;
+}
+@media (min-width: 640px) {
+  .tb-dm {
+    width: auto;
+  }
+}
+.tb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 14px 32px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+.tb-btn-primary {
+  color: #fff;
+  background: var(--tb-grad-btn);
+  box-shadow: 0 8px 24px rgba(84, 87, 232, 0.38);
+}
+.tb-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(84, 87, 232, 0.48);
+}
+.tb-platforms {
+  margin: 22px 0 0;
+  font-size: 12px;
+  color: var(--tb-text-3);
+}
+
+/* ============================================================
+   产品演示
+   ============================================================ */
+.tb-demo {
+  background: var(--tb-bg);
+}
+.tb-demo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.tb-card {
+  background: #fff;
+  border: 1px solid var(--tb-line);
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 4px 18px rgba(20, 22, 58, 0.05);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+.tb-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(84, 87, 232, 0.4);
+  box-shadow: 0 22px 48px rgba(84, 87, 232, 0.16);
+}
+.tb-card-media {
+  position: relative;
+  height: 176px;
+  overflow: hidden;
+  background: #eef0fc;
+  border-bottom: 1px solid var(--tb-line);
+  cursor: zoom-in;
+}
+.tb-card-media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  transition: transform 600ms cubic-bezier(0.2, 0, 0.2, 1);
+}
+.tb-card:hover .tb-card-media img {
+  transform: scale(1.04);
+}
+.tb-card-body {
+  padding: 24px 26px 28px;
+}
+.tb-card-body h3 {
+  font-size: 19px;
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: var(--tb-text);
+}
+.tb-card-body p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--tb-text-2);
+  line-height: 1.75;
+}
+
+/* ============================================================
+   核心能力
+   ============================================================ */
+.tb-features {
+  background:
+    radial-gradient(700px 400px at 90% 10%, rgba(139, 92, 246, 0.07), transparent 60%),
+    var(--tb-soft);
+}
+.tb-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 36px auto 0;
+  padding: 24px 28px;
+  background: #fff;
+  border: 1px solid var(--tb-line);
+  border-radius: 18px;
+  box-shadow: 0 4px 18px rgba(20, 22, 58, 0.05);
+  max-width: 760px;
+}
+.tb-stat {
+  padding: 0 34px;
+  text-align: center;
+  position: relative;
+}
+.tb-stat + .tb-stat::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 36px;
+  background: rgba(84, 87, 232, 0.16);
+}
+.tb-stat b {
+  display: block;
+  font-family: var(--tb-font-num);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  background: var(--tb-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.tb-stat b span {
+  font-size: 22px;
+}
+.tb-stat i {
+  display: block;
+  margin-top: 8px;
+  font-style: normal;
+  font-size: 13px;
+  color: var(--tb-text-3);
+}
+.tb-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+.tb-feature {
+  background: #fff;
+  border: 1px solid var(--tb-line);
+  border-radius: 20px;
+  padding: 30px 28px;
+  box-shadow: 0 4px 18px rgba(20, 22, 58, 0.05);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+.tb-feature:hover {
+  transform: translateY(-6px);
+  border-color: rgba(84, 87, 232, 0.4);
+  box-shadow: 0 22px 48px rgba(84, 87, 232, 0.16);
+}
+.tb-feature-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  margin-bottom: 18px;
+  box-shadow: 0 8px 20px rgba(84, 87, 232, 0.22);
+}
+.tb-feature h3 {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--tb-text);
+}
+.tb-feature p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--tb-text-2);
+  line-height: 1.75;
+}
+
+/* ============================================================
+   大字区
+   ============================================================ */
+.tb-big {
+  background: var(--tb-bg);
+  text-align: center;
+  overflow: hidden;
+}
+.tb-big-title {
+  font-size: clamp(2rem, 5.4vw, 4.2rem);
+  font-weight: 800;
+  line-height: 1.16;
+  letter-spacing: -0.02em;
+  margin: 0 0 20px;
+}
+.tb-big-sub {
+  font-size: clamp(14px, 2vw, 17px);
+  color: var(--tb-text-2);
+  max-width: 640px;
+  margin: 0 auto 44px;
+  line-height: 1.75;
+}
+.tb-words {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+.tb-word {
+  font-size: clamp(13px, 2vw, 16px);
+  font-weight: 600;
+  color: #3a3f66;
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid var(--tb-line);
+  box-shadow: 0 3px 12px rgba(20, 22, 58, 0.05);
+  transition: all 0.25s ease;
+}
+.tb-word:hover {
+  color: var(--tb-primary);
+  border-color: var(--tb-primary);
+  transform: translateY(-2px);
+}
+
+/* ============================================================
+   版本时间线
+   ============================================================ */
+.tb-versions {
+  background: var(--tb-soft);
+}
+.tb-version-card {
+  background: #fff;
+  border: 1px solid var(--tb-line);
+  border-radius: 22px;
+  padding: 36px 40px;
+  box-shadow: 0 4px 18px rgba(20, 22, 58, 0.05);
+}
+.tb-timeline {
+  position: relative;
+  padding-left: 28px;
+}
+.tb-timeline::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(84, 87, 232, 0.35), rgba(34, 211, 238, 0.2));
+}
+.tb-version-item {
+  position: relative;
+  padding-bottom: 22px;
+}
+.tb-version-item:last-child {
+  padding-bottom: 0;
+}
+.tb-dot {
+  position: absolute;
+  left: -28px;
+  top: 7px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--tb-primary);
+  box-shadow: 0 0 0 4px rgba(84, 87, 232, 0.12);
+}
+.tb-version-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+.tb-version-head b {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--tb-text);
+}
+.tb-version-head span {
+  font-size: 12px;
+  color: var(--tb-text-3);
+}
+.tb-version-item p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--tb-text-2);
+  line-height: 1.7;
+}
+
+/* ============================================================
+   集成生态
+   ============================================================ */
+.tb-eco {
+  background: var(--tb-bg);
+}
+.tb-eco-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.tb-group-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tb-text-3);
+  margin: 0 0 14px;
+}
+.tb-group-title::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--tb-grad);
+  flex: none;
+}
+.tb-group-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(84, 87, 232, 0.18), transparent);
+}
+.tb-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.tb-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #3a3f66;
+  background: #fff;
+  border: 1px solid var(--tb-line);
+  box-shadow: 0 3px 12px rgba(20, 22, 58, 0.05);
+  transition: all 0.25s ease;
+}
+.tb-chip:hover {
+  color: var(--tb-primary);
+  border-color: var(--tb-primary);
+  transform: translateY(-2px);
+}
+
+/* ============================================================
+   下载区
+   ============================================================ */
+.tb-download {
+  background: var(--tb-soft);
+}
+.tb-version {
+  margin: 0;
+  font-size: 12px;
+  color: var(--tb-text-3);
+}
+.tb-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: -20px 0 24px;
+  font-size: 13px;
+  color: var(--tb-text-3);
+}
+.tb-note button {
+  color: var(--tb-primary);
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.tb-note button:hover {
+  text-decoration: underline;
+}
+.tb-download-card {
+  background: #fff;
+  border: 1px solid var(--tb-line);
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 4px 18px rgba(20, 22, 58, 0.05);
+}
+.tb-download-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(84, 87, 232, 0.1);
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+.tb-download-row:last-child {
+  border-bottom: none;
+}
+.tb-download-row:hover {
+  background: #f7f8ff;
+}
+.tb-download-row.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.tb-download-row.is-disabled:hover {
+  background: transparent;
+}
+.tb-dl-icon {
+  color: var(--tb-primary);
+  display: inline-flex;
+}
+.tb-dl-text {
+  flex: 1;
+  text-align: left;
+  min-width: 0;
+}
+.tb-dl-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--tb-text);
+}
+.tb-dl-note {
+  display: block;
+  font-size: 12px;
+  color: var(--tb-text-3);
+}
+.tb-dl-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--tb-line);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--tb-text-3);
+  white-space: nowrap;
+}
+.tb-dl-badge.is-new {
+  color: var(--tb-primary);
+  background: rgba(84, 87, 232, 0.1);
+  border-color: transparent;
+}
+.tb-dl-arrow {
+  color: var(--tb-text-3);
+  display: inline-flex;
+}
+.tb-dl-arrow.is-muted {
+  opacity: 0.4;
+}
+
+/* Lightbox */
+.tb-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(10, 14, 39, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+}
+.tb-lightbox img {
+  max-width: 92vw;
+  max-height: 90vh;
+  border-radius: 12px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+
+/* ============================================================
+   响应式
+   ============================================================ */
+@media (max-width: 900px) {
+  .tb-section {
+    padding: 56px 0;
+  }
+  .tb-hero {
+    padding: 120px 0 72px;
+  }
+  .tb-demo-grid,
+  .tb-feature-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .tb-version-card {
+    padding: 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .tb-hero {
+    padding: 112px 0 64px;
+  }
+  .tb-demo-grid,
+  .tb-feature-grid {
+    grid-template-columns: 1fr;
+  }
+  .tb-stats {
+    gap: 18px 0;
+    padding: 20px 16px;
+  }
+  .tb-stat {
+    padding: 0 18px;
+  }
+  .tb-stat + .tb-stat::before {
+    display: none;
+  }
+  .tb-stat b {
+    font-size: 26px;
+  }
+  .tb-big-title {
+    white-space: normal;
+  }
+  .tb-download-row {
+    padding: 16px 18px;
+    gap: 12px;
+  }
+  .tb-dl-badge {
+    display: none;
+  }
+}
+</style>
+
