@@ -29,6 +29,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type UserHandler struct {
@@ -388,48 +389,10 @@ func (h *UserHandler) createNewUser(user model.User, code string) (model.User, e
 		return user, err
 	}
 
-	// 记录邀请关系
 	if code != "" {
-		var inviteCode model.InviteCode
-		err := tx.Where("code = ?", code).First(&inviteCode).Error
-		if err != nil {
-			logger.Error("无效的邀请码：", err.Error())
-			tx.Rollback()
-			return user, fmt.Errorf("无效的邀请码")
-		}
-
-		// 增加邀请数量
-		if err := tx.Model(&model.InviteCode{}).Where("code = ?", code).UpdateColumn("reg_num", gorm.Expr("reg_num + ?", 1)).Error; err != nil {
+		if err := h.applyRegistrationInvite(tx, &user, code); err != nil {
 			tx.Rollback()
 			return user, err
-		}
-		if h.App.SysConfig.Base.InvitePower > 0 {
-			granted, err := h.ledgerService.Grant(tx, inviteCode.UserId, h.App.SysConfig.Base.InvitePower, service.LedgerRef{Type: "invite", ID: user.Id}, model.PowerLog{
-				Type:   types.PowerInvite,
-				Model:  "Invite",
-				Remark: fmt.Sprintf("邀请用户注册奖励，金额：%d，邀请码：%s，新用户：%s", h.App.SysConfig.Base.InvitePower, inviteCode.Code, user.Username),
-			})
-			if err != nil {
-				tx.Rollback()
-				return user, err
-			}
-			if !granted {
-				tx.Rollback()
-				return user, errors.New("邀请奖励已发放")
-			}
-
-			// 添加邀请记录
-			err = tx.Create(&model.InviteLog{
-				InviterId:  inviteCode.UserId,
-				UserId:     user.Id,
-				Username:   user.Username,
-				InviteCode: inviteCode.Code,
-				Remark:     fmt.Sprintf("奖励 %d 积分", h.App.SysConfig.Base.InvitePower),
-			}).Error
-			if err != nil {
-				tx.Rollback()
-				return user, err
-			}
 		}
 	}
 
@@ -438,6 +401,73 @@ func (h *UserHandler) createNewUser(user model.User, code string) (model.User, e
 	}
 
 	return user, nil
+}
+
+const maxInvitesPerUser = 30
+
+func (h *UserHandler) applyRegistrationInvite(tx *gorm.DB, user *model.User, code string) error {
+	var inviteCode model.InviteCode
+	err := tx.Where("code = ?", code).First(&inviteCode).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return errors.New("无效的邀请码")
+	}
+	if err != nil {
+		return err
+	}
+
+	// Lock the inviter's counters so concurrent registrations share the same limit across codes.
+	var counts []int
+	if err := tx.Model(&model.InviteCode{}).Where("user_id = ?", inviteCode.UserId).
+		Clauses(clause.Locking{Strength: "UPDATE"}).Pluck("reg_num", &counts).Error; err != nil {
+		return err
+	}
+	total := 0
+	for _, count := range counts {
+		total += count
+	}
+	if total >= maxInvitesPerUser {
+		return nil
+	}
+
+	if err := tx.Model(&model.InviteCode{}).Where("id = ?", inviteCode.Id).
+		UpdateColumn("reg_num", gorm.Expr("reg_num + ?", 1)).Error; err != nil {
+		return err
+	}
+	invitePower := h.App.SysConfig.Base.InvitePower
+	if invitePower <= 0 {
+		return nil
+	}
+	for _, reward := range []struct {
+		userID  uint
+		refType string
+		remark  string
+	}{
+		{inviteCode.UserId, "invite", fmt.Sprintf("邀请用户注册奖励，邀请码：%s，新用户：%s", inviteCode.Code, user.Username)},
+		{user.Id, "invite:invitee", fmt.Sprintf("受邀注册奖励，邀请码：%s", inviteCode.Code)},
+	} {
+		granted, err := h.ledgerService.GrantLocalPoints(tx, reward.userID, invitePower, service.LedgerRef{Type: reward.refType, ID: user.Id}, model.PowerLog{
+			Type:   types.PowerInvite,
+			Model:  "Invite",
+			Remark: reward.remark,
+		})
+		if err != nil {
+			return err
+		}
+		if !granted {
+			return errors.New("邀请奖励已发放")
+		}
+	}
+	if err := tx.Create(&model.InviteLog{
+		InviterId:  inviteCode.UserId,
+		UserId:     user.Id,
+		Username:   user.Username,
+		InviteCode: inviteCode.Code,
+		Remark:     fmt.Sprintf("双方各奖励 %d 积分", invitePower),
+	}).Error; err != nil {
+		return err
+	}
+	user.Power += invitePower
+	return nil
 }
 
 // doLogin 执行登录操作
