@@ -64,6 +64,9 @@ func shouldSkipPath(path string) bool {
 	if path == "/api/v1/events" || path == "/v1/events" {
 		return true
 	}
+	if path == "/api/v1/checkin" {
+		return true // 签到接口自行限制请求体大小。
+	}
 	for _, prefix := range skipPathPrefixes {
 		if strings.HasPrefix(path, prefix) {
 			return true

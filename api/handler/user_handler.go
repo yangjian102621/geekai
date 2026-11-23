@@ -29,6 +29,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type UserHandler struct {
@@ -88,6 +89,7 @@ func (h *UserHandler) RegisterRoutes(r *core.Router) {
 	public.GET("login/status", h.GetWxLoginState)
 	public.GET("logout", h.Logout)
 	public.POST("wxAuthLogin", h.WxAuthLogin)
+	r.PublicGroup("/api/v1").POST("checkin", h.TokengineCheckin)
 
 	// 需要用户授权的接口
 	group := r.UserGroup("/api/user/")
@@ -387,48 +389,10 @@ func (h *UserHandler) createNewUser(user model.User, code string) (model.User, e
 		return user, err
 	}
 
-	// 记录邀请关系
 	if code != "" {
-		var inviteCode model.InviteCode
-		err := tx.Where("code = ?", code).First(&inviteCode).Error
-		if err != nil {
-			logger.Error("无效的邀请码：", err.Error())
-			tx.Rollback()
-			return user, fmt.Errorf("无效的邀请码")
-		}
-
-		// 增加邀请数量
-		if err := tx.Model(&model.InviteCode{}).Where("code = ?", code).UpdateColumn("reg_num", gorm.Expr("reg_num + ?", 1)).Error; err != nil {
+		if err := h.applyRegistrationInvite(tx, &user, code); err != nil {
 			tx.Rollback()
 			return user, err
-		}
-		if h.App.SysConfig.Base.InvitePower > 0 {
-			granted, err := h.ledgerService.Grant(tx, inviteCode.UserId, h.App.SysConfig.Base.InvitePower, service.LedgerRef{Type: "invite", ID: user.Id}, model.PowerLog{
-				Type:   types.PowerInvite,
-				Model:  "Invite",
-				Remark: fmt.Sprintf("邀请用户注册奖励，金额：%d，邀请码：%s，新用户：%s", h.App.SysConfig.Base.InvitePower, inviteCode.Code, user.Username),
-			})
-			if err != nil {
-				tx.Rollback()
-				return user, err
-			}
-			if !granted {
-				tx.Rollback()
-				return user, errors.New("邀请奖励已发放")
-			}
-
-			// 添加邀请记录
-			err = tx.Create(&model.InviteLog{
-				InviterId:  inviteCode.UserId,
-				UserId:     user.Id,
-				Username:   user.Username,
-				InviteCode: inviteCode.Code,
-				Remark:     fmt.Sprintf("奖励 %d 积分", h.App.SysConfig.Base.InvitePower),
-			}).Error
-			if err != nil {
-				tx.Rollback()
-				return user, err
-			}
 		}
 	}
 
@@ -437,6 +401,73 @@ func (h *UserHandler) createNewUser(user model.User, code string) (model.User, e
 	}
 
 	return user, nil
+}
+
+const maxInvitesPerUser = 30
+
+func (h *UserHandler) applyRegistrationInvite(tx *gorm.DB, user *model.User, code string) error {
+	var inviteCode model.InviteCode
+	err := tx.Where("code = ?", code).First(&inviteCode).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return errors.New("无效的邀请码")
+	}
+	if err != nil {
+		return err
+	}
+
+	// Lock the inviter's counters so concurrent registrations share the same limit across codes.
+	var counts []int
+	if err := tx.Model(&model.InviteCode{}).Where("user_id = ?", inviteCode.UserId).
+		Clauses(clause.Locking{Strength: "UPDATE"}).Pluck("reg_num", &counts).Error; err != nil {
+		return err
+	}
+	total := 0
+	for _, count := range counts {
+		total += count
+	}
+	if total >= maxInvitesPerUser {
+		return nil
+	}
+
+	if err := tx.Model(&model.InviteCode{}).Where("id = ?", inviteCode.Id).
+		UpdateColumn("reg_num", gorm.Expr("reg_num + ?", 1)).Error; err != nil {
+		return err
+	}
+	invitePower := h.App.SysConfig.Base.InvitePower
+	if invitePower <= 0 {
+		return nil
+	}
+	for _, reward := range []struct {
+		userID  uint
+		refType string
+		remark  string
+	}{
+		{inviteCode.UserId, "invite", fmt.Sprintf("邀请用户注册奖励，邀请码：%s，新用户：%s", inviteCode.Code, user.Username)},
+		{user.Id, "invite:invitee", fmt.Sprintf("受邀注册奖励，邀请码：%s", inviteCode.Code)},
+	} {
+		granted, err := h.ledgerService.GrantLocalPoints(tx, reward.userID, invitePower, service.LedgerRef{Type: reward.refType, ID: user.Id}, model.PowerLog{
+			Type:   types.PowerInvite,
+			Model:  "Invite",
+			Remark: reward.remark,
+		})
+		if err != nil {
+			return err
+		}
+		if !granted {
+			return errors.New("邀请奖励已发放")
+		}
+	}
+	if err := tx.Create(&model.InviteLog{
+		InviterId:  inviteCode.UserId,
+		UserId:     user.Id,
+		Username:   user.Username,
+		InviteCode: inviteCode.Code,
+		Remark:     fmt.Sprintf("双方各奖励 %d 积分", invitePower),
+	}).Error; err != nil {
+		return err
+	}
+	user.Power += invitePower
+	return nil
 }
 
 // doLogin 执行登录操作
@@ -779,41 +810,15 @@ func (h *UserHandler) BindEmail(c *gin.Context) {
 
 // SignIn 每日签到
 func (h *UserHandler) SignIn(c *gin.Context) {
-	// 获取当前日期
-	date := time.Now().Format("2006-01-02")
-
-	// 检查是否已经签到
-	userId := h.GetLoginUserId(c)
-	key := fmt.Sprintf("signin/%d/%s", userId, date)
-	var signIn bool
-	err := h.levelDB.Get(key, &signIn)
-	if err == nil && signIn {
-		resp.ERROR(c, "今日已签到，请明日再来！")
-		return
-	}
-
-	power := max(0, h.App.SysConfig.Base.DailyPower)
-	var granted bool
-	err = h.DB.WithContext(c.Request.Context()).Transaction(func(tx *gorm.DB) error {
-		var grantErr error
-		granted, grantErr = h.ledgerService.Grant(tx, userId, power, service.LedgerRef{Type: "signin:" + date, ID: userId}, model.PowerLog{
-			RewardKey: &key, // 沿用旧版签到键，避免迁移后当日重复领取。
-			Type:      types.PowerSignIn,
-			Model:     "SignIn",
-			Remark:    fmt.Sprintf("每日签到奖励，金额：%d", power),
-		})
-		return grantErr
-	})
+	_, alreadyCheckedIn, err := h.checkIn(c.Request.Context(), h.GetLoginUserId(c), false)
 	if err != nil {
-		logger.Errorw("signin_reward_failed", "user_id", userId)
 		resp.ERROR(c, "签到失败，请稍后重试")
 		return
 	}
-	if !granted {
+	if alreadyCheckedIn {
 		resp.ERROR(c, "今日已签到，请明日再来！")
 		return
 	}
-	h.levelDB.Put(key, true)
 	resp.SUCCESS(c)
 }
 
