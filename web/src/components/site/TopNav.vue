@@ -129,7 +129,7 @@ import { ChevronDown, LogOut, Menu, X } from 'lucide-vue-next'
 import DownloadMenu from './DownloadMenu.vue'
 import PlatformIcon from './PlatformIcon.vue'
 import { useAuth } from '@/composables/useAuth'
-import { downloadLinks, downloadOptions, recommendedHref } from '@/composables/useDownloadLinks'
+import { downloadOptions, recommendedHref, useDownloadLinks } from '@/composables/useDownloadLinks'
 import { docsURL, logout, openLoginPage } from '@/services/site'
 import { removeUserToken } from '@/store/session'
 import { toggleLanguage } from '@/i18n'
@@ -140,6 +140,7 @@ const open = ref(false)
 const scrolled = ref(false)
 const { user } = useAuth()
 
+const downloadLinks = useDownloadLinks()
 const options = computed(() => downloadOptions(downloadLinks.value))
 const downloadUrl = computed(() => recommendedHref(downloadLinks.value))
 const isHomeActive = computed(() => route.path === '/')
