@@ -1,29 +1,29 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
-  // 显式处理 /admin/（带斜杠），避免被下方 /admin/:all(.*) 通配抢先匹配成 404
   {
-    path: '/admin/',
-    name: 'admin-slash',
-    redirect: '/admin/dashboard',
-  },
-
-  {
-    path: '/admin/login',
+    path: '/admin',
     name: 'admin-login',
     meta: { title: '控制台登录' },
     component: () => import('@/views/admin/Login.vue'),
   },
+  {
+    path: '/admin/',
+    redirect: { name: 'admin-login' },
+  },
+  {
+    path: '/admin/login',
+    redirect: { name: 'admin-login' },
+  },
 
   {
     name: 'admin',
-    path: '/admin',
-    redirect: '/admin/dashboard',
+    path: '/admin/dashboard',
     component: () => import('@/views/admin/Home.vue'),
     meta: { title: 'Geek-AI 控制台' },
     children: [
       {
-        path: '/admin/dashboard',
+        path: '',
         name: 'admin-dashboard',
         meta: { title: '仪表盘' },
         component: () => import('@/views/admin/Dashboard.vue'),

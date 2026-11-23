@@ -41,7 +41,7 @@ checkAdminSession()
     isLogin.value = true
   })
   .catch(() => {
-    router.replace('/admin/login')
+    router.replace({ name: 'admin-login' })
   })
 
 watch(

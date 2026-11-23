@@ -36,7 +36,7 @@ export const useTagsStore = defineStore('tags', {
                     } else if (i > 0) {
                         data.$router.push(this.list[i - 1].path);
                     } else {
-                        data.$router.push('/admin');
+                        data.$router.push({ name: 'admin-dashboard' });
                     }
                     this.list.splice(i, 1);
                     break;
