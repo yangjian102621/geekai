@@ -114,6 +114,10 @@ func (s *LedgerService) Refund(tx *gorm.DB, jobID uint, ref LedgerRef, log model
 		return false, fmt.Errorf("退还积分数值必须为正数：%d", amount)
 	}
 	ref = ref.withFallbackID(jobID)
+	return s.credit(tx, amount, ref, log, true)
+}
+
+func (s *LedgerService) credit(tx *gorm.DB, amount int, ref LedgerRef, log model.PowerLog, prepareQuota bool) (bool, error) {
 	if err := ref.validate(); err != nil {
 		return false, err
 	}
@@ -133,6 +137,11 @@ func (s *LedgerService) Refund(tx *gorm.DB, jobID uint, ref LedgerRef, log model
 	log.RefType = stringPtr(ref.Type)
 	log.RefId = uintPtr(ref.ID)
 	log.CreatedAt = time.Now()
+	if prepareQuota {
+		if err := prepareRewardQuota(tx, *user, &log); err != nil {
+			return false, err
+		}
+	}
 	// 先插日志：故意不用 ON CONFLICT DO NOTHING，
 	// 让数据库把唯一键冲突以错误形式抛回来，我们才能区分
 	// "已退过（跳过）" 和 "真的写失败（要重试）"。
@@ -141,6 +150,9 @@ func (s *LedgerService) Refund(tx *gorm.DB, jobID uint, ref LedgerRef, log model
 			return false, nil
 		}
 		return false, fmt.Errorf("记录退款日志失败：%w", err)
+	}
+	if amount == 0 {
+		return true, nil
 	}
 
 	result := tx.Model(&model.User{}).
@@ -161,18 +173,24 @@ func (s *LedgerService) Refund(tx *gorm.DB, jobID uint, ref LedgerRef, log model
 // 且不绑定任务 ID：(true, nil) 表示本次真的发了积分，
 // (false, nil) 表示该业务事件此前已发放过，本次跳过。
 func (s *LedgerService) Grant(tx *gorm.DB, userID uint, amount int, ref LedgerRef, log model.PowerLog) (bool, error) {
+	return s.grant(tx, userID, amount, ref, log, true)
+}
+
+// GrantLocalPoints credits GeekAI points without scheduling an upstream quota grant.
+func (s *LedgerService) GrantLocalPoints(tx *gorm.DB, userID uint, amount int, ref LedgerRef, log model.PowerLog) (bool, error) {
+	return s.grant(tx, userID, amount, ref, log, false)
+}
+
+func (s *LedgerService) grant(tx *gorm.DB, userID uint, amount int, ref LedgerRef, log model.PowerLog, prepareQuota bool) (bool, error) {
 	if tx == nil {
 		return false, ErrLedgerNilTx
 	}
-	if amount <= 0 {
+	// 签到即使没有积分奖励，也要记录当天已签到。
+	if amount < 0 || (amount == 0 && log.Type != types.PowerSignIn) {
 		return false, fmt.Errorf("发放积分数值必须为正数：%d", amount)
 	}
-	if err := ref.validate(); err != nil {
-		return false, err
-	}
 	log.UserId = userID
-	log.Amount = amount
-	return s.Refund(tx, 0, ref, log)
+	return s.credit(tx, amount, ref, log, prepareQuota)
 }
 
 // lockUser 在同一事务内加行锁读取用户，避免并发读到的余额值过期。

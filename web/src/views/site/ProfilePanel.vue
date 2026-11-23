@@ -20,7 +20,6 @@
         </div>
       </dl>
     </div>
-    <ModelTokenPanel :user-id="userId" />
   </div>
 </template>
 
@@ -28,8 +27,6 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Coins, Phone, UserRound } from 'lucide-vue-next'
-import ModelTokenPanel from './ModelTokenPanel.vue'
-import { useAuth } from '@/composables/useAuth'
 import { formatNumber } from '@/services/site'
 
 // 路由层只透传 userId，用户资料统一从全局登录态读取，避免 props 缺失导致渲染崩溃

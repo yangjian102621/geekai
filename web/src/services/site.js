@@ -1,7 +1,7 @@
 // * 门户站点（原 React web）的 API 与下载链接服务，移植到 Vue 后复用全局 axios 拦截器。
 
 import axios from 'axios'
-import { httpDelete, httpGet, httpPost } from '@/utils/http'
+import { httpGet, httpPost } from '@/utils/http'
 import { getUserToken, removeUserToken } from '@/store/session'
 
 /* ---------------- 认证 ----------------
@@ -72,25 +72,6 @@ export async function fetchPowerStats() {
 export async function fetchPowerLogs(params) {
   const body = await httpPost('/api/powerLog/list', params)
   return body?.data ?? { items: [], total: 0 }
-}
-
-/* ---------------- 模型 API Token ---------------- */
-
-export async function fetchModelToken() {
-  const body = await httpGet('/api/user/model-token')
-  if (body?.code !== 0) throw new Error(body?.message || 'Failed to load model token')
-  return body.data
-}
-
-export async function rotateModelToken() {
-  const body = await httpPost('/api/user/model-token')
-  if (body?.code !== 0) throw new Error(body?.message || 'Failed to create model token')
-  return body.data
-}
-
-export async function revokeModelToken() {
-  const body = await httpDelete('/api/user/model-token')
-  if (body?.code !== 0) throw new Error(body?.message || 'Failed to revoke model token')
 }
 
 /* ---------------- 登录跳转 ---------------- */

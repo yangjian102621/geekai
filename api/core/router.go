@@ -101,7 +101,7 @@ func (r *Router) StaticFiles(prefix, dir string, handlers ...gin.HandlerFunc) {
 }
 
 // RouteRegistrar 所有 handler 的注册契约。
-// 52 个 handler 全部实现本接口，注册表在 main.go 的 registerRoutes 里显式列出并有数量断言。
+// 注册表在 main.go 的 registerRoutes 里显式列出并有数量断言。
 type RouteRegistrar interface {
 	RegisterRoutes(r *Router)
 }

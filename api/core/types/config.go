@@ -9,6 +9,7 @@ package types
 
 import (
 	"fmt"
+	"strings"
 )
 
 type AppConfig struct {
@@ -29,6 +30,11 @@ type AppConfig struct {
 	WechatPayConfig WxPayConfig  // 微信支付渠道配置
 	TikaHost        string       // TiKa 服务器地址
 	TokengineOAuth  TokengineOAuthConfig
+	FirstUseGift    FirstUseGiftConfig
+
+	TokengineServiceToken string // Token 平台统一管理令牌：用户资料、订阅和额度共用
+
+	ClientEventMaxBytes int64 // 客户端事件上报请求大小，未配置时为 256 KiB
 }
 
 type TokengineOAuthConfig struct {
@@ -36,6 +42,28 @@ type TokengineOAuthConfig struct {
 	BaseURL     string
 	ClientID    string
 	RedirectURL string
+}
+
+type FirstUseGiftConfig struct {
+	BaseURL      string
+	ServiceToken string // 兼容旧配置，新配置使用 TokengineServiceToken
+}
+
+func (c *AppConfig) TokengineManagementToken() string {
+	if token := strings.TrimSpace(c.TokengineServiceToken); token != "" {
+		return token
+	}
+	return strings.TrimSpace(c.FirstUseGift.ServiceToken)
+}
+
+type FirstUseGiftRule struct {
+	Enabled bool `json:"enabled"`
+	PlanID  int  `json:"plan_id"`
+}
+
+type RewardQuotaRule struct {
+	Enabled       bool  `json:"enabled"`
+	QuotaPerPoint int64 `json:"quota_per_point"`
 }
 
 type RedisConfig struct {
@@ -128,3 +156,6 @@ const (
 	ConfigKeyJimeng     = "jimeng"      // 即梦AI配置
 	ConfigKeyVideo      = "video"       // 视频生成配置
 )
+
+const ConfigKeyFirstUseGift = "first_use_gift" // 首次客户端登录赠送订阅
+const ConfigKeyRewardQuota = "reward_quota"    // 签到和邀请积分追加 Token 额度

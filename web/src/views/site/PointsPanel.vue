@@ -15,11 +15,12 @@
       </button>
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
       <StatCard :icon="Coins" :label="t('space.balance')" :value="formatNumber(stats?.balance, language)" :loading="statsLoading" />
       <StatCard :icon="TrendingDown" :label="t('space.total_consumed')" :value="formatNumber(stats?.total, language)" :loading="statsLoading" />
       <StatCard :icon="TrendingUp" :label="t('space.today_consumed')" :value="formatNumber(stats?.today, language)" :loading="statsLoading" />
       <StatCard :icon="Gift" :label="t('space.invite_rewards')" :value="formatNumber(invite?.reward_total, language)" :loading="inviteLoading" />
+      <StatCard :icon="Coins" :label="t('space.quota_granted')" :value="formatNumber(stats?.quota_granted, language)" :loading="statsLoading" />
     </div>
 
     <div class="rounded-xl border border-hairline bg-canvas">
@@ -81,12 +82,14 @@
               <th class="px-5 py-3">{{ t('space.type') }}</th>
               <th class="px-5 py-3 text-right">{{ t('space.amount') }}</th>
               <th class="px-5 py-3 text-right">{{ t('space.balance_after') }}</th>
+              <th class="px-5 py-3 text-right">{{ t('space.quota_amount') }}</th>
+              <th class="px-5 py-3">{{ t('space.quota_status') }}</th>
               <th class="px-5 py-3">{{ t('space.detail') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-hairline-soft">
             <tr v-if="logsLoading">
-              <td colspan="5" class="px-5 py-10 text-center text-muted">{{ t('space.loading') }}</td>
+              <td colspan="7" class="px-5 py-10 text-center text-muted">{{ t('space.loading') }}</td>
             </tr>
             <template v-else-if="logs?.items?.length">
               <tr v-for="log in logs.items" :key="log.id" class="hover:bg-surface-soft">
@@ -101,11 +104,22 @@
                   {{ log.mark === 1 ? '+' : '-' }}{{ formatNumber(Math.abs(log.amount), language) }}
                 </td>
                 <td class="whitespace-nowrap px-5 py-3 text-right text-body">{{ formatNumber(log.balance, language) }}</td>
+                <td class="whitespace-nowrap px-5 py-3 text-right text-body">
+                  {{ log.quota_amount ? `+${formatNumber(log.quota_amount, language)}` : '—' }}
+                </td>
+                <td class="whitespace-nowrap px-5 py-3 text-body" :title="log.quota_error ? t('space.quota_error_hint') : undefined">
+                  <span
+                    v-if="log.quota_status"
+                    class="rounded-full px-2.5 py-1 text-xs font-medium"
+                    :class="quotaPillClass(log.quota_status)"
+                  >{{ t(`space.quota_states.${log.quota_status}`, t('space.quota_states.unknown')) }}</span>
+                  <template v-else>—</template>
+                </td>
                 <td class="min-w-[180px] px-5 py-3 text-muted">{{ log.remark || log.model || '—' }}</td>
               </tr>
             </template>
             <tr v-else>
-              <td colspan="5" class="px-5 py-10 text-center text-muted">{{ t('space.no_records') }}</td>
+              <td colspan="7" class="px-5 py-10 text-center text-muted">{{ t('space.no_records') }}</td>
             </tr>
           </tbody>
         </table>
@@ -137,7 +151,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CalendarDays, Coins, Gift, TrendingDown, TrendingUp } from 'lucide-vue-next'
 import StatCard from './StatCard.vue'
@@ -163,6 +177,9 @@ const inviteLoading = ref(false)
 const logs = ref(null)
 const logsLoading = ref(false)
 const logsError = ref(false)
+let statsTimer
+let logsTimer
+let logsRequest = 0
 
 const total = computed(() => logs.value?.total ?? 0)
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize)))
@@ -181,8 +198,15 @@ function typeLabel(log) {
   return t(key) !== key ? t(key) : log.type_str || t('space.other')
 }
 
-async function loadStats() {
-  statsLoading.value = true
+function quotaPillClass(status) {
+  if (status === 'succeeded') return 'bg-emerald-50 text-emerald-700'
+  if (status === 'failed' || status === 'unknown') return 'bg-amber-50 text-amber-800'
+  return 'bg-surface-card text-body-strong'
+}
+
+async function loadStats(background = false) {
+  if (statsLoading.value) return
+  statsLoading.value = !background
   statsError.value = false
   try {
     stats.value = await fetchPowerStats()
@@ -204,19 +228,26 @@ async function loadInvite() {
   }
 }
 
-async function loadLogs() {
-  logsLoading.value = true
+async function loadLogs(background = false) {
+  clearTimeout(logsTimer)
+  const request = ++logsRequest
+  logsLoading.value = !background
   logsError.value = false
   try {
-    logs.value = await fetchPowerLogs({
+    const result = await fetchPowerLogs({
       page: page.value,
       page_size: pageSize,
       date: from.value && to.value ? [from.value, to.value] : undefined,
     })
+    if (request !== logsRequest) return
+    logs.value = result
+    if (result.items?.some(({ quota_status }) => quota_status === 'pending' || quota_status === 'processing')) {
+      logsTimer = setTimeout(() => loadLogs(true), 5000)
+    }
   } catch (e) {
-    logsError.value = true
+    if (request === logsRequest) logsError.value = true
   } finally {
-    logsLoading.value = false
+    if (request === logsRequest) logsLoading.value = false
   }
 }
 
@@ -236,5 +267,12 @@ onMounted(() => {
   loadStats()
   loadInvite()
   loadLogs()
+  statsTimer = setInterval(() => loadStats(true), 15000)
+})
+
+onBeforeUnmount(() => {
+  ++logsRequest
+  clearInterval(statsTimer)
+  clearTimeout(logsTimer)
 })
 </script>
