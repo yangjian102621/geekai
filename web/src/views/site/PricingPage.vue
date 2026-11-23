@@ -1,7 +1,7 @@
 <template>
-  <div v-reveal class="section-soft min-h-screen">
+  <div v-reveal class="page-wash-soft min-h-screen">
     <section class="pt-28 pb-16">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <p class="eyebrow mb-4" data-reveal>{{ t('pricing.badge') }}</p>
         <h1 class="font-serif text-3xl sm:text-[3.25rem] font-normal tracking-[-0.03em] text-ink mb-4" data-reveal>{{ t('pricing.title') }}</h1>
         <p class="max-w-2xl mx-auto text-body" data-reveal>{{ t('pricing.subtitle') }}</p>

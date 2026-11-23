@@ -90,7 +90,7 @@
     "reload": "刷新页面"
   },
   "hero": {
-    "badge": "桌面客户端 · v1.6.14",
+    "badge": "桌面客户端 · v1.7.3",
     "title": "AI 驱动的终身学习伙伴",
     "title_lead": "AI 驱动的",
     "title_highlight": "终身学习伙伴",
@@ -161,20 +161,20 @@
   },
   "versions": {
     "title": "版本迭代时间线",
-    "subtitle": "每两周一次发版，近 5 个版本亮点速览",
-    "v1614": {
+    "subtitle": "每周一次发版，近 5 个版本亮点速览",
+    "v173": {
       "highlight": "新增原文图表/页面视觉练习、可恢复的知识库索引、科研工具和受管插件，视频学习并入 Reading 工作区。"
     },
-    "v1613": {
+    "v172": {
       "highlight": "扩展阅读、听力和题库练习，改进文档解析与语音配置，新增波兰语和更多模型提供商。"
     },
-    "v1612": {
+    "v171": {
       "highlight": "知识库可随工作区迁移，支持连接 Kiwix 档案，将原文图表带入有依据的回答，新增任务看板和德语界面。"
     },
-    "v1611": {
+    "v170": {
       "highlight": "新增法语和乌克兰语界面，阅读支持文件夹和图表提取，Office 文件按页预览，知识库可自动同步。"
     },
-    "v1610": {
+    "v1615": {
       "highlight": "为 LightRAG 引擎引入独立角色模型，索引记录构建来源，PDF 附件遵循解析引擎设置，模型提供商不再被预过滤。"
     }
   },
@@ -241,7 +241,7 @@
   },
   "invite": {
     "title": "邀请好友，一起学习",
-    "subtitle": "分享学习，共享奖励",
+    "subtitle": "双方各得 {points} 积分",
     "share_title": "分享你的专属邀请",
     "qr_hint": "扫码注册并下载",
     "share_hint": "好友通过此链接注册后，系统会自动记录邀请关系并发放积分。",
@@ -251,9 +251,11 @@
     "retry": "重试",
     "auth_error": "暂时无法确认登录状态，请稍后重试。",
     "reward": {
-      "per_invite": "每成功邀请一位好友注册，可获得 {points} 积分。",
+      "per_invite": "每成功邀请一位好友，你和好友各获得 {points} 积分，上限 {limit} 位，共 {total} 积分等你拿。",
       "fallback": "邀请好友一起使用 ThinkBuddy。",
-      "unit": "积分 / 人"
+      "unit": "积分 / 人",
+      "limit_label": "邀请上限",
+      "max_label": "最高可得"
     },
     "stats": {
       "invited": "累计邀请",
@@ -261,29 +263,34 @@
       "today": "今日邀请"
     },
     "guest": {
-      "badge": "邀请有礼",
+      "badge": "限时活动 · 长期有效",
       "login_btn": "登录获取专属邀请链接"
     },
     "loading": "正在加载邀请信息…",
     "error": "加载失败，请稍后重试",
     "steps": {
-      "title": "三步邀请好友",
-      "subtitle": "一起开启高效学习",
-      "step1_title": "获取邀请链接",
-      "step1_desc": "登录账号后，复制你的专属邀请链接。",
-      "step2_title": "分享给好友",
-      "step2_desc": "好友打开链接，完成账号注册。",
-      "step3_title": "获得积分",
-      "step3_desc": "注册成功后，邀请奖励自动计入积分余额。"
+      "title": "如何邀请好友",
+      "subtitle": "三步完成分享，双方同享积分",
+      "step1_title": "分享专属链接",
+      "step1_desc": "将你的邀请链接或二维码发送给好友",
+      "step2_title": "好友登录下载",
+      "step2_desc": "好友通过链接打开页面，登录后下载 ThinkBuddy",
+      "step3_title": "双方积分到账",
+      "step3_desc": "好友下载安装包，双方各得 {points} 积分立即到账"
     },
     "rewards": {
-      "title": "邀请奖励",
-      "subtitle": "好友注册即结算",
-      "inviter_title": "邀请好友",
-      "inviter_desc": "每成功邀请一位好友注册，可获得 {points} 积分。",
-      "inviter_fallback": "好友通过专属链接注册，系统自动记录邀请关系并按当前活动配置发放奖励。",
-      "usage_title": "积分直接使用",
-      "usage_desc": "奖励进入统一积分账户，用于 AI 服务消费。"
+      "title": "邀请好友，赢取积分",
+      "subtitle": "双方同享，无套路",
+      "inviter_title": "邀请人奖励",
+      "inviter_desc": "每成功邀请一位好友，即可获得 {points} 积分（最多 {limit} 位，共 {total} 积分）",
+      "invitee_title": "受邀好友福利",
+      "invitee_desc": "通过你的邀请链接首次下载并登录 ThinkBuddy，好友立得 {points} 积分",
+      "both_title": "双方奖励",
+      "both_badge": "双方同享",
+      "both_desc": "好友首次使用即双方各得 {points} 积分，邀请 {limit} 位上限",
+      "unit_per_person": "{points} 积分 / 人",
+      "unit_new_user": "积分新用户福利",
+      "unit_per_both": "积分 / 双方"
     },
     "faq": {
       "title": "常见问题",

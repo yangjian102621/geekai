@@ -1,45 +1,52 @@
 /* ============================================================
    门户站点样式（自 React web 移植）
    ------------------------------------------------------------
-   ThinkBuddy Design System —— 暖纸与大地色方向：
-   1. 暖奶油画布（#faf9f5）而非纯白/冷灰 —— 纸张感
-   2. 暖近黑文字（#141413）承担全部信息层级
-   3. 青铜琥珀是唯一强调色，且必须稀缺
-   4. 深度靠色块对比（奶油 ↔ 深墨）而非阴影
-   5. 标题走衬线 + 400 字重 + 负字距，正文走人文无衬线
+   暖灰 + 靛蓝设计系统：
+   1. 暖调浅灰画布（#f7f6f3），区块用偏暖的中性灰分层
+   2. 暖近黑文字（#1a1815）承担全部信息层级
+   3. 靛蓝（#3b5bdb）只用于主 CTA 与关键强调
+   4. 深色区块用暖炭黑（#1a1815），阴影克制
+   5. 不做装饰渐变，hero 保持纯净浅灰底
+   字体与字号沿用原设计，不在此处覆盖。
    Tailwind 色板见 tailwind.config.js；此处保留 CSS 变量供自定义类使用。
    ============================================================ */
 :root {
-  --color-canvas: #faf9f5;
-  --color-surface-soft: #f5f2ea;
-  --color-surface-card: #f0ebe0;
-  --color-cream-strong: #e8e1d3;
-  --color-hairline: #e3ddd1;
-  --color-hairline-soft: #ece7dc;
-  --color-ink: #141413;
-  --color-body-strong: #252523;
-  --color-body: #3d3d3a;
-  --color-muted: #6b6862;
-  --color-muted-soft: #757168;
-  --color-dark: #191816;
-  --color-on-dark: #faf9f5;
-  --color-on-dark-soft: #a09d96;
-  --color-primary: #8a5a2b;
-  --color-primary-hover: #75491f;
-  --color-coral: #b7874e;
-  --color-coral-soft: #f6ecdd;
-  --color-teal-soft: #e5f1ee;
-  --color-amber-soft: #f9eed9;
+  --color-canvas: #f7f6f3;
+  --color-surface-soft: #f0ede8;
+  --color-surface-card: #e7e3dd;
+  --color-cream-strong: #ded9d2;
+  --color-hairline: #e1dcd6;
+  --color-hairline-soft: #eae5df;
+  --color-ink: #1a1815;
+  --color-body-strong: #29251f;
+  --color-body: #474039;
+  --color-muted: #6f6961;
+  --color-muted-soft: #948d84;
+  --color-dark: #1a1815;
+  --color-on-dark: #f7f6f3;
+  --color-on-dark-soft: #a49d94;
+  --color-primary: #3b5bdb;
+  --color-primary-hover: #2f4bc0;
+  --color-coral: #3b5bdb;
+  --color-coral-soft: #e8ecfb;
+  --color-teal-soft: #e4edf1;
+  --color-amber-soft: #efebe5;
 
-  --shadow-soft: 0 1px 3px rgba(20, 20, 19, 0.07);
-  --shadow-lift: 0 8px 24px -14px rgba(20, 20, 19, 0.22);
+  --shadow-soft: 0 1px 3px rgba(26, 24, 21, 0.08);
+  --shadow-lift: 0 4px 12px rgba(26, 24, 21, 0.1);
+
+  /* 页面顶部多色柔光：浅棕 / 浅薄荷 / 浅蓝，全站页面共用 */
+  --page-glow:
+    radial-gradient(520px 320px at 0% -10%, rgba(211, 168, 118, 0.18), transparent 58%),
+    radial-gradient(700px 480px at 92% -8%, rgba(150, 190, 170, 0.15), transparent 64%),
+    radial-gradient(900px 460px at 50% 108%, rgba(163, 178, 226, 0.18), transparent 70%);
 }
 
 /* 以下规则仅作用于门户站点页面（body.site），
    避免污染 /admin 后台的全局样式。 */
 body.site {
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto,
-    "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+  font-family: "The Future", Arial, "PingFang SC", "Microsoft YaHei",
+    "Noto Sans SC", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-canvas);
@@ -51,6 +58,21 @@ body.site ::selection {
   color: var(--color-ink);
 }
 
+/* common.scss 定义了全局 `.flex { align-items: center }`，与 Tailwind 的 flex 同名，
+   会让 flex-col 布局的子块收缩成内容宽度并居中（色块露白）。
+   站点根布局改用独立类强制 stretch，确保 section / footer 通栏。 */
+.site.site-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 100vh;
+}
+.site .pricing-card,
+.site label.flex.flex-col,
+.site nav.flex.flex-col {
+  align-items: stretch;
+}
+
 body.site html,
 body.site {
   min-height: 100%;
@@ -59,8 +81,14 @@ body.site {
 /* ============================================================
    排版基元
    ============================================================ */
+/* 标题统一按参考稿使用粗黑体（h1/h2/h3 一律 700） */
+.site h1,
+.site h2,
+.site h3 {
+  font-weight: 700;
+}
 .site .display {
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: -0.028em;
   line-height: 1.04;
   color: var(--color-ink);
@@ -75,7 +103,7 @@ body.site {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: "PP Neue Montreal Mono", Georgia, ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.14em;
@@ -117,11 +145,35 @@ body.site {
    ============================================================ */
 .site .hero-bg {
   background-color: var(--color-canvas);
-  background-image: radial-gradient(
-    ellipse 78% 52% at 50% -14%,
-    rgba(183, 135, 78, 0.09),
-    transparent 72%
+  background-image: var(--page-glow);
+}
+/* 以浅灰为底的页面（定价 / 空间）：同样叠一层多色柔光 */
+.site .page-wash-soft {
+  background-color: var(--color-surface-soft);
+  background-image: var(--page-glow);
+}
+/* 首页 / 邀请页：整页连续的多色柔光，各区块背景透明让底色贯通 */
+.site .page-wash-all {
+  background-color: var(--color-canvas);
+  background-image: linear-gradient(
+    180deg,
+    rgba(211, 168, 118, 0.18) 0%,
+    rgba(247, 246, 243, 0) 12%,
+    rgba(150, 190, 170, 0.22) 48%,
+    rgba(247, 246, 243, 0) 64%,
+    rgba(163, 178, 226, 0.2) 82%,
+    rgba(247, 246, 243, 0) 100%
   );
+  background-repeat: no-repeat;
+}
+.site .page-wash-all > section {
+  background-color: transparent;
+  background-image: none;
+}
+/* 首页 Hero 保留「左上浅棕 / 右上浅薄荷 / 底部浅蓝」的柔光 */
+.site .page-wash-all > section.hero-bg {
+  background-color: transparent;
+  background-image: var(--page-glow);
 }
 
 .site .hero-grid-overlay {
@@ -129,17 +181,7 @@ body.site {
 }
 
 .site .hero-aurora {
-  position: absolute;
-  top: -30%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 62%;
-  height: 78%;
-  background: radial-gradient(ellipse, rgba(183, 135, 78, 0.13), transparent 68%);
-  filter: blur(60px);
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.75;
+  display: none;
 }
 
 .site .hero-glow {
@@ -150,7 +192,7 @@ body.site {
 .site .hero-highlight {
   color: var(--color-ink);
   text-decoration: underline;
-  text-decoration-color: var(--color-coral);
+  text-decoration-color: #c99a5b;
   text-decoration-thickness: 2px;
   text-underline-offset: 0.24em;
   text-decoration-skip-ink: none;
@@ -165,7 +207,7 @@ body.site {
     border-color 200ms ease;
 }
 .site .topnav-scrolled {
-  background-color: rgba(250, 249, 245, 0.92);
+  background-color: rgba(247, 246, 243, 0.92);
   backdrop-filter: saturate(140%) blur(12px);
   -webkit-backdrop-filter: saturate(140%) blur(12px);
   border-bottom: 1px solid var(--color-hairline);
@@ -199,7 +241,7 @@ body.site {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(20, 20, 19, 0.9);
+  background: rgba(26, 24, 21, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -293,20 +335,21 @@ body.site {
 /* ============================================================
    按钮 —— 实色、无渐变、无彩影；hover 只加深
    ============================================================ */
+/* 主按钮：黑底白字（下载入口），靛蓝仅保留给文字强调 */
 .site .btn-primary {
-  background-color: var(--color-primary);
+  background-color: var(--color-ink);
   color: #ffffff;
-  border: 1px solid var(--color-primary);
+  border: 1px solid var(--color-ink);
   transition:
     background-color 160ms ease,
     border-color 160ms ease;
 }
 .site .btn-primary:hover {
-  background-color: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
+  background-color: var(--color-body-strong);
+  border-color: var(--color-body-strong);
 }
 .site .btn-primary:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-ink);
   outline-offset: 2px;
 }
 
@@ -353,7 +396,7 @@ body.site {
   inset-inline: 0;
   top: 0;
   height: 1px;
-  background: rgba(250, 249, 245, 0.1);
+  background: rgba(247, 246, 243, 0.1);
 }
 /* 页脚 logo：源图是纯黑线条画，brightness(0) + invert(1) 反白 */
 .site .footer-logo {
@@ -404,9 +447,9 @@ body.site {
   min-width: 90px;
 }
 .site .stat-number {
-  font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-family: "The Future", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
   font-size: 34px;
-  font-weight: 400;
+  font-weight: 700;
   line-height: 1;
   letter-spacing: -0.03em;
   color: var(--color-ink);
@@ -418,6 +461,7 @@ body.site {
 }
 .site .stat-label {
   margin-top: 8px;
+  font-family: "PP Neue Montreal Mono", Georgia, ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.06em;
@@ -450,14 +494,15 @@ body.site {
   overflow: hidden;
 }
 .site .bigtext-title {
-  font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-family: "The Future", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
   font-size: clamp(30px, 6vw, 68px);
-  font-weight: 400;
+  font-weight: 700;
   line-height: 1.02;
   letter-spacing: -0.035em;
   margin-bottom: 24px;
   white-space: nowrap;
-  color: var(--color-ink);
+  /* 比正文墨色略浅一档的暖灰，不使用彩色 */
+  color: #35302a;
 }
 .site .bigtext-subtitle {
   font-size: clamp(14px, 2vw, 17px);
@@ -672,19 +717,12 @@ body.site {
   position: relative;
   overflow: hidden;
   background-color: var(--color-canvas);
-  background-image: radial-gradient(
-    ellipse 72% 50% at 50% -10%,
-    rgba(183, 135, 78, 0.1),
-    transparent 72%
-  );
+  background-image: var(--page-glow);
   color: var(--color-ink);
 }
 .site .invite-hero-bg {
   position: absolute;
   inset: 0;
-  background-image:
-    radial-gradient(circle at 88% 84%, rgba(183, 135, 78, 0.07) 0%, transparent 55%),
-    radial-gradient(circle at 10% 26%, rgba(183, 135, 78, 0.05) 0%, transparent 50%);
   pointer-events: none;
 }
 .site .invite-hero-badge {
@@ -702,9 +740,9 @@ body.site {
   margin-bottom: 22px;
 }
 .site .invite-hero-title {
-  font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-family: "The Future", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
   font-size: 38px;
-  font-weight: 400;
+  font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.03em;
   margin-bottom: 18px;
@@ -718,7 +756,8 @@ body.site {
 
 /* 强调行：赤陶色（全页仅此一处大字用色） */
 .site .invite-hero-title-accent {
-  color: var(--color-primary);
+  /* 与首页大字一致：比正文墨色略浅一档的暖灰，不使用彩色 */
+  color: #35302a;
 }
 
 .site .invite-hero-subtitle {
@@ -742,12 +781,12 @@ body.site {
   justify-content: center;
   gap: 9px;
   padding: 13px 28px;
-  background-color: var(--color-primary);
-  color: #ffffff;
+  background-color: #c9a77e;
+  color: var(--color-ink);
   border-radius: 8px;
   font-size: 15px;
   font-weight: 500;
-  border: 1px solid var(--color-primary);
+  border: 1px solid #c9a77e;
   cursor: pointer;
   text-decoration: none;
   transition:
@@ -755,11 +794,11 @@ body.site {
     border-color 160ms ease;
 }
 .site .invite-cta-primary:hover {
-  background-color: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
+  background-color: #b7926a;
+  border-color: #b7926a;
 }
 .site .invite-cta-primary:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid #b7926a;
   outline-offset: 2px;
 }
 .site .invite-cta-primary-lg {
@@ -798,14 +837,15 @@ body.site {
   border-radius: 12px;
 }
 .site .invite-hero-stat-num {
-  font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-family: "The Future", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
   font-size: 40px;
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1;
   color: var(--color-ink);
 }
 .site .invite-hero-stat-label {
+  font-family: "PP Neue Montreal Mono", Georgia, ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: 12px;
   color: var(--color-muted);
   margin-top: 8px;
@@ -896,7 +936,7 @@ body.site {
 .site .invite-link-label {
   display: block;
   margin-bottom: 10px;
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: "PP Neue Montreal Mono", Georgia, ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.1em;
@@ -920,7 +960,7 @@ body.site {
   font-size: 13px;
   background: var(--color-surface-soft);
   color: var(--color-ink);
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: "PP Neue Montreal Mono", Georgia, ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   outline: none;
   transition:
     border-color 160ms ease,
@@ -954,9 +994,9 @@ body.site {
 }
 
 .site .invite-section-title {
-  font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-family: "The Future", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
   font-size: 32px;
-  font-weight: 400;
+  font-weight: 700;
   color: var(--color-ink);
   letter-spacing: -0.028em;
   margin-bottom: 12px;
@@ -984,9 +1024,18 @@ body.site {
 .site .invite-big-card:hover {
   border-color: var(--color-muted-soft);
 }
+/* 三张奖励卡的浅色系配色（对齐设计稿） */
+.site .invite-big-card-inviter {
+  background: linear-gradient(180deg, #f3fbf6 0%, #ffffff 100%);
+  border-color: #d8eee1;
+}
 .site .invite-big-card-invitee {
-  background: var(--color-teal-soft);
-  border-color: #cfe3dd;
+  background: linear-gradient(180deg, #f4f8ff 0%, #ffffff 100%);
+  border-color: #d9e6fb;
+}
+.site .invite-big-card-both {
+  background: linear-gradient(180deg, #faf6ff 0%, #ffffff 100%);
+  border-color: #e7dcfa;
 }
 .site .invite-big-card-top {
   display: flex;
@@ -994,6 +1043,24 @@ body.site {
   gap: 12px;
   margin-bottom: 20px;
   color: var(--color-ink);
+}
+.site .invite-big-card-icon {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: #ffffff;
+}
+.site .invite-big-card-inviter .invite-big-card-icon {
+  background: #22a06b;
+}
+.site .invite-big-card-invitee .invite-big-card-icon {
+  background: #3b82f6;
+}
+.site .invite-big-card-both .invite-big-card-icon {
+  background: #7c3aed;
 }
 .site .invite-big-card-title {
   font-size: 18px;
@@ -1004,6 +1071,46 @@ body.site {
   font-size: 14px;
   color: var(--color-body);
   line-height: 1.75;
+}
+.site .invite-big-card-wrap {
+  position: relative;
+}
+.site .invite-big-card-badge {
+  position: absolute;
+  top: -13px;
+  right: 16px;
+  z-index: 1;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #7c5cff;
+  font-size: 12px;
+  font-weight: 500;
+  color: #ffffff;
+}
+.site .invite-big-card-metric {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.site .invite-big-card-num {
+  font-size: 52px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.site .invite-big-card-inviter .invite-big-card-num {
+  color: #1f9d55;
+}
+.site .invite-big-card-invitee .invite-big-card-num {
+  color: #2563eb;
+}
+.site .invite-big-card-both .invite-big-card-num {
+  color: #6d28d9;
+}
+.site .invite-big-card-unit {
+  font-size: 13px;
+  color: var(--color-muted);
 }
 
 .site .invite-step-card {
@@ -1024,7 +1131,7 @@ body.site {
   background: var(--color-surface-card);
   color: var(--color-ink);
   border: 1px solid var(--color-hairline);
-  font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-family: "The Future", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
   font-size: 20px;
   font-weight: 400;
   display: inline-flex;
@@ -1108,20 +1215,20 @@ body.site {
   border-radius: 6px;
 }
 
-/* 底部 CTA：深墨带，靠独一份的色块收尾 */
+/* 底部 CTA：与「邀请奖励」区块同色的浅灰画布 */
 .site .invite-bottom-cta {
   position: relative;
   overflow: hidden;
-  background-color: var(--color-dark);
-  color: var(--color-on-dark);
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
 }
 .site .invite-bottom-cta-title {
-  font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-family: "The Future", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
   font-size: 36px;
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: -0.028em;
   margin-bottom: 14px;
-  color: var(--color-on-dark);
+  color: var(--color-ink);
 }
 @media (max-width: 640px) {
   .site .invite-bottom-cta-title {
@@ -1130,15 +1237,16 @@ body.site {
 }
 .site .invite-bottom-cta-sub {
   font-size: 15px;
-  color: var(--color-on-dark-soft);
+  color: var(--color-muted);
   margin-bottom: 30px;
 }
 .site .invite-bottom-cta .invite-cta-primary {
-  background-color: var(--color-on-dark);
-  color: var(--color-ink);
-  border-color: var(--color-on-dark);
+  background-color: var(--color-ink);
+  color: #ffffff;
+  border-color: var(--color-ink);
 }
 .site .invite-bottom-cta .invite-cta-primary:hover {
-  background-color: #ffffff;
-  border-color: #ffffff;
+  background-color: #29251f;
+  border-color: #29251f;
+  color: #ffffff;
 }

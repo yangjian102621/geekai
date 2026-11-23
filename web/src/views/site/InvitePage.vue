@@ -1,7 +1,7 @@
 <template>
   <!-- 邀请页：访客浏览奖励规则；登录用户查看邀请码/二维码/统计；
        带 aff 参数的访问者走注册引导视图。 -->
-  <div>
+  <div class="page-wash-all">
     <!-- 加载中（登录态） -->
     <section v-if="authLoading" class="invite-hero py-32">
       <div class="invite-hero-bg" />
@@ -63,10 +63,10 @@
           <h1 class="invite-hero-title">
             {{ t('invite.title') }}
             <br />
-            <span class="invite-hero-title-accent">{{ t('invite.subtitle') }}</span>
+            <span class="invite-hero-title-accent">{{ t('invite.subtitle', { points: rewardAmount.toLocaleString() }) }}</span>
           </h1>
           <p class="invite-hero-subtitle">
-            {{ reward != null && reward > 0 ? t('invite.reward.per_invite', { points: reward.toLocaleString() }) : t('invite.reward.fallback') }}
+            {{ t('invite.reward.per_invite', { points: rewardAmount.toLocaleString(), limit: inviteLimit, total: rewardTotal.toLocaleString() }) }}
           </p>
           <div class="invite-hero-cta-row">
             <button type="button" class="invite-cta-primary" @click="openLoginPage">
@@ -74,17 +74,27 @@
               {{ t('invite.guest.login_btn') }}
             </button>
           </div>
-          <div v-if="reward != null && reward > 0" class="invite-hero-stats">
+          <div class="invite-hero-stats">
             <div class="text-center">
-              <div class="invite-hero-stat-num">{{ reward.toLocaleString() }}</div>
+              <div class="invite-hero-stat-num">{{ rewardAmount.toLocaleString() }}</div>
               <div class="invite-hero-stat-label">{{ t('invite.reward.unit') }}</div>
+            </div>
+            <div class="invite-hero-stat-divider" />
+            <div class="text-center">
+              <div class="invite-hero-stat-num">{{ inviteLimit }}</div>
+              <div class="invite-hero-stat-label">{{ t('invite.reward.limit_label') }}</div>
+            </div>
+            <div class="invite-hero-stat-divider" />
+            <div class="text-center">
+              <div class="invite-hero-stat-num">{{ rewardMax.toLocaleString() }}</div>
+              <div class="invite-hero-stat-label">{{ t('invite.reward.max_label') }}</div>
             </div>
           </div>
         </div>
       </section>
 
-      <StepsSection />
-      <RewardsSection :reward="reward" />
+      <StepsSection :reward="reward" />
+      <RewardsSection :reward="reward" :limit="inviteLimit" />
       <FaqSection :reward="reward" />
       <BottomCta />
     </template>
@@ -121,7 +131,7 @@
           <h1 class="invite-hero-title">
             {{ t('invite.title') }}
             <br />
-            <span class="invite-hero-title-accent">{{ t('invite.subtitle') }}</span>
+            <span class="invite-hero-title-accent">{{ t('invite.subtitle', { points: rewardAmount.toLocaleString() }) }}</span>
           </h1>
           <div class="invite-hero-stats">
             <div class="text-center">
@@ -174,8 +184,8 @@
         </div>
       </section>
 
-      <StepsSection />
-      <RewardsSection :reward="reward" />
+      <StepsSection :reward="reward" />
+      <RewardsSection :reward="reward" :limit="inviteLimit" />
       <FaqSection :reward="reward" />
       <BottomCta :url="summary.invite_url" />
     </template>
@@ -187,7 +197,7 @@ import { computed, defineComponent, h, ref, watch, nextTick, onMounted } from 'v
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import QRCode from 'qrcode'
-import { Check, Copy, Download, Gift, Link as LinkIcon, Users } from 'lucide-vue-next'
+import { Check, Copy, Download, Gift, Heart, Link as LinkIcon, Lock } from 'lucide-vue-next'
 import { useAuth } from '@/composables/useAuth'
 import { useInviteReward, useInviteSummary } from '@/composables/useInvite'
 import {
@@ -205,6 +215,14 @@ const aff = computed(() => route.query.aff?.trim() || '')
 
 const { user, isLoading: authLoading, isError: authError } = useAuth()
 const { reward } = useInviteReward()
+
+/* 邀请活动规则：每位奖励积分、邀请上限 30 位 */
+const inviteLimit = 30
+const rewardAmount = computed(() =>
+  typeof reward.value === 'number' && reward.value > 0 ? reward.value : 500,
+)
+const rewardMax = computed(() => rewardAmount.value * inviteLimit)
+const rewardTotal = computed(() => rewardAmount.value * inviteLimit * 2)
 const { summary, isLoading: summaryLoading, isError: summaryError, refetch } = useInviteSummary(!aff.value && !!user.value)
 
 /* InviteeView 的下载选项（mac 架构未知时拆成两个按钮） */
@@ -246,14 +264,16 @@ async function copyShareLink() {
 
 const StepsSection = defineComponent({
   name: 'StepsSection',
-  setup() {
+  props: { reward: { type: Number, default: null } },
+  setup(props) {
+    const points = props.reward != null && props.reward > 0 ? props.reward : 500
     const steps = [1, 2, 3].map((num) => ({
       num,
       title: t(`invite.steps.step${num}_title`),
-      desc: t(`invite.steps.step${num}_desc`),
+      desc: t(`invite.steps.step${num}_desc`, { points: points.toLocaleString() }),
     }))
     return () =>
-      h('section', { class: 'invite-steps-section py-16 lg:py-20' }, [
+      h('section', { class: 'invite-steps-section py-20 lg:py-24' }, [
         h('div', { class: 'max-w-5xl mx-auto px-4 text-center' }, [
           h('h2', { class: 'invite-section-title' }, t('invite.steps.title')),
           h('p', { class: 'invite-section-subtitle mb-10' }, t('invite.steps.subtitle')),
@@ -271,32 +291,60 @@ const StepsSection = defineComponent({
 
 const RewardsSection = defineComponent({
   name: 'RewardsSection',
-  props: { reward: { type: Number, default: null } },
+  props: {
+    reward: { type: Number, default: null },
+    limit: { type: Number, default: 30 },
+  },
   setup(props) {
+    const points = props.reward != null && props.reward > 0 ? props.reward : 500
+    const params = {
+      points: points.toLocaleString(),
+      limit: props.limit,
+      total: (points * props.limit).toLocaleString(),
+    }
     return () =>
-      h('section', { class: 'invite-rewards-section py-16 lg:py-20' }, [
-        h('div', { class: 'max-w-4xl mx-auto px-4' }, [
+      h('section', { class: 'invite-rewards-section py-20 lg:py-24' }, [
+        h('div', { class: 'max-w-5xl mx-auto px-4' }, [
           h('div', { class: 'text-center mb-10' }, [
             h('h2', { class: 'invite-section-title' }, t('invite.rewards.title')),
             h('p', { class: 'invite-section-subtitle' }, t('invite.rewards.subtitle')),
           ]),
-          h('div', { class: 'grid grid-cols-1 md:grid-cols-2 gap-6' }, [
+          h('div', { class: 'grid grid-cols-1 md:grid-cols-3 gap-6' }, [
             h('div', { class: 'invite-big-card invite-big-card-inviter' }, [
               h('div', { class: 'invite-big-card-top' }, [
-                h(Users, { size: 22 }),
+                h('span', { class: 'invite-big-card-icon' }, [h(Gift, { size: 20 })]),
                 h('h2', { class: 'invite-big-card-title' }, t('invite.rewards.inviter_title')),
               ]),
-              h('p', { class: 'invite-big-card-desc' },
-                props.reward != null && props.reward > 0
-                  ? t('invite.rewards.inviter_desc', { points: props.reward.toLocaleString() })
-                  : t('invite.rewards.inviter_fallback')),
+              h('div', { class: 'invite-big-card-metric' }, [
+                h('div', { class: 'invite-big-card-num' }, points.toLocaleString()),
+                h('div', { class: 'invite-big-card-unit' }, t('invite.rewards.unit_per_person', params)),
+              ]),
+              h('p', { class: 'invite-big-card-desc' }, t('invite.rewards.inviter_desc', params)),
             ]),
             h('div', { class: 'invite-big-card invite-big-card-invitee' }, [
               h('div', { class: 'invite-big-card-top' }, [
-                h(Gift, { size: 22 }),
-                h('h2', { class: 'invite-big-card-title' }, t('invite.rewards.usage_title')),
+                h('span', { class: 'invite-big-card-icon' }, [h(Heart, { size: 20 })]),
+                h('h2', { class: 'invite-big-card-title' }, t('invite.rewards.invitee_title')),
               ]),
-              h('p', { class: 'invite-big-card-desc' }, t('invite.rewards.usage_desc')),
+              h('div', { class: 'invite-big-card-metric' }, [
+                h('div', { class: 'invite-big-card-num' }, points.toLocaleString()),
+                h('div', { class: 'invite-big-card-unit' }, t('invite.rewards.unit_new_user', params)),
+              ]),
+              h('p', { class: 'invite-big-card-desc' }, t('invite.rewards.invitee_desc', params)),
+            ]),
+            h('div', { class: 'invite-big-card-wrap' }, [
+              h('span', { class: 'invite-big-card-badge' }, t('invite.rewards.both_badge')),
+              h('div', { class: 'invite-big-card invite-big-card-both' }, [
+                h('div', { class: 'invite-big-card-top' }, [
+                  h('span', { class: 'invite-big-card-icon' }, [h(Lock, { size: 20 })]),
+                  h('h2', { class: 'invite-big-card-title' }, t('invite.rewards.both_title')),
+                ]),
+                h('div', { class: 'invite-big-card-metric' }, [
+                  h('div', { class: 'invite-big-card-num' }, points.toLocaleString()),
+                  h('div', { class: 'invite-big-card-unit' }, t('invite.rewards.unit_per_both', params)),
+                ]),
+                h('p', { class: 'invite-big-card-desc' }, t('invite.rewards.both_desc', params)),
+              ]),
             ]),
           ]),
         ]),
@@ -321,7 +369,7 @@ const FaqSection = defineComponent({
       { q: t('invite.faq.q4'), a: t('invite.faq.a4') },
     ]
     return () =>
-      h('section', { class: 'invite-faq-section py-16 lg:py-20' }, [
+      h('section', { class: 'invite-faq-section py-20 lg:py-24' }, [
         h('div', { class: 'max-w-3xl mx-auto px-4' }, [
           h('h2', { class: 'invite-section-title text-center' }, t('invite.faq.title')),
           h('div', { class: 'invite-faq-list mt-8' }, faqs.map((faq, index) =>
@@ -351,7 +399,7 @@ const BottomCta = defineComponent({
       }
     }
     return () =>
-      h('section', { class: 'invite-bottom-cta py-16 lg:py-20 text-center' }, [
+      h('section', { class: 'invite-bottom-cta py-20 lg:py-24 text-center' }, [
         h('div', { class: 'max-w-3xl mx-auto px-4' }, [
           h('h2', { class: 'invite-bottom-cta-title' }, t('invite.bottom_cta_title')),
           h('p', { class: 'invite-bottom-cta-sub' }, t('invite.bottom_cta_sub')),

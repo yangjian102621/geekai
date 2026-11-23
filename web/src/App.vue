@@ -19,7 +19,7 @@ body {
 }
 
 #app {
-  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial,
+  font-family: 'The Future', Arial, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC',
     sans-serif;
   -webkit-font-smoothing: antialiased;
 }
