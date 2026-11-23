@@ -27,6 +27,9 @@ type User struct {
 	GemIds      string    `gorm:"column:gem_ids_json;type:text;default:null;comment:用户固定的智能体ID列表(JSON数组)" json:"gem_ids"`
 	CreatedAt   time.Time `gorm:"column:created_at;type:datetime;not null" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"column:updated_at;type:datetime;not null" json:"updated_at"`
+
+	TokengineSubject string `gorm:"column:tokengine_subject;type:varchar(256);comment:Tokengine原始用户身份" json:"-"`
+	TokengineProfile string `gorm:"column:tokengine_profile;type:text;comment:Tokengine用户资料快照" json:"-"`
 }
 
 func (m *User) TableName() string {

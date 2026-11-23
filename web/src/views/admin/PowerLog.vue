@@ -29,6 +29,10 @@
         <el-option label="退款" :value="3" />
         <el-option label="奖励" :value="4" />
         <el-option label="众筹" :value="5" />
+        <el-option label="签到" :value="7" />
+      </el-select>
+      <el-select v-model="query.quota_status" placeholder="额度状态" style="width: 140px" clearable>
+        <el-option v-for="(label, value) in quotaStatuses" :key="value" :label="label" :value="value" />
       </el-select>
       <el-date-picker
         v-model="query.date"
@@ -62,6 +66,16 @@
           </template>
         </el-table-column>
         <el-table-column prop="balance" label="余额" />
+        <el-table-column label="Token 额度">
+          <template #default="scope">{{ scope.row.quota_amount > 0 ? scope.row.quota_amount.toLocaleString() : '—' }}</template>
+        </el-table-column>
+        <el-table-column label="到账状态">
+          <template #default="scope">
+            <el-tooltip :content="scope.row.quota_error" :disabled="!scope.row.quota_error">
+              <span>{{ quotaStatuses[scope.row.quota_status] || '—' }}</span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
         <el-table-column label="发生时间">
           <template #default="scope">
             <span>{{ dateFormat(scope.row['created_at']) }}</span>
@@ -100,10 +114,19 @@ const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
 const loading = ref(false)
+const quotaStatuses = {
+  waiting_binding: '待绑定 Token 账号',
+  pending: '待发放',
+  processing: '发放中',
+  succeeded: '已到账',
+  failed: '发放失败',
+  unknown: '需核对到账结果',
+}
 const query = ref({
   model: '',
   date: [],
   type: 0,
+  quota_status: '',
   page: 1,
   page_size: 20,
 })

@@ -139,9 +139,9 @@ func TestLedgerChargeWritesPostDeductionBalance(t *testing.T) {
 	mock.ExpectQuery(userSelectSQL).WithArgs(7).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "username", "power"}).AddRow(7, "alice", 8))
 	// INSERT 的取值顺序与 model.PowerLog 字段声明顺序一致：
-	// user_id, username, type, amount, balance, model, remark, mark, ref_type, ref_id, created_at
 	mock.ExpectExec(logInsertSQL).WithArgs(
 		7, "alice", types.PowerConsume, 2, 8, "gpt-4o", "测试扣费", types.PowerSub, "job:mj", 5, sqlmock.AnyArg(),
+		0, "", "", "", "", nil,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
@@ -199,6 +199,7 @@ func TestLedgerRefundIdempotent(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"id", "username", "power"}).AddRow(7, "alice", 10))
 	mock.ExpectExec(logInsertSQL).WithArgs(
 		7, "alice", types.PowerRefund, 3, 13, "mid-journey", "任务失败，退回积分", types.PowerAdd, "job:mj", 5, sqlmock.AnyArg(),
+		0, "", "", "", "", nil,
 	).WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectExec(creditSQL).WithArgs(3, 7).WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectCommit()
@@ -295,5 +296,67 @@ func TestLedgerGrantIdempotent(t *testing.T) {
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestLedgerSignInGrantsQuotaOnceAcrossMigration(t *testing.T) {
+	db, mock := newLedgerTestDB(t)
+	ledger := NewLedgerService(db)
+	ref := LedgerRef{Type: "signin:2026-11-20", ID: 7}
+	key := "signin/7/2026-11-20"
+	log := model.PowerLog{Type: types.PowerSignIn, Model: "SignIn", RewardKey: &key}
+	const identity = "staging-identity"
+
+	for _, tc := range []struct {
+		name      string
+		amount    int
+		quota     int64
+		status    string
+		duplicate bool
+	}{
+		{name: "points and quota in one transaction", amount: 2, quota: 200, status: QuotaPending},
+		{name: "old reward key blocks a second grant", amount: 2, quota: 200, status: QuotaPending, duplicate: true},
+		{name: "zero point sign-in only writes the record"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			mock.ExpectBegin()
+			mock.ExpectQuery(userSelectSQL).WithArgs(7).
+				WillReturnRows(sqlmock.NewRows([]string{"id", "username", "power", "tokengine_subject", "tokengine_id"}).
+					AddRow(7, "alice", 10, "u_1", identity))
+			subject, quotaIdentity := "", ""
+			if tc.amount > 0 {
+				mock.ExpectQuery("SELECT .*geekai_configs").WithArgs(types.ConfigKeyRewardQuota).
+					WillReturnRows(sqlmock.NewRows([]string{"name", "value"}).
+						AddRow(types.ConfigKeyRewardQuota, `{"enabled":true,"quota_per_point":100}`))
+				subject, quotaIdentity = "u_1", identity
+			}
+			insert := mock.ExpectExec(logInsertSQL).WithArgs(
+				7, "alice", types.PowerSignIn, tc.amount, 10+tc.amount, "SignIn", "", types.PowerAdd,
+				ref.Type, ref.ID, sqlmock.AnyArg(), tc.quota, tc.status, subject, quotaIdentity, "", nil, key,
+			)
+			if tc.duplicate {
+				insert.WillReturnError(errors.New("Error 1062: Duplicate entry for key 'idx_geekai_power_logs_reward_key'"))
+			} else {
+				insert.WillReturnResult(sqlmock.NewResult(1, 1))
+				if tc.amount > 0 {
+					mock.ExpectExec(creditSQL).WithArgs(tc.amount, 7).WillReturnResult(sqlmock.NewResult(0, 1))
+				}
+			}
+			mock.ExpectCommit()
+
+			err := db.Transaction(func(tx *gorm.DB) error {
+				granted, err := ledger.Grant(tx, 7, tc.amount, ref, log)
+				if err == nil && granted == tc.duplicate {
+					t.Errorf("granted=%v for duplicate=%v", granted, tc.duplicate)
+				}
+				return err
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := mock.ExpectationsWereMet(); err != nil {
+				t.Fatal(err)
+			}
+		})
 	}
 }

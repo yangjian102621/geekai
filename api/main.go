@@ -66,7 +66,7 @@ func NewAppLifeCycle() *AppLifecycle {
 	return &AppLifecycle{}
 }
 
-// Handlers 汇总全部 52 个路由注册器。
+// Handlers 汇总全部路由注册器。
 //
 // 为什么要显式列出而不是靠 fx 的 group / As：
 //  1. fx.As 会替换构造函数的返回类型，*handler.PaymentHandler 这类"既要注册路由、又要单独
@@ -77,7 +77,7 @@ func NewAppLifeCycle() *AppLifecycle {
 type Handlers struct {
 	fx.In
 
-	// 用户侧（30 个）
+	// 用户侧
 	ChatApp     *handler.ChatAppHandler
 	User        *handler.UserHandler
 	Chat        *handler.ChatHandler
@@ -88,7 +88,6 @@ type Handlers struct {
 	Captcha     *handler.CaptchaHandler
 	Mj          *handler.MidJourneyHandler
 	ChatModel   *handler.ChatModelHandler
-	ModelAPI    *handler.ModelAPIHandler
 	Payment     *handler.PaymentHandler
 	Order       *handler.OrderHandler
 	Product     *handler.ProductHandler
@@ -108,6 +107,7 @@ type Handlers struct {
 	Prompt      *handler.PromptHandler
 	Realtime    *handler.RealtimeHandler
 	Library     *handler.LibraryHandler
+	ClientEvent *handler.ClientEventHandler
 
 	// 管理后台（22 个）
 	AdminConfig      *admin.ConfigHandler
@@ -144,10 +144,10 @@ func registerRoutes(r *core.Router, hs Handlers) {
 	registrars := []core.RouteRegistrar{
 		// 用户侧
 		hs.User, hs.ChatApp, hs.Chat, hs.Net, hs.Download, hs.Sms, hs.Redeem,
-		hs.Captcha, hs.Mj, hs.ChatModel, hs.ModelAPI, hs.Payment, hs.Order,
+		hs.Captcha, hs.Mj, hs.ChatModel, hs.Payment, hs.Order,
 		hs.Product, hs.Config, hs.PowerLog, hs.Jimeng, hs.WxGzh, hs.Invite,
 		hs.Function, hs.Menu, hs.MarkMap, hs.ImageJob, hs.Suno, hs.Video,
-		hs.ChatAppType, hs.Test, hs.Prompt, hs.Realtime, hs.Library,
+		hs.ChatAppType, hs.Test, hs.Prompt, hs.Realtime, hs.Library, hs.ClientEvent,
 		// 管理后台
 		hs.AdminConfig, hs.AdminManager, hs.AdminApiKey, hs.AdminUser,
 		hs.AdminChatApp, hs.AdminRedeem, hs.AdminDashboard, hs.AdminChatModel,
@@ -209,7 +209,7 @@ func main() {
 		fx.Provide(func(s *core.AppServer) *core.Router {
 			return s.Router
 		}),
-		// 唯一的路由注册点：52 个 handler 一处登记、一处装配，顺序确定
+		// 唯一的路由注册点，顺序确定
 		fx.Invoke(registerRoutes),
 		fx.Provide(func(db *gorm.DB) *types.SystemConfig {
 			return core.LoadSystemConfig(db)
@@ -225,6 +225,7 @@ func main() {
 		}),
 		fx.Provide(handler.NewLibraryHandler),
 		fx.Provide(admin.NewLibraryHandler),
+		fx.Provide(handler.NewClientEventHandler),
 
 		fx.Provide(func() embed.FS {
 			return xdbFS
@@ -255,7 +256,6 @@ func main() {
 		fx.Provide(handler.NewCaptchaHandler),
 		fx.Provide(handler.NewMidJourneyHandler),
 		fx.Provide(handler.NewChatModelHandler),
-		fx.Provide(handler.NewModelAPIHandler),
 		fx.Provide(handler.NewPaymentHandler),
 		fx.Provide(handler.NewOrderHandler),
 		fx.Provide(handler.NewProductHandler),
@@ -355,6 +355,26 @@ func main() {
 		fx.Provide(service.NewUserService),
 		// 积分账本服务：所有改变余额的操作都应经过它（事务 + 幂等键）
 		fx.Provide(service.NewLedgerService),
+		fx.Provide(service.NewRewardQuotaService),
+		fx.Invoke(func(lifecycle fx.Lifecycle, s *service.RewardQuotaService) {
+			ctx, cancel := context.WithCancel(context.Background())
+			done := make(chan struct{})
+			lifecycle.Append(fx.Hook{
+				OnStart: func(context.Context) error {
+					go func() { defer close(done); s.Run(ctx) }()
+					return nil
+				},
+				OnStop: func(stopCtx context.Context) error {
+					cancel()
+					select {
+					case <-done:
+						return nil
+					case <-stopCtx.Done():
+						return stopCtx.Err()
+					}
+				},
+			})
+		}),
 
 		// 文本审查服务
 		fx.Provide(moderation.NewGiteeAIModeration),

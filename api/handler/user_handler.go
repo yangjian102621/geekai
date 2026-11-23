@@ -37,7 +37,7 @@ type UserHandler struct {
 	redis          *redis.Client
 	levelDB        *store.LevelDB
 	captchaService *service.CaptchaService
-	userService    *service.UserService
+	ledgerService  *service.LedgerService
 	wxLoginService *service.WxLoginService
 	ipSearcher     *xdb.Searcher
 	wechatService  *service.WxGzhService
@@ -51,7 +51,7 @@ func NewUserHandler(
 	client *redis.Client,
 	levelDB *store.LevelDB,
 	captcha *service.CaptchaService,
-	userService *service.UserService,
+	ledgerService *service.LedgerService,
 	wxLoginService *service.WxLoginService,
 	wechatService *service.WxGzhService,
 	ipSearcher *xdb.Searcher) *UserHandler {
@@ -61,7 +61,7 @@ func NewUserHandler(
 		redis:          client,
 		levelDB:        levelDB,
 		captchaService: captcha,
-		userService:    userService,
+		ledgerService:  ledgerService,
 		wxLoginService: wxLoginService,
 		wechatService:  wechatService,
 		ipSearcher:     ipSearcher,
@@ -390,7 +390,7 @@ func (h *UserHandler) createNewUser(user model.User, code string) (model.User, e
 	// 记录邀请关系
 	if code != "" {
 		var inviteCode model.InviteCode
-		err := h.DB.Where("code = ?", code).First(&inviteCode).Error
+		err := tx.Where("code = ?", code).First(&inviteCode).Error
 		if err != nil {
 			logger.Error("无效的邀请码：", err.Error())
 			tx.Rollback()
@@ -398,9 +398,12 @@ func (h *UserHandler) createNewUser(user model.User, code string) (model.User, e
 		}
 
 		// 增加邀请数量
-		h.DB.Model(&model.InviteCode{}).Where("code = ?", code).UpdateColumn("reg_num", gorm.Expr("reg_num + ?", 1))
+		if err := tx.Model(&model.InviteCode{}).Where("code = ?", code).UpdateColumn("reg_num", gorm.Expr("reg_num + ?", 1)).Error; err != nil {
+			tx.Rollback()
+			return user, err
+		}
 		if h.App.SysConfig.Base.InvitePower > 0 {
-			err := h.userService.IncreasePower(inviteCode.UserId, h.App.SysConfig.Base.InvitePower, model.PowerLog{
+			granted, err := h.ledgerService.Grant(tx, inviteCode.UserId, h.App.SysConfig.Base.InvitePower, service.LedgerRef{Type: "invite", ID: user.Id}, model.PowerLog{
 				Type:   types.PowerInvite,
 				Model:  "Invite",
 				Remark: fmt.Sprintf("邀请用户注册奖励，金额：%d，邀请码：%s，新用户：%s", h.App.SysConfig.Base.InvitePower, inviteCode.Code, user.Username),
@@ -408,6 +411,10 @@ func (h *UserHandler) createNewUser(user model.User, code string) (model.User, e
 			if err != nil {
 				tx.Rollback()
 				return user, err
+			}
+			if !granted {
+				tx.Rollback()
+				return user, errors.New("邀请奖励已发放")
 			}
 
 			// 添加邀请记录
@@ -437,7 +444,10 @@ func (h *UserHandler) doLogin(user *model.User, ip string) (string, error) {
 	// 更新最后登录时间和IP
 	user.LastLoginIp = ip
 	user.LastLoginAt = time.Now().Unix()
-	err := h.DB.Model(user).Updates(user).Error
+	err := h.DB.Model(user).Updates(map[string]any{
+		"last_login_ip": user.LastLoginIp,
+		"last_login_at": user.LastLoginAt,
+	}).Error
 	if err != nil {
 		return "", fmt.Errorf("failed to update user: %v", err)
 	}
@@ -701,6 +711,13 @@ func (h *UserHandler) BindMobile(c *gin.Context) {
 		return
 	}
 
+	unlock, err := h.lockMobile(c, data.Mobile)
+	if err != nil {
+		resp.ERROR(c, "手机号请求正在处理中，请稍后重试")
+		return
+	}
+	defer unlock()
+
 	// 检查手机号是否被其他账号绑定
 	var item model.User
 	res := h.DB.Where("mobile", data.Mobile).First(&item)
@@ -775,15 +792,28 @@ func (h *UserHandler) SignIn(c *gin.Context) {
 		return
 	}
 
-	// 签到
-	h.levelDB.Put(key, true)
-	if h.App.SysConfig.Base.DailyPower > 0 {
-		h.userService.IncreasePower(userId, h.App.SysConfig.Base.DailyPower, model.PowerLog{
-			Type:   types.PowerSignIn,
-			Model:  "SignIn",
-			Remark: fmt.Sprintf("每日签到奖励，金额：%d", h.App.SysConfig.Base.DailyPower),
+	power := max(0, h.App.SysConfig.Base.DailyPower)
+	var granted bool
+	err = h.DB.WithContext(c.Request.Context()).Transaction(func(tx *gorm.DB) error {
+		var grantErr error
+		granted, grantErr = h.ledgerService.Grant(tx, userId, power, service.LedgerRef{Type: "signin:" + date, ID: userId}, model.PowerLog{
+			RewardKey: &key, // 沿用旧版签到键，避免迁移后当日重复领取。
+			Type:      types.PowerSignIn,
+			Model:     "SignIn",
+			Remark:    fmt.Sprintf("每日签到奖励，金额：%d", power),
 		})
+		return grantErr
+	})
+	if err != nil {
+		logger.Errorw("signin_reward_failed", "user_id", userId)
+		resp.ERROR(c, "签到失败，请稍后重试")
+		return
 	}
+	if !granted {
+		resp.ERROR(c, "今日已签到，请明日再来！")
+		return
+	}
+	h.levelDB.Put(key, true)
 	resp.SUCCESS(c)
 }
 

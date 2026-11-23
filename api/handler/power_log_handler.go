@@ -122,6 +122,13 @@ func (h *PowerLogHandler) Stats(c *gin.Context) {
 		"today":   todayConsume,
 		"balance": user.Power,
 	}
+	var granted int64
+	if err := h.DB.Model(&model.PowerLog{}).Where("user_id = ? AND quota_status = ?", userId, "succeeded").
+		Select("COALESCE(SUM(quota_amount), 0)").Scan(&granted).Error; err != nil {
+		resp.ERROR(c, "获取额度到账统计失败")
+		return
+	}
+	stats["quota_granted"] = granted
 
 	resp.SUCCESS(c, stats)
 }
