@@ -123,11 +123,8 @@ onMounted(async () => {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background-color: var(--login-bg);
-  /* 与首页 Hero 一致：顶部一层暖棕薄雾 + 左上浅棕 / 右上浅薄荷 / 底部浅蓝 */
-  background-image:
-    linear-gradient(180deg, rgba(211, 168, 118, 0.16) 0%, rgba(247, 246, 243, 0) 55%),
-    var(--page-glow);
+  background-color: #f2f3fc;
+  background-image: none;
   background-repeat: no-repeat;
 }
 

@@ -1250,3 +1250,470 @@ body.site {
   border-color: #29251f;
   color: #ffffff;
 }
+
+/* ============================================================
+   首页 / 邀请页皮肤：参考 silicon-landing 的冷色调与字体
+   仅 .home-shell（首页、邀请页）生效，不影响其他站点页
+   ============================================================ */
+.site.home-shell {
+  background-color: #f6f7fd;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", sans-serif;
+}
+.site.home-shell .topnav {
+  background-color: transparent;
+}
+.site.home-shell .topnav.topnav-scrolled {
+  background-color: rgba(246, 247, 253, 0.88);
+  border-bottom: 1px solid rgba(84, 87, 232, 0.12);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+}
+.site.home-shell .topnav .text-ink {
+  color: #0a0e27;
+}
+.site.home-shell .topnav .nav-link {
+  color: #565b7e;
+}
+.site.home-shell .topnav .nav-link:hover {
+  color: #14163a;
+}
+.site.home-shell .topnav .nav-link::after {
+  background: #5457e8;
+}
+.site.home-shell .topnav .text-brand-600 {
+  color: #5457e8;
+}
+.site.home-shell .auth-login-btn {
+  color: #14163a;
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(84, 87, 232, 0.22);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.site.home-shell .auth-login-btn:hover {
+  border-color: #5457e8;
+  background: #fff;
+}
+.site.home-shell .btn-primary {
+  color: #fff;
+  background: linear-gradient(135deg, #5457e8 0%, #7c5cfc 100%);
+  border-color: transparent;
+  box-shadow: 0 6px 18px rgba(84, 87, 232, 0.35);
+}
+.site.home-shell .btn-primary:hover {
+  background: linear-gradient(135deg, #4a4dd6 0%, #6d4df2 100%);
+  border-color: transparent;
+  box-shadow: 0 10px 26px rgba(84, 87, 232, 0.45);
+}
+.site.home-shell .footer-shell {
+  background:
+    radial-gradient(700px 360px at 15% 0%, rgba(139, 92, 246, 0.22), transparent 60%),
+    radial-gradient(700px 360px at 90% 100%, rgba(34, 211, 238, 0.12), transparent 60%),
+    #0a0e27;
+}
+.site.home-shell .footer-shell .text-on-dark {
+  color: #f3f4ff;
+}
+.site.home-shell .footer-shell .text-on-dark-soft {
+  color: rgba(226, 229, 255, 0.62);
+}
+.site.home-shell .footer-shell .text-on-dark-soft:hover {
+  color: #fff;
+}
+
+/* ---------- 个人空间：顶栏与页面底色 ---------- */
+.site.space-shell {
+  background-color: #f2f3fc;
+}
+.site.space-shell .topnav {
+  background-color: #f2f3fc;
+}
+.site.space-shell .topnav.topnav-scrolled {
+  background-color: rgba(242, 243, 252, 0.9);
+  border-bottom: 1px solid rgba(84, 87, 232, 0.12);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+}
+.site.space-shell .topnav .text-ink {
+  color: #14163a;
+}
+.site.space-shell .topnav .nav-link {
+  color: #565b7e;
+}
+.site.space-shell .topnav .nav-link:hover {
+  color: #14163a;
+}
+.site.space-shell .topnav .nav-link::after {
+  background: #5457e8;
+}
+.site.space-shell .topnav .text-brand-600 {
+  color: #5457e8;
+}
+.site.space-shell .auth-login-btn {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(84, 87, 232, 0.22);
+}
+/* Tailwind 色板为静态 hex，这里显式覆盖个人空间内的卡片与分隔线 */
+.site .space-page .bg-canvas {
+  background-color: #ffffff;
+}
+.site .space-page .bg-surface-soft {
+  background-color: #f7f8ff;
+}
+.site .space-page .bg-surface-card {
+  background-color: #f2f3fc;
+}
+.site .space-page .border-hairline {
+  border-color: rgba(84, 87, 232, 0.14);
+}
+.site .space-page .border-hairline-soft {
+  border-color: rgba(84, 87, 232, 0.08);
+}
+.site .space-page .divide-hairline-soft > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(84, 87, 232, 0.08);
+}
+.site .space-page .hover\:bg-surface-soft:hover {
+  background-color: #f7f8ff;
+}
+
+/* ---------- 邀请页：同一套配色与字体 ---------- */
+.invite-theme {
+  --color-canvas: #f6f7fd;
+  --color-surface-soft: #f2f3fc;
+  --color-surface-card: #eef0fc;
+  --color-cream-strong: #e6e8f7;
+  --color-hairline: rgba(84, 87, 232, 0.14);
+  --color-hairline-soft: rgba(84, 87, 232, 0.08);
+  --color-ink: #14163a;
+  --color-body-strong: #14163a;
+  --color-body: #565b7e;
+  --color-muted: #8a8eab;
+  --color-muted-soft: #b6bad3;
+  --color-primary: #5457e8;
+  --color-primary-hover: #3f42c8;
+  --color-coral: #8b5cf6;
+  --color-coral-soft: rgba(84, 87, 232, 0.12);
+  --shadow-soft: 0 4px 18px rgba(20, 22, 58, 0.05);
+  --shadow-lift: 0 22px 48px rgba(84, 87, 232, 0.16);
+  --page-glow:
+    radial-gradient(900px 500px at 15% 0%, rgba(139, 92, 246, 0.12), transparent 60%),
+    radial-gradient(800px 480px at 85% 10%, rgba(34, 211, 238, 0.1), transparent 60%),
+    linear-gradient(180deg, #f7f8fe 0%, #eef0fc 55%, #f6f7fd 100%);
+
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", sans-serif;
+  color: #14163a;
+  background: #f6f7fd;
+}
+
+.invite-theme .invite-hero {
+  background-color: #f6f7fd;
+  background-image: var(--page-glow);
+}
+.invite-theme .invite-hero-bg {
+  background-image:
+    linear-gradient(rgba(84, 87, 232, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(84, 87, 232, 0.055) 1px, transparent 1px);
+  background-size: 54px 54px;
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, #000 30%, transparent 75%);
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, #000 30%, transparent 75%);
+}
+.invite-theme .invite-hero-badge {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(84, 87, 232, 0.22);
+  color: #14163a;
+  box-shadow: 0 4px 20px rgba(84, 87, 232, 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.invite-theme .invite-hero-badge .bg-coral {
+  background: linear-gradient(135deg, #5457e8, #8b5cf6);
+}
+.invite-theme .invite-hero-title {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei",
+    sans-serif;
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.16;
+  letter-spacing: -0.02em;
+  color: #14163a;
+}
+@media (min-width: 640px) {
+  .invite-theme .invite-hero-title {
+    font-size: 58px;
+  }
+}
+.invite-theme .invite-hero-title-accent {
+  display: inline-block;
+  background: linear-gradient(120deg, #5457e8 0%, #8b5cf6 55%, #22d3ee 110%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.invite-theme .invite-hero-subtitle {
+  color: #565b7e;
+}
+.invite-theme .invite-cta-primary {
+  padding: 14px 32px;
+  color: #fff;
+  background: linear-gradient(135deg, #5457e8 0%, #7c5cfc 100%);
+  border-color: transparent;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(84, 87, 232, 0.38);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+.invite-theme .invite-cta-primary:hover {
+  background: linear-gradient(135deg, #4a4dd6 0%, #6d4df2 100%);
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(84, 87, 232, 0.48);
+}
+.invite-theme .invite-cta-primary:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 2px;
+}
+.invite-theme .invite-hero-stats {
+  background: #fff;
+  border-color: rgba(84, 87, 232, 0.14);
+  border-radius: 18px;
+  box-shadow: 0 4px 18px rgba(20, 22, 58, 0.05);
+}
+.invite-theme .invite-hero-stat-num {
+  font-family: "Bahnschrift", "DIN Alternate", "Avenir Next Condensed", "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  font-weight: 700;
+  background: linear-gradient(120deg, #5457e8 0%, #8b5cf6 55%, #22d3ee 110%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.invite-theme .invite-hero-stat-label {
+  color: #8a8eab;
+  font-family: inherit;
+}
+.invite-theme .invite-hero-stat-divider {
+  background: rgba(84, 87, 232, 0.16);
+}
+.invite-theme .invite-loading-spinner {
+  border-color: rgba(84, 87, 232, 0.16);
+  border-top-color: #5457e8;
+}
+.invite-theme .invite-share-section {
+  background: #f6f7fd;
+}
+.invite-theme .invite-share-card {
+  background: #fff;
+  border-color: rgba(84, 87, 232, 0.14);
+  border-radius: 22px;
+  box-shadow: 0 4px 18px rgba(20, 22, 58, 0.05);
+}
+.invite-theme .invite-link-label {
+  color: #8a8eab;
+  font-family: inherit;
+}
+.invite-theme .invite-share-link-input {
+  background: #f7f8ff;
+  border-color: rgba(84, 87, 232, 0.18);
+  border-radius: 12px;
+  color: #14163a;
+}
+.invite-theme .invite-share-link-input:focus {
+  border-color: #5457e8;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(84, 87, 232, 0.12);
+}
+.invite-theme .invite-copy-btn-big {
+  background: linear-gradient(135deg, #5457e8 0%, #7c5cfc 100%);
+  border-color: transparent;
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(84, 87, 232, 0.32);
+}
+.invite-theme .invite-copy-btn-big:hover {
+  background: linear-gradient(135deg, #4a4dd6 0%, #6d4df2 100%);
+  border-color: transparent;
+}
+.invite-theme .invite-qr-wrapper {
+  background: #fff;
+  border-color: rgba(84, 87, 232, 0.14);
+  border-radius: 14px;
+}
+.invite-theme .invite-section-title {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei",
+    sans-serif;
+  font-weight: 800;
+  color: #14163a;
+  letter-spacing: -0.01em;
+}
+.invite-theme .invite-section-subtitle {
+  color: #565b7e;
+}
+.invite-theme .invite-steps-section {
+  background-color: #f2f3fc;
+}
+.invite-theme .invite-rewards-section {
+  background-color: #f6f7fd;
+}
+.invite-theme .invite-faq-section {
+  background-color: #f2f3fc;
+}
+.invite-theme .invite-step-card {
+  background: #fff;
+  border-color: rgba(84, 87, 232, 0.14);
+  border-radius: 20px;
+  box-shadow: 0 4px 18px rgba(20, 22, 58, 0.05);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+.invite-theme .invite-step-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(84, 87, 232, 0.4);
+  box-shadow: 0 22px 48px rgba(84, 87, 232, 0.16);
+}
+.invite-theme .invite-step-num {
+  background: linear-gradient(135deg, #5457e8 0%, #7c5cfc 100%);
+  color: #fff;
+  border: none;
+  font-family: "Bahnschrift", "DIN Alternate", "Segoe UI", "PingFang SC", "Microsoft YaHei",
+    sans-serif;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(84, 87, 232, 0.28);
+}
+.invite-theme .invite-step-title {
+  color: #14163a;
+}
+.invite-theme .invite-step-desc {
+  color: #565b7e;
+}
+.invite-theme .invite-big-card {
+  background: #fff;
+  border-color: rgba(84, 87, 232, 0.14);
+  border-radius: 20px;
+  box-shadow: 0 4px 18px rgba(20, 22, 58, 0.05);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+.invite-theme .invite-big-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(84, 87, 232, 0.4);
+  box-shadow: 0 22px 48px rgba(84, 87, 232, 0.16);
+}
+.invite-theme .invite-big-card-inviter {
+  background: linear-gradient(180deg, rgba(84, 87, 232, 0.07) 0%, #ffffff 100%);
+  border-color: rgba(84, 87, 232, 0.2);
+}
+.invite-theme .invite-big-card-invitee {
+  background: linear-gradient(180deg, rgba(34, 211, 238, 0.09) 0%, #ffffff 100%);
+  border-color: rgba(34, 211, 238, 0.28);
+}
+.invite-theme .invite-big-card-both {
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.09) 0%, #ffffff 100%);
+  border-color: rgba(139, 92, 246, 0.26);
+}
+.invite-theme .invite-big-card-icon {
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(84, 87, 232, 0.26);
+}
+.invite-theme .invite-big-card-inviter .invite-big-card-icon {
+  background: linear-gradient(135deg, #5457e8, #8b5cf6);
+}
+.invite-theme .invite-big-card-invitee .invite-big-card-icon {
+  background: linear-gradient(135deg, #06b6d4, #3b82f6);
+}
+.invite-theme .invite-big-card-both .invite-big-card-icon {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+}
+.invite-theme .invite-big-card-title {
+  color: #14163a;
+}
+.invite-theme .invite-big-card-desc {
+  color: #565b7e;
+}
+.invite-theme .invite-big-card-num {
+  font-family: "Bahnschrift", "DIN Alternate", "Segoe UI", "PingFang SC", "Microsoft YaHei",
+    sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.invite-theme .invite-big-card-inviter .invite-big-card-num {
+  color: #5457e8;
+}
+.invite-theme .invite-big-card-invitee .invite-big-card-num {
+  color: #0891b2;
+}
+.invite-theme .invite-big-card-both .invite-big-card-num {
+  color: #8b5cf6;
+}
+.invite-theme .invite-big-card-unit {
+  color: #8a8eab;
+}
+.invite-theme .invite-big-card-badge {
+  background: linear-gradient(135deg, #f43f5e 0%, #f97316 100%);
+  font-weight: 700;
+}
+.invite-theme .invite-faq-item {
+  background: #fff;
+  border-color: rgba(84, 87, 232, 0.14);
+  border-radius: 14px;
+}
+.invite-theme .invite-faq-item[open] {
+  border-color: rgba(84, 87, 232, 0.35);
+}
+.invite-theme .invite-faq-q {
+  color: #14163a;
+}
+.invite-theme .invite-faq-q::after {
+  color: #8a8eab;
+}
+.invite-theme .invite-faq-item[open] .invite-faq-q::after {
+  color: #5457e8;
+}
+.invite-theme .invite-faq-a {
+  color: #565b7e;
+}
+.invite-theme .invite-bottom-cta {
+  color: #14163a;
+  background: #f2f3fc;
+}
+.invite-theme .invite-bottom-cta-title {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei",
+    sans-serif;
+  font-weight: 800;
+  color: #14163a;
+}
+.invite-theme .invite-bottom-cta-sub {
+  color: #565b7e;
+}
+.invite-theme .invite-bottom-cta .invite-cta-primary {
+  background: linear-gradient(135deg, #5457e8 0%, #7c5cfc 100%);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 8px 24px rgba(84, 87, 232, 0.38);
+}
+.invite-theme .invite-bottom-cta .invite-cta-primary:hover {
+  background: linear-gradient(135deg, #4a4dd6 0%, #6d4df2 100%);
+  color: #fff;
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(84, 87, 232, 0.48);
+}
+.invite-theme .text-body {
+  color: #565b7e;
+}
+.invite-theme .text-muted {
+  color: #8a8eab;
+}
+.invite-theme .text-body-strong {
+  color: #14163a;
+}
+

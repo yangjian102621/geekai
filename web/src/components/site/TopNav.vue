@@ -5,9 +5,9 @@
   >
     <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16 relative">
-        <RouterLink to="/" class="flex items-center gap-2 z-10">
-          <img src="/assets/logo.png" alt="ThinkBuddy" class="h-8 w-8" />
-          <span class="text-lg font-semibold tracking-tight text-ink">ThinkBuddy</span>
+        <RouterLink to="/" class="flex items-center gap-2.5 z-10">
+          <img src="/assets/logo.png" alt="ThinkBuddy" class="h-10 w-10" />
+          <span class="text-[22px] leading-none font-bold tracking-tight text-ink">ThinkBuddy</span>
         </RouterLink>
 
         <nav class="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">

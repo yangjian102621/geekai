@@ -1,7 +1,7 @@
 <template>
   <!-- 个人空间：积分明细和账号信息。管理功能由独立管理后台（/admin）提供，
       这里只承载官网登录用户自己的数据。 -->
-  <section class="min-h-[calc(100dvh-4rem)] page-wash-soft pt-8 pb-16 sm:pt-10">
+  <section class="space-page min-h-[calc(100dvh-4rem)] bg-[#f2f3fc] pt-8 pb-16 sm:pt-10">
     <div class="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
       <header class="mb-8">
         <h1 class="font-serif text-3xl font-normal tracking-[-0.03em] text-ink">{{ current?.label }}</h1>
