@@ -90,7 +90,7 @@
     "reload": "Reload Page"
   },
   "hero": {
-    "badge": "Desktop Client · v1.6.14",
+    "badge": "Desktop Client · v1.7.3",
     "title": "Your AI-powered lifelong learning companion",
     "title_lead": "Your AI-powered",
     "title_highlight": "lifelong learning companion",
@@ -161,20 +161,20 @@
   },
   "versions": {
     "title": "Release Timeline",
-    "subtitle": "Ships every two weeks. Highlights from the last 5 releases.",
-    "v1614": {
+    "subtitle": "Ships every week. Highlights from the last 5 releases.",
+    "v173": {
       "highlight": "Original figure & page visual practice, recoverable knowledge-base index, research tools & managed plugins, video learning merged into Reading workspace."
     },
-    "v1613": {
+    "v172": {
       "highlight": "Expanded reading, listening & quiz practice, improved document parsing & voice config, Polish UI & more model providers."
     },
-    "v1612": {
+    "v171": {
       "highlight": "Knowledge base migrates with workspace, Kiwix archive connection, original figures in grounded answers, task board & German UI."
     },
-    "v1611": {
+    "v170": {
       "highlight": "French & Ukrainian UI, reading folders & figure extraction, paged Office preview, knowledge-base auto-sync."
     },
-    "v1610": {
+    "v1615": {
       "highlight": "Standalone role models for LightRAG, index build provenance, PDF attachment follows parsing engine, model providers no longer pre-filtered."
     }
   },
@@ -241,7 +241,7 @@
   },
   "invite": {
     "title": "Invite Friends, Learn Together",
-    "subtitle": "Share learning, share rewards",
+    "subtitle": "You both get {points} credits",
     "share_title": "Share Your Invite",
     "qr_hint": "Scan to register and download",
     "share_hint": "After a friend registers through this link, the invite relationship is recorded and credits are granted automatically.",
@@ -251,9 +251,11 @@
     "retry": "Retry",
     "auth_error": "Unable to confirm your sign-in status. Please try again later.",
     "reward": {
-      "per_invite": "Get {points} credits for every friend who registers.",
+      "per_invite": "For every successful invite, you and your friend each receive {points} credits — up to {limit} invites and {total} credits in total.",
       "fallback": "Invite friends to use ThinkBuddy together.",
-      "unit": "credits / person"
+      "unit": "credits / person",
+      "limit_label": "Invite limit",
+      "max_label": "Max earnable"
     },
     "stats": {
       "invited": "Total invited",
@@ -261,29 +263,34 @@
       "today": "Invited today"
     },
     "guest": {
-      "badge": "Invite & Earn",
+      "badge": "Limited-time event · Long-term valid",
       "login_btn": "Sign in to get your invite link"
     },
     "loading": "Loading invite info…",
     "error": "Failed to load, please retry",
     "steps": {
-      "title": "Invite in Three Steps",
-      "subtitle": "Start an efficient learning journey together",
-      "step1_title": "Get your link",
-      "step1_desc": "Sign in and copy your personal invite link.",
-      "step2_title": "Share with friends",
-      "step2_desc": "Your friend opens the link and creates an account.",
-      "step3_title": "Earn credits",
-      "step3_desc": "Once registration succeeds, reward credits are added to your balance."
+      "title": "How to Invite Friends",
+      "subtitle": "Share in three steps, both sides earn credits",
+      "step1_title": "Share your link",
+      "step1_desc": "Send your invite link or QR code to a friend",
+      "step2_title": "Friend signs in & downloads",
+      "step2_desc": "Your friend opens the link, signs in, then downloads ThinkBuddy",
+      "step3_title": "Both sides get credits",
+      "step3_desc": "Once your friend installs ThinkBuddy, you both receive {points} credits instantly"
     },
     "rewards": {
-      "title": "Invite Rewards",
-      "subtitle": "Credited automatically on registration",
-      "inviter_title": "Invite friends",
-      "inviter_desc": "Get {points} credits for every friend who registers.",
-      "inviter_fallback": "Friends who register through your link are recorded automatically, and rewards follow the current campaign settings.",
-      "usage_title": "Spend credits anywhere",
-      "usage_desc": "Rewards go into your unified credit account for AI services."
+      "title": "Invite Friends, Earn Credits",
+      "subtitle": "Both sides benefit, no gimmicks",
+      "inviter_title": "Inviter Reward",
+      "inviter_desc": "Earn {points} credits for every successful invite (up to {limit} invites, {total} credits in total)",
+      "invitee_title": "Invitee Benefit",
+      "invitee_desc": "First-time download and sign-in via your invite link gives your friend {points} credits",
+      "both_title": "Both-Sides Reward",
+      "both_badge": "Both sides benefit",
+      "both_desc": "Your friend's first use gives both of you {points} credits, up to {limit} invites",
+      "unit_per_person": "{points} credits / person",
+      "unit_new_user": "credits for new users",
+      "unit_per_both": "credits / both sides"
     },
     "faq": {
       "title": "Frequently Asked Questions",

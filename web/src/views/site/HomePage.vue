@@ -1,10 +1,10 @@
 <template>
-  <div v-reveal>
+  <div v-reveal class="page-wash-all">
     <!-- Hero -->
     <section class="hero-bg relative overflow-hidden pt-28 pb-24 lg:pt-36 lg:pb-32">
       <div class="hero-aurora" aria-hidden="true" />
       <div class="hero-grid-overlay absolute inset-0 pointer-events-none" />
-      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="relative max-w-shell mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div
           class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-canvas border border-hairline text-body-strong text-xs font-medium tracking-wide mb-7"
           data-reveal
@@ -43,8 +43,8 @@
     </section>
 
     <!-- 产品演示 -->
-    <section class="py-20 lg:py-28 bg-canvas">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="py-20 lg:py-24 bg-canvas">
+      <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-14" data-reveal>
           <h2 class="font-serif text-3xl sm:text-[2.6rem] font-normal tracking-[-0.03em] text-ink mb-3">{{ t('demo.title') }}</h2>
           <p class="max-w-2xl mx-auto text-body">{{ t('demo.subtitle') }}</p>
@@ -69,8 +69,8 @@
     </section>
 
     <!-- 核心能力矩阵 -->
-    <section id="features" class="section-soft py-20 lg:py-28">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="features" class="section-soft py-20 lg:py-24">
+      <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-14" data-reveal>
           <h2 class="font-serif text-3xl sm:text-[2.6rem] font-normal tracking-[-0.03em] text-ink mb-3">{{ t('features.title') }}</h2>
           <p class="text-body">{{ t('features.subtitle') }}</p>
@@ -113,8 +113,8 @@
     </section>
 
     <!-- 大字错位排版区 -->
-    <section class="bigtext-section py-20 lg:py-28 bg-canvas overflow-hidden">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="bigtext-section py-20 lg:py-24 bg-canvas overflow-hidden">
+      <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="bigtext-title" data-reveal>{{ t('bigtext.title') }}</h2>
         <p class="bigtext-subtitle" data-reveal>{{ t('bigtext.subtitle') }}</p>
         <div class="bigtext-words" data-reveal>
@@ -145,8 +145,8 @@
     </section>
 
     <!-- 集成生态 -->
-    <section id="ecosystem" class="bg-canvas py-20 lg:py-28">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="ecosystem" class="bg-canvas py-20 lg:py-24">
+      <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-14" data-reveal>
           <h2 class="font-serif text-3xl sm:text-[2.6rem] font-normal tracking-[-0.03em] text-ink mb-3">{{ t('ecosystem.title') }}</h2>
           <p class="max-w-2xl mx-auto text-body">{{ t('ecosystem.subtitle') }}</p>
@@ -266,11 +266,11 @@ const demoCards = computed(() => [
 const bigWords = ['阅读', '笔记', '研究', '写作', '问答', '视频', '课程']
 
 const versions = computed(() => [
-  { v: 'v1.6.14', d: '2026.10.8', h: t('versions.v1614.highlight') },
-  { v: 'v1.6.13', d: '2026.10.3', h: t('versions.v1613.highlight') },
-  { v: 'v1.6.12', d: '2026.9.28', h: t('versions.v1612.highlight') },
-  { v: 'v1.6.11', d: '2026.9.24', h: t('versions.v1611.highlight') },
-  { v: 'v1.6.10', d: '2026.9.22', h: t('versions.v1610.highlight') },
+  { v: 'v1.7.3', d: '2026.11.20', h: t('versions.v173.highlight') },
+  { v: 'v1.7.2', d: '2026.11.13', h: t('versions.v172.highlight') },
+  { v: 'v1.7.1', d: '2026.11.6', h: t('versions.v171.highlight') },
+  { v: 'v1.7.0', d: '2026.10.30', h: t('versions.v170.highlight') },
+  { v: 'v1.6.15', d: '2026.10.23', h: t('versions.v1615.highlight') },
 ])
 
 const ecosystemGroups = computed(() => [
@@ -280,12 +280,12 @@ const ecosystemGroups = computed(() => [
   { cat: t('ecosystem.cat.models'), items: ['OpenAI Codex', 'Gemini', '通义', '豆包', 'Zhipu', '…数十家'] },
 ])
 
-// 能力卡图标只用三种低饱和色轮换：赤陶 / 青灰 / 琥珀。
+// 能力卡图标只用三种低饱和冷色轮换：靛蓝 / 青蓝 / 紫灰。
 // 全站强调色保持稀缺，这里的色彩是“点缀”而不是主题色。
 const tones = [
-  { tone: '#a9583e', soft: '#f7e9e2' },
-  { tone: '#2f7365', soft: '#e5f1ee' },
-  { tone: '#8a6015', soft: '#f9eed9' },
+  { tone: '#3b5bdb', soft: '#e9ebf7' },
+  { tone: '#2f7d8c', soft: '#e4edf1' },
+  { tone: '#6b5bd6', soft: '#eeebf5' },
 ]
 
 const features = [

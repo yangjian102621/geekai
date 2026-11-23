@@ -3,7 +3,7 @@
     class="topnav fixed top-0 inset-x-0 z-50"
     :class="scrolled ? 'topnav-scrolled' : 'bg-canvas/80'"
   >
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16 relative">
         <RouterLink to="/" class="flex items-center gap-2 z-10">
           <img src="/assets/logo.png" alt="ThinkBuddy" class="h-8 w-8" />

@@ -1,14 +1,14 @@
 <template>
   <!-- 邀请页使用精简页脚 -->
   <footer v-if="isInvite" class="footer-shell text-on-dark-soft mt-auto">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center">
+    <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center">
       <RouterLink to="/" class="text-xs text-on-dark-soft hover:text-on-dark transition">← 返回首页</RouterLink>
       <p class="text-xs text-on-dark-soft/70 mt-3">© 2026 ThinkBuddy. Powered by ThinkBuddy (hanyoai).</p>
     </div>
   </footer>
 
   <footer v-else class="footer-shell">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+    <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-8 py-16">
       <div class="footer-grid">
         <div>
           <div class="flex items-center gap-2 mb-3">

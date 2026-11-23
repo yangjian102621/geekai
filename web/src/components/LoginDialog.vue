@@ -12,11 +12,11 @@
         </button>
         <button
           type="button"
-          :class="{ active: loginActiveName === 'tokengine' }"
-          :aria-pressed="loginActiveName === 'tokengine'"
-          @click="loginActiveName = 'tokengine'"
+          :class="{ active: loginActiveName === 'account' }"
+          :aria-pressed="loginActiveName === 'account'"
+          @click="loginActiveName = 'account'"
         >
-          Token 平台登录
+          账号登录
         </button>
       </div>
 
@@ -55,6 +55,7 @@
               <el-col :span="24">
                 <button
                   class="login-submit"
+                  :disabled="!accountAgreeChecked"
                   @click="submitLogin"
                   type="button"
                 >
@@ -63,30 +64,33 @@
               </el-col>
             </el-row>
 
-            <div class="w-full">
-              <div
-                class="text flex justify-center items-center pt-3 text-sm"
-                style="color: var(--login-text-color)"
-              >
-                还没有账号？
+            <div class="flex items-center justify-between pt-1 text-sm" style="color: var(--login-text-color)">
+              <div class="flex items-center gap-1">
+                <span>没有账户？</span>
                 <el-button
                   size="small"
-                  class="ml-2 rounded-md px-2 py-1 transition-colors duration-200"
+                  class="px-2 py-1 transition-colors duration-200"
                   style="color: var(--login-link-color)"
                   @click="login = false"
                   @mouseenter="$event.target.style.background = 'var(--login-link-hover-bg)'"
                   @mouseleave="$event.target.style.background = 'transparent'"
                   >注册</el-button
                 >
-
-                <el-button
-                  type="info"
-                  class="forget ml-4"
-                  size="small"
-                  @click="showResetPass = true"
-                  >忘记密码？</el-button
-                >
               </div>
+              <el-button
+                type="info"
+                class="forget"
+                size="small"
+                @click="showResetPass = true"
+                >忘记密码？</el-button
+              >
+            </div>
+
+            <div class="text-sm leading-6" style="color: var(--login-text-color)">
+              <el-checkbox v-model="accountAgreeChecked">我已阅读并同意</el-checkbox>
+              <a href="javascript:void(0)" class="login-link whitespace-nowrap" @click="openAgreement">《用户协议》</a>
+              和
+              <a href="javascript:void(0)" class="login-link whitespace-nowrap" @click="openPrivacy">《隐私政策》</a>
             </div>
           </el-form>
         </div>
@@ -183,16 +187,16 @@
 
         <div v-if="loginActiveName === 'tokengine'" class="py-4 text-center">
           <el-icon class="!text-4xl mb-4" style="color: var(--login-link-color)"><Key /></el-icon>
-          <p class="mb-6 text-sm" style="color: var(--login-text-color)">使用 Token 平台账号登录</p>
+          <p class="mb-6 text-sm" style="color: var(--login-text-color)">使用 TokEngine 平台账号登录</p>
           <button
             type="button"
             class="login-submit"
             :disabled="!tokengineEnabled"
             @click="startTokengineLogin"
           >
-            Token 平台登录
+            TokEngine 平台登录
           </button>
-          <p v-if="!tokengineEnabled" class="mt-3 text-sm" style="color: var(--login-text-color)">Token 平台登录暂未开放</p>
+          <p v-if="!tokengineEnabled" class="mt-3 text-sm" style="color: var(--login-text-color)">TokEngine 平台登录暂未开放</p>
         </div>
       </div>
 
@@ -200,13 +204,13 @@
       <div class="secondary-login-methods" role="group" aria-label="其他登录方式">
         <button
           type="button"
-          aria-label="账号登录"
-          :aria-pressed="loginActiveName === 'account'"
-          :class="{ active: loginActiveName === 'account' }"
-          @click="loginActiveName = 'account'"
+          aria-label="TokEngine 平台登录"
+          :aria-pressed="loginActiveName === 'tokengine'"
+          :class="{ active: loginActiveName === 'tokengine' }"
+          @click="loginActiveName = 'tokengine'"
         >
-          <span class="secondary-login-icon"><el-icon><User /></el-icon></span>
-          <span>账号登录</span>
+          <span class="secondary-login-icon"><el-icon><Key /></el-icon></span>
+          <span>TokEngine 平台登录</span>
         </button>
         <button
           type="button"
@@ -445,6 +449,7 @@ const registerData = ref({
 })
 const mobileLoginData = ref({ mobile: '', code: '' })
 const mobileAgreeChecked = ref(false)
+const accountAgreeChecked = ref(false)
 const tokengineEnabled = ref(false)
 
 const startTokengineLogin = () => {
@@ -663,6 +668,9 @@ const submitLogin = () => {
   }
   if (!data.value.password) {
     return ElMessage.error('请输入密码')
+  }
+  if (!accountAgreeChecked.value) {
+    return ElMessage.error('请先阅读并同意《用户协议》和《隐私政策》')
   }
   if (enableCaptcha.value) {
     captchaRef.value.loadCaptcha()

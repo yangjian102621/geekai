@@ -66,20 +66,20 @@
   // 面板背景
   --panel-bg: linear-gradient(135deg, #f5eafe 0%, #e9e6fc 100%);
 
-  // 登录注册页面专用变量
-  --login-bg: #faf9f5;
-  --login-card-bg: #faf9f5;
-  --login-card-border: #e3ddd1;
-  --login-title-color: #141413;
-  --login-subtitle-color: #6b6862;
-  --login-text-color: #3d3d3a;
-  --login-placeholder-color: #757168;
-  --login-input-bg: #faf9f5;
-  --login-soft-bg: #f5f2ea;
-  --login-primary-color: #8a5a2b;
-  --login-primary-hover: #75491f;
-  --login-link-color: #8a5a2b;
-  --login-link-hover-bg: #f6ecdd;
+  // 登录注册页面专用变量（暖灰 + 靛蓝）
+  --login-bg: #f7f6f3;
+  --login-card-bg: #f7f6f3;
+  --login-card-border: #e1dcd6;
+  --login-title-color: #1a1815;
+  --login-subtitle-color: #6f6961;
+  --login-text-color: #474039;
+  --login-placeholder-color: #948d84;
+  --login-input-bg: #f7f6f3;
+  --login-soft-bg: #f0ede8;
+  --login-primary-color: #3b5bdb;
+  --login-primary-hover: #2f4bc0;
+  --login-link-color: #3b5bdb;
+  --login-link-hover-bg: #e8ecfb;
 
   // 管理后台 Together AI 浅色变量：白画布 + 黑 8% hairline（强调色不进 chrome）
   --admin-sidebar-bg: #ffffff;

@@ -79,7 +79,7 @@ onMounted(async () => {
 
   await router.replace({ path: '/login', query })
   if (tokengine !== 'success') {
-    ElMessage.error(typeof message === 'string' ? message : 'Token 平台登录失败，请重试')
+    ElMessage.error(typeof message === 'string' ? message : 'TokEngine 平台登录失败，请重试')
     return
   }
 
@@ -90,7 +90,7 @@ onMounted(async () => {
     ElMessage.success('登录成功！')
     handleRegisterSuccess()
   } catch (error) {
-    ElMessage.error(error.message || 'Token 平台登录失败，请重试')
+    ElMessage.error(error.message || 'TokEngine 平台登录失败，请重试')
   }
 })
 </script>
@@ -113,9 +113,9 @@ onMounted(async () => {
   --el-fill-color-light: var(--login-soft-bg);
   --el-bg-color: var(--login-card-bg);
   --el-bg-color-overlay: var(--login-card-bg);
-  --el-box-shadow: 0 1px 3px rgba(20, 20, 19, 0.07);
-  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto,
-    'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', system-ui, sans-serif;
+  --el-box-shadow: 0 1px 3px rgba(26, 24, 21, 0.08);
+  font-family: 'The Future', Arial, 'PingFang SC', 'Microsoft YaHei',
+    'Noto Sans SC', system-ui, sans-serif;
   color: var(--login-title-color);
 }
 
@@ -123,7 +123,12 @@ onMounted(async () => {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: var(--login-bg);
+  background-color: var(--login-bg);
+  /* 与首页 Hero 一致：顶部一层暖棕薄雾 + 左上浅棕 / 右上浅薄荷 / 底部浅蓝 */
+  background-image:
+    linear-gradient(180deg, rgba(211, 168, 118, 0.16) 0%, rgba(247, 246, 243, 0) 55%),
+    var(--page-glow);
+  background-repeat: no-repeat;
 }
 
 .login-header {
@@ -199,8 +204,8 @@ onMounted(async () => {
 
 .login-page .login-title {
   margin: 0 0 12px;
-  font-family: Georgia, 'Times New Roman', 'Noto Serif SC', 'Source Han Serif SC',
-    'Songti SC', 'STSong', 'SimSun', serif;
+  font-family: 'The Future', Arial, 'PingFang SC', 'Microsoft YaHei',
+    'Noto Sans SC', sans-serif;
   font-size: 36px;
   font-weight: 400;
   letter-spacing: -0.03em;
