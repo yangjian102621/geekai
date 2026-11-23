@@ -187,16 +187,16 @@
 
         <div v-if="loginActiveName === 'tokengine'" class="py-4 text-center">
           <el-icon class="!text-4xl mb-4" style="color: var(--login-link-color)"><Key /></el-icon>
-          <p class="mb-6 text-sm" style="color: var(--login-text-color)">使用 TokEngine 平台账号登录</p>
+          <p class="mb-6 text-sm" style="color: var(--login-text-color)">使用 Tokengine 账号登录</p>
           <button
             type="button"
             class="login-submit"
             :disabled="!tokengineEnabled"
             @click="startTokengineLogin"
           >
-            TokEngine 平台登录
+            Tokengine
           </button>
-          <p v-if="!tokengineEnabled" class="mt-3 text-sm" style="color: var(--login-text-color)">TokEngine 平台登录暂未开放</p>
+          <p v-if="!tokengineEnabled" class="mt-3 text-sm" style="color: var(--login-text-color)">Tokengine 登录暂未开放</p>
         </div>
       </div>
 
@@ -204,13 +204,13 @@
       <div class="secondary-login-methods" role="group" aria-label="其他登录方式">
         <button
           type="button"
-          aria-label="TokEngine 平台登录"
+          aria-label="Tokengine"
           :aria-pressed="loginActiveName === 'tokengine'"
           :class="{ active: loginActiveName === 'tokengine' }"
           @click="loginActiveName = 'tokengine'"
         >
           <span class="secondary-login-icon"><el-icon><Key /></el-icon></span>
-          <span>TokEngine 平台登录</span>
+          <span>Tokengine</span>
         </button>
         <button
           type="button"
@@ -238,6 +238,42 @@
           >
             <template #prefix>
               <el-icon><User /></el-icon>
+            </template>
+          </el-input>
+        </div>
+
+        <div class="block">
+          <el-input
+            placeholder="密码（选填，8-16位）"
+            aria-label="密码（选填）"
+            maxlength="16"
+            size="large"
+            v-model="registerData.password"
+            show-password
+            autocomplete="new-password"
+          >
+            <template #prefix>
+              <el-icon>
+                <Lock />
+              </el-icon>
+            </template>
+          </el-input>
+        </div>
+
+        <div class="block">
+          <el-input
+            placeholder="确认密码"
+            aria-label="确认密码"
+            size="large"
+            maxlength="16"
+            v-model="registerData.repass"
+            show-password
+            autocomplete="new-password"
+          >
+            <template #prefix>
+              <el-icon>
+                <Lock />
+              </el-icon>
             </template>
           </el-input>
         </div>
@@ -281,42 +317,6 @@
               type="mobile"
             />
           </div>
-        </div>
-
-        <div class="block">
-          <el-input
-            placeholder="密码（选填，8-16位）"
-            aria-label="密码（选填）"
-            maxlength="16"
-            size="large"
-            v-model="registerData.password"
-            show-password
-            autocomplete="new-password"
-          >
-            <template #prefix>
-              <el-icon>
-                <Lock />
-              </el-icon>
-            </template>
-          </el-input>
-        </div>
-
-        <div class="block" v-if="registerData.password">
-          <el-input
-            placeholder="请再次输入密码"
-            aria-label="确认密码"
-            size="large"
-            maxlength="16"
-            v-model="registerData.repass"
-            show-password
-            autocomplete="new-password"
-          >
-            <template #prefix>
-              <el-icon>
-                <Lock />
-              </el-icon>
-            </template>
-          </el-input>
         </div>
 
         <div class="block">
@@ -730,19 +730,19 @@ const submitRegister = () => {
     return ElMessage.error('请输入用户名')
   }
 
+  if (registerData.value.password && registerData.value.password.length < 8) {
+    return ElMessage.error('密码的长度为8-16个字符')
+  }
+  if (registerData.value.repass !== registerData.value.password) {
+    return ElMessage.error('两次输入密码不一致')
+  }
+
   if (!validateMobile(registerData.value.mobile)) {
     return ElMessage.error('请输入合法的手机号')
   }
 
   if (!/^\d{6}$/.test(registerData.value.code)) {
     return ElMessage.error('请输入6位短信验证码')
-  }
-
-  if (registerData.value.password && registerData.value.password.length < 8) {
-    return ElMessage.error('密码的长度为8-16个字符')
-  }
-  if (registerData.value.password && registerData.value.repass !== registerData.value.password) {
-    return ElMessage.error('两次输入密码不一致')
   }
 
   if (!agreeChecked.value) {
