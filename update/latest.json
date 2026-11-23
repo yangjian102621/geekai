@@ -1,0 +1,26 @@
+{
+  "app": "ThinkBuddy",
+  "min_version": "0.1.0",
+  "published_at": "2026-11-23T17:56:53+08:00",
+  "changelog": "",
+  "version": "1.7.3.11231747",
+  "url": "https://thinkbuddy.hanyoai.com/update/ThinkBuddySetup-dt1.7.3.11231747.exe",
+  "sha256": "ad884cf6b54f74d8c8cf6f2d09bac74be689646c88c25c83e2efa9cc12c67040",
+  "size": 362560452,
+  "mac": {
+    "arm64": {
+      "version": "1.7.3.11231752",
+      "url": "https://thinkbuddy.hanyoai.com/update/ThinkBuddyDesktop-mac-arm64-dt1.7.3.11231752.dmg",
+      "sha256": "5b1320251c0316ac9c4f05a3dd921ce8598e56e3f8aca2b7bb250b8e0f842c35",
+      "size": 509949335,
+      "published_at": "2026-11-23T17:56:54+08:00"
+    },
+    "x86_64": {
+      "version": "1.7.3.11231753",
+      "url": "https://thinkbuddy.hanyoai.com/update/ThinkBuddyDesktop-mac-x86_64-dt1.7.3.11231753.dmg",
+      "sha256": "5cf8ec2cafb575b70175a6bfd732e2d4c917297c2a81e538c7bc5f684a205646",
+      "size": 450841155,
+      "published_at": "2026-11-23T17:56:54+08:00"
+    }
+  }
+}
