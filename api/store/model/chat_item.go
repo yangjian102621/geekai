@@ -11,7 +11,7 @@ type ChatItem struct {
 	RoleId    uint      `gorm:"column:role_id;type:int(11);not null;comment:角色 ID" json:"role_id"`
 	Title     string    `gorm:"column:title;type:varchar(100);not null;comment:会话标题" json:"title"`
 	ModelId   uint      `gorm:"column:model_id;type:int(11);not null;default:0;comment:模型 ID" json:"model_id"`
-	Model     string    `gorm:"column:model;type:varchar(30);comment:模型名称" json:"model"`
+	Model     string    `gorm:"column:model;type:varchar(255);comment:模型名称" json:"model"`
 	CreatedAt time.Time `gorm:"column:created_at;type:datetime;not null;comment:创建时间" json:"created_at"`
 	UpdatedAt time.Time `gorm:"column:updated_at;type:datetime;not null;comment:更新时间" json:"updated_at"`
 }

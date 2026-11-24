@@ -175,9 +175,7 @@
       class="chat-dialog"
       style="--el-dialog-width: 60%"
     >
-      <div class="chat-detail">
-        <div class="chat-line" v-html="dialogContent"></div>
-      </div>
+      <chat-record-content v-if="showContentDialog" :message="dialogContent" />
     </el-dialog>
 
     <el-dialog
@@ -186,29 +184,28 @@
       class="chat-dialog"
       style="--el-dialog-width: 60%"
     >
-      <div class="chat-box chat-page p-2">
-        <div v-for="item in messages" :key="item.id">
-          <chat-prompt v-if="item.type === 'prompt'" :data="item" />
-          <chat-reply v-else-if="item.type === 'reply'" :read-only="true" :data="item" />
-        </div>
-      </div>
-      <!-- end chat box -->
+      <chat-record-content v-if="showChatItemDialog" :messages="messages" />
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import ChatPrompt from '@/components/ChatPrompt.vue'
-import ChatReply from '@/components/ChatReply.vue'
 import { httpGet, httpPost } from '@/utils/http'
-import { dateFormat, processContent } from '@/utils/libs'
+import { dateFormat } from '@/utils/libs'
 import { Search } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
-import hl from 'highlight.js'
-import 'highlight.js/styles/a11y-dark.css'
-import MarkdownIt from 'markdown-it'
-import mathjaxPlugin from 'markdown-it-mathjax3'
-import { onMounted, ref } from 'vue'
+import { ElAlert, ElMessage } from 'element-plus'
+import { defineAsyncComponent, h, onMounted, ref } from 'vue'
+
+const ChatRecordContent = defineAsyncComponent({
+  loader: () => import('./ChatRecordContent.vue'),
+  errorComponent: {
+    render: () => h(ElAlert, {
+      title: '详情加载失败，请刷新页面后重试',
+      type: 'error',
+      closable: false,
+    }),
+  },
+})
 
 // 变量定义
 const data = ref({
@@ -270,10 +267,12 @@ const fetchChatData = () => {
         d.page = res.data.page
         d.pageSize = res.data.page_size
       }
-      d.loading = false
     })
     .catch((e) => {
       ElMessage.error('获取数据失败：' + e.message)
+    })
+    .finally(() => {
+      d.loading = false
     })
 }
 
@@ -318,32 +317,11 @@ const removeMessage = function (row) {
     })
 }
 
-const md = MarkdownIt({
-  breaks: true,
-  html: true,
-  linkify: true,
-  typographer: true,
-  highlight: function (str, lang) {
-    if (lang && hl.getLanguage(lang)) {
-      // 处理代码高亮
-      const preCode = hl.highlight(str, { language: lang }).value
-      // 将代码包裹在 pre 中
-      return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code></pre>`
-    }
-
-    // 处理代码高亮
-    const preCode = md.utils.escapeHtml(str)
-    // 将代码包裹在 pre 中
-    return `<pre class="code-container"><code class="language-${lang} hljs">${preCode}</code></pre>`
-  },
-})
-md.use(mathjaxPlugin)
-
 const showContentDialog = ref(false)
 const dialogContent = ref('')
 const showContent = (content) => {
+  dialogContent.value = content
   showContentDialog.value = true
-  dialogContent.value = md.render(processContent(content))
 }
 
 const showChatItemDialog = ref(false)
@@ -393,36 +371,6 @@ const showMessages = (row) => {
     margin-top: 20px;
     display: flex;
     justify-content: right;
-  }
-
-  .chat-detail {
-    max-height: 90vh;
-    overflow: auto;
-  }
-
-  .chat-box {
-    overflow: auto;
-
-    // 变量定义
-    --content-font-size: 16px;
-    --content-color: #c1c1c1;
-
-    font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-    max-height: 90vh;
-
-    .chat-line {
-      // 隐藏滚动条
-
-      ::-webkit-scrollbar {
-        width: 0;
-        height: 0;
-        background-color: transparent;
-      }
-
-      font-size: 14px;
-      display: flex;
-      justify-content: flex-start;
-    }
   }
 }
 </style>
