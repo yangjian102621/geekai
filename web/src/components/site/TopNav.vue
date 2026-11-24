@@ -40,7 +40,7 @@
               <LogOut :size="13" />
             </button>
           </div>
-          <button v-else class="auth-login-btn" @click="openLoginPage">{{ t('nav.login') }}</button>
+          <button v-else class="auth-login-btn" @click="openLoginPage">{{ loginLabel }}</button>
 
           <DownloadMenu anchor="bottom">
             <a :href="downloadUrl ?? '/#download'" class="btn-primary inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold">
@@ -87,7 +87,7 @@
             class="text-left py-2 px-3 text-sm font-medium text-body-strong rounded hover:bg-surface-soft"
             @click="open = false; openLoginPage()"
           >
-            {{ t('nav.login') }}
+            {{ loginLabel }}
           </button>
           <template v-if="options.length > 1">
             <template v-for="option in options" :key="option.key">
@@ -131,6 +131,7 @@ import PlatformIcon from './PlatformIcon.vue'
 import { useAuth } from '@/composables/useAuth'
 import { downloadOptions, recommendedHref, useDownloadLinks } from '@/composables/useDownloadLinks'
 import { docsURL, logout, openLoginPage } from '@/services/site'
+import { getSystemInfo } from '@/store/cache'
 import { removeUserToken } from '@/store/session'
 import { toggleLanguage } from '@/i18n'
 
@@ -139,6 +140,8 @@ const route = useRoute()
 const open = ref(false)
 const scrolled = ref(false)
 const { user } = useAuth()
+// 开放注册时显示「登录/注册」，关闭注册时只显示「登录」
+const enabledRegister = ref(false)
 
 const downloadLinks = useDownloadLinks()
 const options = computed(() => downloadOptions(downloadLinks.value))
@@ -146,6 +149,7 @@ const downloadUrl = computed(() => recommendedHref(downloadLinks.value))
 const isHomeActive = computed(() => route.path === '/')
 
 const langLabel = computed(() => (locale.value.startsWith('zh') ? 'EN' : '中'))
+const loginLabel = computed(() => (enabledRegister.value ? t('nav.login_register') : t('nav.login')))
 
 const navClass = (active) =>
   `nav-link text-sm font-medium transition-colors ${active ? 'text-brand-600' : 'text-body-strong hover:text-ink'}`
@@ -162,6 +166,13 @@ const onScroll = () => {
 onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
   onScroll()
+  getSystemInfo()
+    .then((res) => {
+      enabledRegister.value = res?.data?.enabled_register === true
+    })
+    .catch(() => {
+      enabledRegister.value = false
+    })
 })
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', onScroll)

@@ -1,7 +1,17 @@
 <template>
   <div class="login-dialog w-full">
     <div class="login-box" v-if="login">
-      <div class="primary-login-methods" role="group" aria-label="主要登录方式">
+      <div v-if="!configReady" class="login-loading">
+        <el-icon class="is-loading"><Loading /></el-icon>
+        <span>正在加载登录方式...</span>
+      </div>
+      <template v-else>
+      <div
+        v-if="enableRegister"
+        class="primary-login-methods"
+        role="group"
+        aria-label="主要登录方式"
+      >
         <button
           type="button"
           :class="{ active: loginActiveName === 'mobile' }"
@@ -200,8 +210,9 @@
         </div>
       </div>
 
-      <div class="other-login-divider"><span>其他登录方式</span></div>
-      <div class="secondary-login-methods" role="group" aria-label="其他登录方式">
+      <template v-if="enableRegister">
+        <div class="other-login-divider"><span>其他登录方式</span></div>
+        <div class="secondary-login-methods" role="group" aria-label="其他登录方式">
         <button
           type="button"
           aria-label="Tokengine"
@@ -212,6 +223,7 @@
           <span class="secondary-login-icon"><el-icon><Key /></el-icon></span>
           <span>Tokengine</span>
         </button>
+        <!-- 微信登录暂时关闭，恢复时取消下面注释即可
         <button
           type="button"
           aria-label="微信登录"
@@ -222,11 +234,14 @@
           <span class="secondary-login-icon text-green-600"><i class="iconfont icon-wechat" aria-hidden="true"></i></span>
           <span>微信登录</span>
         </button>
-      </div>
+        -->
+        </div>
+      </template>
+      </template>
     </div>
 
     <div class="register-box w-full" v-else>
-      <el-form :model="registerData" class="form space-y-5" v-if="enableRegister">
+      <el-form :model="registerData" class="form space-y-5" v-if="configReady && enableRegister">
         <div class="block">
           <el-input
             placeholder="用户名（必填）"
@@ -372,7 +387,7 @@
         </div>
       </el-form>
 
-      <div class="tip-result" v-else>
+      <div class="tip-result" v-else-if="configReady">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-result icon="error" title="注册功能已关闭">
@@ -414,7 +429,7 @@ import { useSharedStore } from '@/store/sharedata'
 import { httpGet, httpPost } from '@/utils/http'
 import { safeRedirect } from '@/utils/redirect'
 import { validateMobile } from '@/utils/validate'
-import { Checked, Iphone, Key, Lock, Message, User } from '@element-plus/icons-vue'
+import { Checked, Iphone, Key, Loading, Lock, Message, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { marked } from 'marked'
 import QRCode from 'qrcode'
@@ -469,6 +484,8 @@ const qrcodeExpired = ref(false)
 const qrcodeTimer = ref(null)
 
 const enableRegister = ref(true)
+// 系统配置是否加载完成，避免关闭注册时登录方式闪现
+const configReady = ref(false)
 
 const wxImg = ref('/images/wx.png')
 const captchaRef = ref(null)
@@ -548,7 +565,11 @@ onMounted(() => {
     .then((res) => {
       if (res.data) {
         // 是否启用注册
-        enableRegister.value = res.data['enabled_register']
+        enableRegister.value = res.data['enabled_register'] === true
+        // 关闭注册时仅保留 Tokengine 登录
+        if (!enableRegister.value) {
+          loginActiveName.value = 'tokengine'
+        }
         // 使用后台上传的客服微信二维码
         if (res.data['wechat_card_url'] !== '') {
           wxImg.value = res.data['wechat_card_url']
@@ -557,6 +578,9 @@ onMounted(() => {
     })
     .catch((e) => {
       ElMessage.error('获取系统配置失败：' + e.message)
+    })
+    .finally(() => {
+      configReady.value = true
     })
 
   // 获取验证码配置
@@ -842,6 +866,20 @@ onUnmounted(clearWechatTimers)
 }
 
 .login-dialog {
+  .login-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 48px 0;
+    color: var(--login-text-color);
+    font-size: 14px;
+
+    .el-icon {
+      font-size: 24px;
+    }
+  }
+
   .login-submit {
     width: 100%;
     height: 48px;
