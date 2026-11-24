@@ -10,6 +10,7 @@ export function useInviteSummary(enabled) {
   const isError = ref(false)
 
   async function load() {
+    if (isLoading.value) return
     isLoading.value = true
     isError.value = false
     try {

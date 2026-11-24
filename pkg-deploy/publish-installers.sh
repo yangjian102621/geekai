@@ -58,8 +58,8 @@ prepare_manifest() {
 
 if [[ ${1:-} == --remote ]]; then
   shift
-  [[ $# == 5 ]] || exit 2
-  remote_dir=$1 namespace=$2 selector=$3 container=$4 update_dir=$5
+  [[ $# == 5 || $# == 6 ]] || exit 2
+  remote_dir=$1 namespace=$2 selector=$3 container=$4 update_dir=$5 pod_name=${6:-}
   [[ $remote_dir =~ ^/tmp/thinkbuddy-release\.[a-zA-Z0-9]+$ ]] || exit 2
   [[ $update_dir == /* && $update_dir != / && $update_dir != */ ]] || exit 2
   command -v kubectl >/dev/null
@@ -78,10 +78,15 @@ if [[ ${1:-} == --remote ]]; then
     printf '文件: %s\n"size": %d,\n"sha256": "%s"\n\n' "$file" "$(wc -c < "$file")" "$sha256"
   done < .publish-sha256
 
-  pods=$(kubectl -n "$namespace" get pods -l "$selector" \
-    --field-selector=status.phase=Running \
-    -o 'go-template={{range .items}}{{if not .metadata.deletionTimestamp}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}')
-  [[ -n "$pods" ]] || { echo '没有找到运行中的目标 Pod' >&2; exit 1; }
+  if [[ -n "$pod_name" ]]; then
+    pods=$(kubectl -n "$namespace" get "pod/$pod_name" --ignore-not-found \
+      -o 'go-template={{if and (eq .status.phase "Running") (not .metadata.deletionTimestamp)}}{{.metadata.name}}{{end}}')
+  else
+    pods=$(kubectl -n "$namespace" get pods -l "$selector" \
+      --field-selector=status.phase=Running \
+      -o 'go-template={{range .items}}{{if not .metadata.deletionTimestamp}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}')
+  fi
+  [[ -n "$pods" ]] || { echo "在 $namespace 中没有找到运行中的目标 Pod (${pod_name:-$selector})" >&2; exit 1; }
   mkdir -p "$remote_dir/manifests"
   while IFS= read -r pod; do
     kubectl -n "$namespace" wait --for=condition=Ready "pod/$pod" --timeout=120s
@@ -101,7 +106,7 @@ if [[ ${1:-} == --remote ]]; then
       cd "$1"
       sha256sum -c .publish-sha256
       cp -p -- "$2/latest.json" "$2/latest.json.bak"
-      chmod --reference="$2/latest.json" .latest.json
+      chmod "$(stat -c %a "$2/latest.json")" .latest.json
       for file in *; do mv -f -- "$file" "$2/$file"; done
       mv -f -- .latest.json "$2/latest.json"
       rm .publish-sha256
@@ -116,7 +121,7 @@ if [[ ${1:-} == --remote ]]; then
 fi
 
 [[ $# == 1 && -d $1 ]] || {
-  echo "用法: DEPLOY_HOST=<ctl1> DEPLOY_USER=<用户> bash $0 <本地安装包目录>" >&2; exit 2;
+  echo "用法: DEPLOY_HOST=<ctl1> DEPLOY_USER=<用户> [K8S_POD=<Pod 名称>] bash $0 <本地安装包目录>" >&2; exit 2;
 }
 source_dir=$1
 : "${DEPLOY_HOST:?缺少 DEPLOY_HOST（ctl1 地址）}"
@@ -175,10 +180,14 @@ fi
 echo "ctl1 暂存目录: $remote_dir"
 scp "${ssh_options[@]}" -P "$DEPLOY_PORT" -r \
   "$work_dir/payload" "${BASH_SOURCE[0]}" "$target:$remote_dir/"
-printf -v remote_command 'bash %q --remote %q %q %q %q %q' \
+printf -v remote_command 'bash %q --remote %q %q %q %q %q %q' \
   "$remote_dir/${BASH_SOURCE[0]##*/}" "$remote_dir" \
   "${K8S_NAMESPACE:-thinkbuddy}" "${K8S_SELECTOR:-app=website}" \
-  "${K8S_CONTAINER:-thinkbuddy}" "${POD_UPDATE_DIR:-/app/update}"
+  "${K8S_CONTAINER:-thinkbuddy}" "${POD_UPDATE_DIR:-/app/update}" "${K8S_POD:-}"
 upload_complete=1
-echo "发布目标: namespace=${K8S_NAMESPACE:-thinkbuddy}, selector=${K8S_SELECTOR:-app=website}, container=${K8S_CONTAINER:-thinkbuddy}, path=${POD_UPDATE_DIR:-/app/update}"
+target_pods="selector=${K8S_SELECTOR:-app=website}"
+if [[ -n ${K8S_POD:-} ]]; then
+  target_pods="pod=$K8S_POD"
+fi
+echo "发布目标: namespace=${K8S_NAMESPACE:-thinkbuddy}, $target_pods, container=${K8S_CONTAINER:-thinkbuddy}, path=${POD_UPDATE_DIR:-/app/update}"
 ssh "${ssh_options[@]}" -p "$DEPLOY_PORT" "$target" "$remote_command"

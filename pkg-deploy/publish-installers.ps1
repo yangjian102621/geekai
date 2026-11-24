@@ -7,7 +7,8 @@ param(
     [ValidateRange(1, 65535)]
     [int]$Port = $(if ($env:DEPLOY_PORT) { [int]$env:DEPLOY_PORT } else { 22 }),
     [string]$IdentityFile = $env:DEPLOY_SSH_KEY,
-    [string]$KnownHostsFile = $env:DEPLOY_KNOWN_HOSTS
+    [string]$KnownHostsFile = $env:DEPLOY_KNOWN_HOSTS,
+    [string]$Pod = $env:K8S_POD
 )
 
 $ErrorActionPreference = 'Stop'
@@ -59,6 +60,7 @@ $publishEnv = @{
     DEPLOY_PORT = [string]$Port
     DEPLOY_SSH_KEY = $bashPaths[2]
     DEPLOY_KNOWN_HOSTS = $bashPaths[3]
+    K8S_POD = $Pod
 }
 $savedEnv = @{}
 try {
