@@ -1,3 +1,16 @@
+# .\pkg-deploy\publish-installers.ps1 `
+#   -InstallerDir 'D:\release\installers' `
+#   -Server '10.8.65.1' `
+#   -SshUser '你的SSH用户名'
+
+<#
+.SYNOPSIS
+    Publish ThinkBuddy installers from your Windows PC using your ctl1 SSH account.
+.DESCRIPTION
+    Run in PowerShell from the repository root with Git for Windows installed. Keep both scripts together and put only the installers for this release in InstallerDir.
+.EXAMPLE
+    .\pkg-deploy\publish-installers.ps1 -InstallerDir 'D:\release\installers' -Server '10.8.65.1' -SshUser 'your-ssh-user'
+#>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
