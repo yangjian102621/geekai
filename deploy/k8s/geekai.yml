@@ -16,7 +16,21 @@ spec:
   storageClassName: csi-cephfs-sc
   resources:
     requests:
-      storage: 10Gi
+      storage: 20Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: geekai-api
+  namespace: thinkbuddy
+spec:
+  type: ClusterIP
+  selector:
+    app: geekai
+  ports:
+    - name: api
+      port: 5000
+      targetPort: api
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -24,7 +38,6 @@ metadata:
   name: geekai
   namespace: thinkbuddy
 spec:
-  # LevelDB requires one process; stop the old Pod before updates.
   replicas: 1
   strategy:
     type: Recreate
@@ -51,23 +64,21 @@ spec:
               containerPort: 5000
           env:
             - name: UPDATE_DIR
-              value: "/var/www/app/update"
+              value: "/var/www/app/static/update"
             - name: CONFIG_FILE
               value: "/var/www/app/config.toml"
             - name: GEEKAI_DEBUG
-              value: "true"
+              value: "false"
             - name: GEEKAI_LOG_LEVEL
               value: "info"
             - name: TZ
               value: "Asia/Shanghai"
           volumeMounts:
-            - name: data
-              mountPath: /var/www/app/update
-              subPath: update
             - name: config
               mountPath: /var/www/app/config.toml
               subPath: config.toml
               readOnly: true
+            # 现有部署先将 PVC 内 update/ 中的安装包和 latest.json 复制到 static/update/。
             - name: data
               mountPath: /var/www/app/static
               subPath: static
@@ -100,82 +111,6 @@ spec:
               port: api
             periodSeconds: 20
             timeoutSeconds: 3
-
-        - name: geekai-web
-          image: 10.8.65.4/geekai/geekai-web:20261123-web-74488654
-          imagePullPolicy: Never
-          ports:
-            - name: web
-              containerPort: 8000
-          env:
-            - name: TZ
-              value: "Asia/Shanghai"
-          volumeMounts:
-            - name: config
-              mountPath: /etc/nginx/nginx.conf
-              subPath: nginx.conf
-              readOnly: true
-          resources:
-            requests:
-              cpu: 100m
-              memory: 64Mi
-            limits:
-              cpu: 500m
-              memory: 256Mi
-          startupProbe:
-            httpGet:
-              path: /index.html
-              port: web
-            periodSeconds: 5
-            timeoutSeconds: 3
-            failureThreshold: 30
-          readinessProbe:
-            httpGet:
-              path: /index.html
-              port: web
-            periodSeconds: 10
-            timeoutSeconds: 3
-          livenessProbe:
-            httpGet:
-              path: /
-              port: web
-            periodSeconds: 20
-            timeoutSeconds: 3
-
-        - name: geekai-tika
-          image: docker.m.daocloud.io/apache/tika:latest
-          imagePullPolicy: Never
-          ports:
-            - name: tika
-              containerPort: 9998
-          env:
-            - name: TZ
-              value: "Asia/Shanghai"
-            - name: JAVA_TOOL_OPTIONS
-              value: "-Xms128m -Xmx768m"
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: "1"
-              memory: 1Gi
-          startupProbe:
-            tcpSocket:
-              port: tika
-            periodSeconds: 5
-            timeoutSeconds: 3
-            failureThreshold: 60
-          readinessProbe:
-            tcpSocket:
-              port: tika
-            periodSeconds: 10
-            timeoutSeconds: 3
-          livenessProbe:
-            tcpSocket:
-              port: tika
-            periodSeconds: 20
-            timeoutSeconds: 3
       volumes:
         - name: config
           configMap:
@@ -183,20 +118,3 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: geekai-data-pvc
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: geekai
-  namespace: thinkbuddy
-spec:
-  type: ClusterIP
-  selector:
-    app: geekai
-  ports:
-    - name: web
-      port: 8000
-      targetPort: web
-    - name: api
-      port: 5000
-      targetPort: api

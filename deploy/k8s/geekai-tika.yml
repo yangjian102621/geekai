@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: geekai-tika
+  namespace: thinkbuddy
+spec:
+  type: ClusterIP
+  selector:
+    app: geekai-tika
+  ports:
+    - name: tika
+      port: 9998
+      targetPort: tika
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: geekai-tika
+  namespace: thinkbuddy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: geekai-tika
+  template:
+    metadata:
+      labels:
+        app: geekai-tika
+    spec:
+      nodeName: node1
+      containers:
+        - name: geekai-tika
+          image: registry.cn-shenzhen.aliyuncs.com/geekmaster/tika:latest
+          imagePullPolicy: Never
+          ports:
+            - name: tika
+              containerPort: 9998
+          env:
+            - name: TZ
+              value: "Asia/Shanghai"
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Xms128m -Xmx768m"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          startupProbe:
+            tcpSocket:
+              port: tika
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 60
+          readinessProbe:
+            tcpSocket:
+              port: tika
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            tcpSocket:
+              port: tika
+            periodSeconds: 20
+            timeoutSeconds: 3

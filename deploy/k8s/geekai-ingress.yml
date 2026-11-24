@@ -24,6 +24,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: geekai
+                name: geekai-web
                 port:
-                  number: 8000
+                  name: web
