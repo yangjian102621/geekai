@@ -359,7 +359,7 @@ func (h *UserHandler) createNewUser(user model.User, code string) (model.User, e
 			user.Password = "geekai123"
 		}
 	} else {
-		if user.Nickname == "" {
+		if user.Nickname == "" && user.TokengineSubject == "" {
 			user.Nickname = fmt.Sprintf("用户@%d", utils.RandomNumber(6))
 		}
 		if user.Username == "" || (user.Password == "" && user.Mobile == "" && (user.TokengineID == nil || *user.TokengineID == "")) {

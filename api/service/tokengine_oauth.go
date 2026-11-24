@@ -238,7 +238,7 @@ func (s *TokengineOAuth) UserInfo(ctx context.Context, accessToken string) (Toke
 	return identity, nil
 }
 
-// UserProfile accepts only a subject already verified by UserInfo.
+// UserProfile retrieves an account from the provider's management API by subject.
 func (s *TokengineOAuth) UserProfile(ctx context.Context, subject, serviceToken string) (*TokengineUserProfile, error) {
 	serviceToken = strings.TrimSpace(serviceToken)
 	if err := s.validateProvider(); err != nil || serviceToken == "" {
