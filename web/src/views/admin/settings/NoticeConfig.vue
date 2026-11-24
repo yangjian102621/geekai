@@ -1,5 +1,5 @@
 <template>
-  <div class="notice-config container flex flex-col" v-loading="loading">
+  <div class="notice-config container flex flex-col">
     <md-editor class="mgb20" v-model="notice" :theme="store.theme" @on-upload-img="onUploadImg" />
     <div class="flex justify-center p-5">
       <el-button type="primary" @click="save">保存</el-button>
@@ -16,7 +16,6 @@ import 'md-editor-v3/lib/style.css'
 import { onMounted, ref } from 'vue'
 
 const store = useSharedStore()
-const loading = ref(true)
 const notice = ref('')
 
 onMounted(() => {
@@ -28,7 +27,6 @@ onMounted(() => {
       ElMessage.error('加载公告信息失败: ' + e.message)
     })
     .finally(() => {
-      loading.value = false
     })
 })
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="container" v-loading="loading">
+  <div class="container">
     <md-editor
       :theme="store.theme"
       v-model="content"
@@ -22,7 +22,6 @@ import 'md-editor-v3/lib/style.css'
 import { onMounted, reactive, ref } from 'vue'
 
 const content = ref('')
-const loading = ref(true)
 const store = useSharedStore()
 
 onMounted(() => {
@@ -35,7 +34,6 @@ onMounted(() => {
       ElMessage.error('加载系统配置失败: ' + e.message)
     })
     .finally(() => {
-      loading.value = false
     })
 })
 

@@ -338,7 +338,6 @@ setMenuItems(items)
   top: 0;
   bottom: 0;
   overflow-y: scroll;
-  // Together AI nav：白/午夜蓝画布 + hairline 分隔
   background: var(--admin-sidebar-bg);
   border-right: 1px solid var(--admin-sidebar-border);
   transition: background 0.2s ease, border-color 0.2s ease;
@@ -364,7 +363,6 @@ setMenuItems(items)
     .text {
       color: var(--admin-sidebar-text);
       font-weight: 500;
-      letter-spacing: -0.42px;
       padding: 12px 0 12px 10px;
       transition: width 2s ease, color 0.2s ease;
     }
@@ -387,8 +385,6 @@ setMenuItems(items)
       transition: background 0.2s ease, color 0.2s ease;
       margin: 1px 12px;
       border-radius: 4px;
-      letter-spacing: -0.16px;
-      font-weight: 400;
       height: 40px;
       line-height: 40px;
 
@@ -397,12 +393,10 @@ setMenuItems(items)
         color: var(--admin-sidebar-text);
       }
 
-      // Together AI：active 无彩底，仅纯黑文字 + hairline 左指示条
       &.is-active {
-        background: var(--admin-tags-item-bg, transparent);
+        background: var(--admin-sidebar-active-bg);
         color: var(--admin-sidebar-text);
         font-weight: 500;
-        box-shadow: inset 2px 0 0 var(--admin-sidebar-text);
       }
     }
 
@@ -410,7 +404,6 @@ setMenuItems(items)
       transition: background 0.2s ease;
       margin: 1px 12px;
       border-radius: 4px;
-      letter-spacing: -0.16px;
       height: 40px;
       line-height: 40px;
 

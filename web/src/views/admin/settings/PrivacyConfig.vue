@@ -1,5 +1,5 @@
 <template>
-  <div class="privacy-config container w-full" v-loading="loading">
+  <div class="privacy-config container w-full">
     <div class="w-full">
       <md-editor
         class="mgb20"
@@ -23,7 +23,6 @@ import 'md-editor-v3/lib/style.css'
 import { onMounted, ref } from 'vue'
 
 const store = useSharedStore()
-const loading = ref(true)
 const privacy = ref('')
 
 onMounted(() => {
@@ -35,7 +34,6 @@ onMounted(() => {
       console.warn('加载隐私政策失败: ' + e.message)
     })
     .finally(() => {
-      loading.value = false
     })
 })
 

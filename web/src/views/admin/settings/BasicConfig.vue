@@ -1,5 +1,5 @@
 <template>
-  <div class="basic-config form" v-loading="loading">
+  <div class="basic-config form">
     <div class="container">
       <el-form
         :model="system"
@@ -274,7 +274,6 @@ import { onMounted, reactive, ref } from 'vue'
 
 const system = ref({ models: [] })
 const configBak = ref({})
-const loading = ref(true)
 const systemFormRef = ref(null)
 const models = ref([])
 const menus = ref([])
@@ -295,7 +294,6 @@ onMounted(() => {
       ElMessage.error('加载系统配置失败: ' + e.message)
     })
     .finally(() => {
-      loading.value = false
     })
 
   httpGet('/api/admin/model/list')

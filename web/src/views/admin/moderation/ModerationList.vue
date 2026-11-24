@@ -81,7 +81,6 @@
 
       <el-table
         :data="tableData"
-        v-loading="loading"
         @selection-change="handleSelectionChange"
         border
         style="width: 100%"

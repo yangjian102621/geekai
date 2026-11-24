@@ -30,8 +30,9 @@
         />
         <!-- 用户名下拉菜单 -->
         <el-dropdown class="user-name" :hide-on-click="true" trigger="click">
-          <span class="el-dropdown-link">
-            <el-avatar class="user-avatar" :size="30" :src="avatar" />
+          <span class="user-chip">
+            <span class="user-avatar">{{ avatarLetter }}</span>
+            <span class="user-label">{{ adminName }}</span>
             <el-icon class="el-icon--right">
               <arrow-down />
             </el-icon>
@@ -54,16 +55,20 @@
 </template>
 <script setup>
 import { removeAdminToken } from '@/store/session'
+import { checkAdminSession } from '@/store/cache'
 import { useSharedStore } from '@/store/sharedata'
 import { getMenuItems, useSidebarStore } from '@/store/sidebar'
 import { httpGet } from '@/utils/http'
 import { ArrowDown, ArrowRight, Expand, Fold, Moon, Sunny } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const version = ref(import.meta.env.VITE_VERSION)
-const avatar = ref('/images/user-info.jpg')
+const adminName = ref('')
+const avatarLetter = computed(() =>
+  adminName.value ? adminName.value.charAt(0).toUpperCase() : 'A'
+)
 const sidebar = useSidebarStore()
 const router = useRouter()
 const breadcrumb = ref([])
@@ -88,6 +93,11 @@ router.afterEach((to) => {
 
 onMounted(() => {
   initBreadCrumb(router.currentRoute.value.path)
+  checkAdminSession()
+    .then((data) => {
+      adminName.value = data?.username || ''
+    })
+    .catch(() => {})
 })
 
 // 初始化面包屑导航
@@ -157,12 +167,10 @@ const logout = function () {
   box-sizing: border-box;
   overflow: hidden;
   height: 50px;
-  font-size: 22px;
-  // Together AI nav：白/午夜蓝画布 + hairline 底边
   background: var(--admin-header-bg);
   border-bottom: 1px solid var(--admin-header-border);
   color: var(--theme-text-color-primary);
-  letter-spacing: -0.22px;
+  font-size: 15px;
   transition: background 0.2s ease, border-color 0.2s ease;
 
   .collapse-btn {
@@ -237,32 +245,63 @@ const logout = function () {
         margin-left: 10px;
         cursor: pointer;
 
+        .user-chip {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          height: 34px;
+          padding: 0 12px;
+          transition: background 0.2s ease;
+
+          &:hover {
+            background: var(--admin-header-hover);
+          }
+        }
+
+        .user-avatar {
+          width: 26px;
+          height: 26px;
+          flex-shrink: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 4px;
+          background: var(--el-color-primary, #010120);
+          color: #fff;
+          font-size: 13px;
+          font-weight: 600;
+          line-height: 1;
+          text-transform: uppercase;
+        }
+
+        .user-label {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--theme-text-color-primary);
+          max-width: 120px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
         .el-icon {
           color: var(--theme-text-color-secondary);
           transition: color 0.2s ease;
+          font-size: 14px;
         }
 
         &:hover .el-icon {
           color: var(--theme-text-color-primary);
         }
       }
-
-      .user-avatar {
-        transition: opacity 0.2s ease;
-      }
-
-      .user-name:hover .user-avatar {
-        opacity: 0.9;
-      }
     }
   }
 }
 
-.el-dropdown-link {
-  color: var(--theme-text-color-primary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
+:global([data-theme='dark']) .user-chip {
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
 }
 
 .el-dropdown-menu__item {

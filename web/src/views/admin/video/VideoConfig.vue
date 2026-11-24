@@ -1,5 +1,5 @@
 <template>
-  <div class="system-config form" v-loading="loading">
+  <div class="system-config form">
     <div class="container">
       <el-form
         :model="videoConfig"
@@ -123,7 +123,6 @@ const videoConfig = ref({
   video_powers: {},
 })
 
-const loading = ref(true)
 const saving = ref(false)
 const configFormRef = ref()
 const providers = getVideoProviders()
@@ -326,7 +325,6 @@ const loadConfig = async () => {
   } catch (e) {
     ElMessage.error('加载配置失败: ' + e.message)
   } finally {
-    loading.value = false
   }
 }
 
