@@ -26,21 +26,6 @@
               <div class="metric-value">{{ m.value }}</div>
               <div class="metric-sub" v-if="m.sub">{{ m.sub }}</div>
             </div>
-            <svg
-              v-if="m.spark && m.spark.length > 1"
-              class="metric-spark"
-              viewBox="0 0 120 48"
-              preserveAspectRatio="none"
-            >
-              <polyline
-                :points="sparkPoints(m.spark)"
-                fill="none"
-                :stroke="m.sparkColor"
-                stroke-width="1.6"
-                stroke-linejoin="round"
-                stroke-linecap="round"
-              />
-            </svg>
           </div>
         </div>
       </div>
@@ -208,28 +193,6 @@ const chartLabels = computed(() => {
   return Array.from(keys).sort()
 })
 
-// 卡片迷你折线
-const sparkPoints = (values) => {
-  const list = values.map((v) => Number(v || 0))
-  const max = Math.max(...list)
-  const min = Math.min(...list)
-  const range = max - min || 1
-  const w = 120
-  const h = 48
-  return list
-    .map((v, i) => {
-      const x = (i / (list.length - 1)) * w
-      const y = h - 4 - ((v - min) / range) * (h - 10)
-      return `${x.toFixed(1)},${y.toFixed(1)}`
-    })
-    .join(' ')
-}
-
-const sparkOf = (key) => {
-  const series = chartData.value[key] || {}
-  return chartLabels.value.map((label) => Number(series[label] || 0))
-}
-
 // 指标卡片配置
 const cards = computed(() => {
   const s = stats.value
@@ -243,8 +206,6 @@ const cards = computed(() => {
           value: '￥' + fmtMoney(s.income),
           sub: '今日 ￥' + fmtMoney(s.todayIncome),
           color: '#3b82f6',
-          sparkColor: '#7fb3f7',
-          spark: sparkOf('orders'),
           icon: Money,
         },
         {
@@ -252,8 +213,6 @@ const cards = computed(() => {
           value: fmt(s.power || s.tokens),
           sub: '今日 ' + fmt(s.todayPower || s.todayTokens),
           color: '#9ca3af',
-          sparkColor: '#b6bcc6',
-          spark: sparkOf('historyMessage'),
           icon: Coin,
         },
       ],
@@ -267,8 +226,6 @@ const cards = computed(() => {
           value: fmt(s.users),
           sub: '今日新增 ' + fmt(s.todayUsers),
           color: '#22c55e',
-          sparkColor: '#6fd99b',
-          spark: sparkOf('users'),
           icon: User,
         },
         {
@@ -276,8 +233,6 @@ const cards = computed(() => {
           value: fmt(s.chats),
           sub: '今日 ' + fmt(s.todayChats),
           color: '#14b8a6',
-          sparkColor: '#5fd0c5',
-          spark: sparkOf('chats'),
           icon: ChatDotRound,
         },
       ],
@@ -291,8 +246,6 @@ const cards = computed(() => {
           value: fmt(s.imageJobs),
           sub: '今日 ' + fmt(s.todayImageJobs),
           color: '#f59e0b',
-          sparkColor: '#f7bd5a',
-          spark: sparkOf('imageJobs'),
           icon: Picture,
         },
         {
@@ -300,8 +253,6 @@ const cards = computed(() => {
           value: fmt(s.videoJobs),
           sub: '今日 ' + fmt(s.todayVideoJobs),
           color: '#eab308',
-          sparkColor: '#ecd45c',
-          spark: sparkOf('videoJobs'),
           icon: VideoPlay,
         },
       ],
@@ -315,8 +266,6 @@ const cards = computed(() => {
           value: fmt(s.musicJobs),
           sub: '今日 ' + fmt(s.todayMusicJobs),
           color: '#06b6d4',
-          sparkColor: '#57cddd',
-          spark: sparkOf('musicJobs'),
           icon: Headset,
         },
         {
@@ -324,8 +273,6 @@ const cards = computed(() => {
           value: fmt(s.orders),
           sub: '今日 ' + fmt(s.todayOrders),
           color: '#64748b',
-          sparkColor: '#9aa7b8',
-          spark: sparkOf('orderCount'),
           icon: ShoppingCart,
         },
       ],
@@ -547,7 +494,6 @@ onUnmounted(() => {
     align-items: flex-start;
     gap: 12px;
     min-height: 46px;
-    padding-right: 36%;
     box-sizing: border-box;
   }
 
@@ -593,17 +539,6 @@ onUnmounted(() => {
     color: var(--theme-text-color-secondary);
     opacity: 0.85;
     white-space: nowrap;
-  }
-
-  .metric-spark {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 40%;
-    height: 40px;
-    opacity: 0.95;
-    pointer-events: none;
   }
 
   // 趋势

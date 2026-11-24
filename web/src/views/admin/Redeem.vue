@@ -220,18 +220,44 @@ const set = (filed, row) => {
     })
 }
 
+// 拉取全部兑换码（后端旧版本不支持关键字与批量清除，改为前端过滤）
+const fetchAll = async () => {
+  const size = 200
+  let p = 1
+  let all = []
+  for (;;) {
+    const res = await httpGet('/api/admin/redeem/list', { page: p, page_size: size })
+    const rows = (res.data && res.data.items) || []
+    all = all.concat(rows)
+    const count = (res.data && res.data.total) || 0
+    if (rows.length === 0 || all.length >= count) {
+      break
+    }
+    p++
+  }
+  return all
+}
+
 const fetchData = () => {
   loading.value = true
-  query.value.page = page.value
-  query.value.page_size = pageSize.value
-  httpGet('/api/admin/redeem/list', query.value)
-    .then((res) => {
-      if (res.data) {
-        items.value = res.data.items
-        total.value = res.data.total
-        page.value = res.data.page
-        pageSize.value = res.data.page_size
+  fetchAll()
+    .then((all) => {
+      const kw = (query.value.code || '').trim().toLowerCase()
+      const filtered = kw
+        ? all.filter(
+            (it) =>
+              String(it.id).includes(kw) ||
+              String(it.name || '').toLowerCase().includes(kw) ||
+              String(it.code || '').toLowerCase().includes(kw)
+          )
+        : all
+      total.value = filtered.length
+      const maxPage = Math.max(1, Math.ceil(filtered.length / (pageSize.value || 10)))
+      if (page.value > maxPage) {
+        page.value = maxPage
       }
+      const start = (page.value - 1) * pageSize.value
+      items.value = filtered.slice(start, start + pageSize.value)
       loading.value = false
     })
     .catch((e) => {
@@ -310,16 +336,29 @@ const clearInvalid = () => {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
     type: 'warning',
-  }).then(() => {
-    httpGet('/api/admin/redeem/clearInvalid')
-      .then((res) => {
-        ElMessage.success(`已清除 ${res.data.deleted || 0} 个失效兑换码`)
-        page.value = 1
-        fetchData()
-      })
-      .catch((e) => {
-        ElMessage.error('清除失败：' + e.message)
-      })
+  }).then(async () => {
+    try {
+      const all = await fetchAll()
+      const invalid = all.filter((it) => it.redeemed_at > 0 || !it.enabled)
+      if (invalid.length === 0) {
+        ElMessage.success('没有可清除的失效兑换码')
+        return
+      }
+      let deleted = 0
+      for (const row of invalid) {
+        try {
+          await httpGet('/api/admin/redeem/remove?id=' + row.id)
+          deleted++
+        } catch (e) {
+          // 单条删除失败不影响其余兑换码
+        }
+      }
+      ElMessage.success(`已清除 ${deleted} 个失效兑换码`)
+      page.value = 1
+      fetchData()
+    } catch (e) {
+      ElMessage.error('清除失败：' + e.message)
+    }
   })
 }
 </script>

@@ -39,7 +39,6 @@ func (h *ApiKeyHandler) RegisterRoutes(r *core.Router) {
 		group.POST("save", h.Save)
 		group.POST("set", h.Set)
 		group.GET("remove", h.Remove)
-		group.POST("batchRemove", h.BatchRemove)
 	}
 }
 
@@ -89,8 +88,6 @@ func (h *ApiKeyHandler) Save(c *gin.Context) {
 func (h *ApiKeyHandler) List(c *gin.Context) {
 	status := h.GetBool(c, "status")
 	t := c.Query("type")
-	keyword := c.Query("keyword")
-	key := c.Query("key")
 
 	session := h.DB.Session(&gorm.Session{})
 	if status {
@@ -99,12 +96,6 @@ func (h *ApiKeyHandler) List(c *gin.Context) {
 	if t != "" {
 		types := strings.Split(t, "|")
 		session = session.Where("type IN ?", types)
-	}
-	if keyword != "" {
-		session = session.Where("name LIKE ?", "%"+keyword+"%")
-	}
-	if key != "" {
-		session = session.Where("`value` LIKE ?", "%"+key+"%")
 	}
 
 	var items []model.ApiKey
@@ -160,22 +151,4 @@ func (h *ApiKeyHandler) Remove(c *gin.Context) {
 		return
 	}
 	resp.SUCCESS(c)
-}
-
-// BatchRemove 批量删除 API KEY
-func (h *ApiKeyHandler) BatchRemove(c *gin.Context) {
-	var data struct {
-		Ids []uint `json:"ids"`
-	}
-	if err := c.ShouldBindJSON(&data); err != nil || len(data.Ids) == 0 {
-		resp.ERROR(c, types.InvalidArgs)
-		return
-	}
-
-	result := h.DB.Where("id IN ?", data.Ids).Delete(&model.ApiKey{})
-	if result.Error != nil {
-		resp.ERROR(c, result.Error.Error())
-		return
-	}
-	resp.SUCCESS(c, gin.H{"deleted": result.RowsAffected})
 }

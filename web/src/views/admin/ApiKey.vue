@@ -262,10 +262,24 @@ const fetchData = () => {
       if (res.data) {
         // 初始化数据
         const arr = res.data
-        for (let i = 0; i < arr.length; i++) {
-          arr[i].last_used_at = dateFormat(arr[i].last_used_at)
+        const kw = (query.value.keyword || '').trim().toLowerCase()
+        const keyKw = (query.value.key || '').trim().toLowerCase()
+        const filtered = arr.filter((it) => {
+          if (kw && !String(it.name || '').toLowerCase().includes(kw)) {
+            return false
+          }
+          if (keyKw && !String(it.value || '').toLowerCase().includes(keyKw)) {
+            return false
+          }
+          return true
+        })
+        for (let i = 0; i < filtered.length; i++) {
+          filtered[i].last_used_at = dateFormat(filtered[i].last_used_at)
         }
-        items.value = arr
+        items.value = filtered
+        if ((page.value - 1) * pageSize.value >= filtered.length) {
+          page.value = 1
+        }
       } else {
         items.value = []
       }
@@ -337,16 +351,19 @@ const batchRemove = () => {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
     type: 'warning',
-  }).then(() => {
-    httpPost('/api/admin/apikey/batchRemove', { ids: selectedIds.value })
-      .then((res) => {
-        ElMessage.success(`已删除 ${res.data.deleted || 0} 个令牌`)
-        page.value = 1
-        fetchData()
-      })
-      .catch((e) => {
-        ElMessage.error('删除失败：' + e.message)
-      })
+  }).then(async () => {
+    let deleted = 0
+    for (const id of selectedIds.value) {
+      try {
+        await httpGet('/api/admin/apikey/remove?id=' + id)
+        deleted++
+      } catch (e) {
+        // 单个令牌删除失败不影响其余令牌
+      }
+    }
+    ElMessage.success(`已删除 ${deleted} 个令牌`)
+    page.value = 1
+    fetchData()
   })
 }
 

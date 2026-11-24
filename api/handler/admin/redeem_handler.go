@@ -19,7 +19,6 @@ import (
 	"geekai/utils/resp"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"strconv"
 )
 
 type RedeemHandler struct {
@@ -38,7 +37,6 @@ func (h *RedeemHandler) RegisterRoutes(r *core.Router) {
 	group.POST("create", h.Create)
 	group.POST("set", h.Set)
 	group.GET("remove", h.Remove)
-	group.GET("clearInvalid", h.ClearInvalid)
 	group.POST("export", h.Export)
 }
 
@@ -50,12 +48,7 @@ func (h *RedeemHandler) List(c *gin.Context) {
 
 	session := h.DB.Session(&gorm.Session{})
 	if code != "" {
-		// 关键字支持 ID、名称和兑换码
-		if id, err := strconv.Atoi(code); err == nil {
-			session = session.Where("id = ? OR name LIKE ? OR code LIKE ?", id, "%"+code+"%", "%"+code+"%")
-		} else {
-			session = session.Where("name LIKE ? OR code LIKE ?", "%"+code+"%", "%"+code+"%")
-		}
+		session = session.Where("code LIKE ?", "%"+code+"%")
 	}
 	if status >= 0 {
 		session = session.Where("redeemed_at", status)
@@ -96,16 +89,6 @@ func (h *RedeemHandler) List(c *gin.Context) {
 	}
 
 	resp.SUCCESS(c, vo.NewPage(total, page, pageSize, items))
-}
-
-// ClearInvalid 清除失效兑换码（已兑换或已停用的兑换码）
-func (h *RedeemHandler) ClearInvalid(c *gin.Context) {
-	result := h.DB.Where("redeemed_at > 0 OR enabled = ?", false).Delete(&model.Redeem{})
-	if result.Error != nil {
-		resp.ERROR(c, result.Error.Error())
-		return
-	}
-	resp.SUCCESS(c, gin.H{"deleted": result.RowsAffected})
 }
 
 // Export 导出 CVS 文件
