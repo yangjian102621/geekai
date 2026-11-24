@@ -30,8 +30,8 @@ spec:
       nodeName: node1
       containers:
         - name: geekai-tika
-          image: registry.cn-shenzhen.aliyuncs.com/geekmaster/tika:latest
-          imagePullPolicy: Never
+          image: docker.m.daocloud.io/apache/tika:2.9.2.0
+          imagePullPolicy: IfNotPresent
           ports:
             - name: tika
               containerPort: 9998
