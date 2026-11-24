@@ -123,7 +123,7 @@ onMounted(async () => {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background-color: #f2f3fc;
+  background-color: #fff;
   background-image: none;
   background-repeat: no-repeat;
 }

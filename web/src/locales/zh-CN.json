@@ -72,6 +72,7 @@
     "pricing": "定价",
     "download": "下载",
     "login": "登录",
+    "login_register": "登录/注册",
     "lang_switch": "EN"
   },
   "auth": {
