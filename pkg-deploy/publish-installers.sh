@@ -65,8 +65,13 @@ if [[ ${1:-} == --remote ]]; then
   command -v kubectl >/dev/null
   command -v flock >/dev/null
   command -v jq >/dev/null || { echo 'ctl1 需要 jq，请先执行: sudo apt-get update && sudo apt-get install -y jq' >&2; exit 2; }
-  # Serialize copies from different team members on ctl1.
-  exec 9> /tmp/thinkbuddy-installers.lock
+  # Read-only opens let different SSH users lock the same file in /tmp.
+  lock_file=/tmp/thinkbuddy-installers.lock
+  if [[ ! -e $lock_file ]]; then
+    (umask 022; set -o noclobber; : > "$lock_file") 2>/dev/null || [[ -r $lock_file ]]
+  fi
+  [[ -f $lock_file && ! -L $lock_file ]] || exit 2
+  exec 9< "$lock_file"
   flock -n 9 || { echo '另一个安装包发布正在运行，请稍后重试' >&2; exit 1; }
   validate_installers "$remote_dir/payload" with-checksums
   cd "$remote_dir/payload"
@@ -124,6 +129,11 @@ fi
   echo "用法: DEPLOY_HOST=<ctl1> DEPLOY_USER=<用户> [K8S_POD=<Pod 名称>] bash $0 <本地安装包目录>" >&2; exit 2;
 }
 source_dir=$1
+namespace=${K8S_NAMESPACE:-thinkbuddy}
+selector=${K8S_SELECTOR:-app=geekai}
+container=${K8S_CONTAINER:-geekai-api}
+update_dir=${POD_UPDATE_DIR:-/var/www/app/update}
+pod_name=${K8S_POD:-}
 : "${DEPLOY_HOST:?缺少 DEPLOY_HOST（ctl1 地址）}"
 : "${DEPLOY_USER:?缺少 DEPLOY_USER}"
 DEPLOY_PORT=${DEPLOY_PORT:-22}
@@ -147,7 +157,7 @@ if ! command -v sha256sum >/dev/null; then
   command -v shasum >/dev/null || { echo '需要 sha256sum 或 shasum' >&2; exit 2; }
   checksum_command=(shasum -a 256)
 fi
-work_dir=$(mktemp -d)
+work_dir=$(mktemp -d "${TMPDIR:-/tmp}/thinkbuddy-release.XXXXXXXXXX")
 remote_dir=
 upload_complete=0
 cleanup() {
@@ -182,12 +192,11 @@ scp "${ssh_options[@]}" -P "$DEPLOY_PORT" -r \
   "$work_dir/payload" "${BASH_SOURCE[0]}" "$target:$remote_dir/"
 printf -v remote_command 'bash %q --remote %q %q %q %q %q %q' \
   "$remote_dir/${BASH_SOURCE[0]##*/}" "$remote_dir" \
-  "${K8S_NAMESPACE:-thinkbuddy}" "${K8S_SELECTOR:-app=website}" \
-  "${K8S_CONTAINER:-thinkbuddy}" "${POD_UPDATE_DIR:-/app/update}" "${K8S_POD:-}"
+  "$namespace" "$selector" "$container" "$update_dir" "$pod_name"
 upload_complete=1
-target_pods="selector=${K8S_SELECTOR:-app=website}"
-if [[ -n ${K8S_POD:-} ]]; then
-  target_pods="pod=$K8S_POD"
+target_pods="selector=$selector"
+if [[ -n "$pod_name" ]]; then
+  target_pods="pod=$pod_name"
 fi
-echo "发布目标: namespace=${K8S_NAMESPACE:-thinkbuddy}, $target_pods, container=${K8S_CONTAINER:-thinkbuddy}, path=${POD_UPDATE_DIR:-/app/update}"
+echo "发布目标: namespace=$namespace, $target_pods, container=$container, path=$update_dir"
 ssh "${ssh_options[@]}" -p "$DEPLOY_PORT" "$target" "$remote_command"
