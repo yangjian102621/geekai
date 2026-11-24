@@ -132,7 +132,7 @@ source_dir=$1
 namespace=${K8S_NAMESPACE:-thinkbuddy}
 selector=${K8S_SELECTOR:-app=geekai}
 container=${K8S_CONTAINER:-geekai-api}
-update_dir=${POD_UPDATE_DIR:-/var/www/app/update}
+update_dir=${POD_UPDATE_DIR:-/var/www/app/static/update}
 pod_name=${K8S_POD:-}
 : "${DEPLOY_HOST:?缺少 DEPLOY_HOST（ctl1 地址）}"
 : "${DEPLOY_USER:?缺少 DEPLOY_USER}"

@@ -36,7 +36,7 @@ type updateManifest struct {
 }
 
 // DownloadHandler 提供官网安装包下载与自动更新清单。
-// 安装包由 UPDATE_DIR 指定（默认 ./update），与官网静态资源解耦，方便单独挂载。
+// 安装包和更新清单存放在 static/update，可通过 UPDATE_DIR 指定目录。
 type DownloadHandler struct {
 	BaseHandler
 	updateDir string
@@ -45,7 +45,7 @@ type DownloadHandler struct {
 func NewDownloadHandler(app *core.AppServer) *DownloadHandler {
 	dir := strings.TrimSpace(os.Getenv("UPDATE_DIR"))
 	if dir == "" {
-		dir = "update"
+		dir = filepath.Join("static", "update")
 	}
 	return &DownloadHandler{
 		BaseHandler: BaseHandler{App: app},
