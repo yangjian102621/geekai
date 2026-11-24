@@ -1,7 +1,7 @@
 <template>
   <div class="container chat-page">
     <el-tabs v-model="activeName" @tab-change="handleChange">
-      <el-tab-pane label="对话列表" name="chat" v-loading="data.chat.loading">
+      <el-tab-pane label="对话列表" name="chat">
         <div class="handle-box">
           <el-input
             v-model.number="data.chat.query.user_id"
@@ -218,7 +218,6 @@ const data = ref({
     total: 0,
     page: 1,
     pageSize: 15,
-    loading: true,
   },
   message: {
     items: [],
@@ -226,7 +225,6 @@ const data = ref({
     total: 0,
     page: 1,
     pageSize: 15,
-    loading: true,
   },
 })
 const activeName = ref('chat')
@@ -270,7 +268,6 @@ const fetchChatData = () => {
         d.page = res.data.page
         d.pageSize = res.data.page_size
       }
-      d.loading = false
     })
     .catch((e) => {
       ElMessage.error('获取数据失败：' + e.message)
@@ -289,7 +286,6 @@ const fetchMessageData = () => {
         d.page = res.data.page
         d.pageSize = res.data.page_size
       }
-      d.loading = false
     })
     .catch((e) => {
       ElMessage.error('获取数据失败：' + e.message)

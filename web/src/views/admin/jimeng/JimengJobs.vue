@@ -100,7 +100,6 @@
     <el-card class="table-card">
       <el-table
         :data="taskList"
-        v-loading="loading"
         @selection-change="handleSelectionChange"
         border
       >

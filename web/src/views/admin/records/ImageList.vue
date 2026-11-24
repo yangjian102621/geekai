@@ -1,7 +1,7 @@
 <template>
   <div class="container image-page">
     <el-tabs v-model="activeName" @tab-change="handleChange">
-      <el-tab-pane label="Midjourney" name="mj" v-loading="data.mj.loading">
+      <el-tab-pane label="Midjourney" name="mj">
         <div class="handle-box">
           <el-input
             v-model="data.mj.query.username"
@@ -357,7 +357,6 @@ const data = ref({
     total: 0,
     page: 1,
     pageSize: 15,
-    loading: true,
   },
   image: {
     items: [],
@@ -365,7 +364,6 @@ const data = ref({
     total: 0,
     page: 1,
     pageSize: 15,
-    loading: true,
   },
 })
 const activeName = ref('mj')
@@ -412,7 +410,6 @@ const fetchMjData = () => {
         d.page = res.data.page
         d.pageSize = res.data.page_size
       }
-      d.loading = false
     })
     .catch((e) => {
       showMessageError('获取数据失败：' + e.message)
@@ -431,7 +428,6 @@ const fetchImageData = () => {
         d.page = res.data.page
         d.pageSize = res.data.page_size
       }
-      d.loading = false
     })
     .catch((e) => {
       showMessageError('获取数据失败：' + e.message)

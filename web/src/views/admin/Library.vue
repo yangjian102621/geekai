@@ -1,5 +1,5 @@
 <template>
-  <div class="container library" v-loading="loading">
+  <div class="container library">
     <div class="library-heading">
       <div>
         <h2>公共资料库</h2>
@@ -106,7 +106,6 @@ const sources = ref([])
 const resources = ref([])
 const collections = ref([])
 const selectedSource = ref({})
-const loading = ref(false)
 const busy = ref('')
 const tab = ref('resources')
 const sourceDialog = ref(false)
@@ -120,7 +119,6 @@ const alreadyPublished = (id) => resources.value.some((resource) => resource.sou
 const showError = (error) => ElMessage.error(error.message || '操作失败，请重试')
 
 async function load() {
-  loading.value = true
   try {
     const [sourceResponse, resourceResponse] = await Promise.all([httpGet(prefix + '/sources'), httpGet(prefix + '/resources')])
     sources.value = sourceResponse.data || []
@@ -128,7 +126,6 @@ async function load() {
   } catch (error) {
     showError(error)
   } finally {
-    loading.value = false
   }
 }
 

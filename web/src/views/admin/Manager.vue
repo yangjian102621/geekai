@@ -1,5 +1,5 @@
 <template>
-  <div class="container list" v-loading="loading">
+  <div class="container list">
     <div class="handle-box">
       <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
     </div>
@@ -77,7 +77,6 @@ const items = ref([])
 const item = ref({})
 const showDialog = ref(false)
 const title = ref('')
-const loading = ref(true)
 const formRef = ref(null)
 
 const rules = reactive({
@@ -91,7 +90,6 @@ const fetchData = () => {
   httpGet('/api/admin/list')
     .then((res) => {
       items.value = res.data
-      loading.value = false
     })
     .catch(() => {
       ElMessage.error('获取数据失败')

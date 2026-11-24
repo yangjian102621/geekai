@@ -1,5 +1,5 @@
 <template>
-  <div class="system-config form" v-loading="loading">
+  <div class="system-config form">
     <div class="container">
       <el-form
         :model="jimengConfig"
@@ -146,7 +146,6 @@ const jimengConfig = ref({
   powers: {},
 })
 
-const loading = ref(true)
 const saving = ref(false)
 const configFormRef = ref()
 const functions = JimengFunctions
@@ -174,7 +173,6 @@ const loadConfig = async () => {
   } catch (e) {
     ElMessage.error('加载配置失败: ' + e.message)
   } finally {
-    loading.value = false
   }
 }
 

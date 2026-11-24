@@ -1,5 +1,5 @@
 <template>
-  <div class="container app-type" v-loading="loading">
+  <div class="container app-type">
     <div class="handle-box">
       <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
     </div>
@@ -94,7 +94,6 @@ const title = ref('')
 const rules = reactive({
   name: [{ required: true, message: '请输入分类名称', trigger: 'change' }],
 })
-const loading = ref(true)
 const formRef = ref(null)
 
 // 获取数据
@@ -104,7 +103,6 @@ const fetchData = () => {
       if (res.data) {
         items.value = res.data
       }
-      loading.value = false
     })
     .catch(() => {
       ElMessage.error('获取数据失败')

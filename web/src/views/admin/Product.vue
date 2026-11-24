@@ -1,5 +1,5 @@
 <template>
-  <div class="container product" v-loading="loading">
+  <div class="container product">
     <div class="handle-box">
       <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
     </div>
@@ -96,7 +96,6 @@ const rules = reactive({
   discount: [{ required: true, message: '请输优惠金额', trigger: 'change' }],
   days: [{ required: true, message: '请输入有效期', trigger: 'change' }],
 })
-const loading = ref(true)
 const formRef = ref(null)
 
 // 获取数据
@@ -110,7 +109,6 @@ httpGet('/api/admin/product/list')
       }
       items.value = arr
     }
-    loading.value = false
   })
   .catch(() => {
     ElMessage.error('获取数据失败')

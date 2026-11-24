@@ -1,5 +1,5 @@
 <template>
-  <div class="agreement-config container flex flex-col" v-loading="loading">
+  <div class="agreement-config container flex flex-col">
     <md-editor
       class="mgb20"
       v-model="agreement"
@@ -21,7 +21,6 @@ import 'md-editor-v3/lib/style.css'
 import { onMounted, ref } from 'vue'
 
 const store = useSharedStore()
-const loading = ref(true)
 const agreement = ref('')
 
 onMounted(() => {
@@ -33,7 +32,6 @@ onMounted(() => {
       console.warn('加载用户协议失败: ' + e.message)
     })
     .finally(() => {
-      loading.value = false
     })
 })
 

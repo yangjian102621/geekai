@@ -1,5 +1,5 @@
 <template>
-  <div class="container list" v-loading="loading">
+  <div class="container list">
     <el-row>
       <el-table :data="items" border :row-key="(row) => row.id">
         <el-table-column label="用户名" prop="username" />
@@ -36,7 +36,6 @@ import { onMounted, ref } from 'vue'
 
 // 用户登录日志
 const items = ref([])
-const loading = ref(true)
 const total = ref(0)
 const page = ref(0)
 const pageSize = ref(0)
@@ -55,7 +54,6 @@ const fetchList = function (_page, _pageSize) {
         page.value = res.data.page
         pageSize.value = res.data.page_size
       }
-      loading.value = false
     })
     .catch(() => {
       ElMessage.error('获取数据失败')

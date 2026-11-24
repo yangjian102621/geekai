@@ -1,5 +1,5 @@
 <template>
-  <div class="container menu p-5" v-loading="loading">
+  <div class="container menu p-5">
     <div class="handle-box">
       <el-button type="primary" :icon="Plus" @click="add">新增</el-button>
     </div>
@@ -118,7 +118,6 @@ const rules = reactive({
   icon: [{ required: true, message: '请上传菜单图标', trigger: 'change' }],
   url: [{ required: true, message: '请输入菜单地址', trigger: 'change' }],
 })
-const loading = ref(true)
 const formRef = ref(null)
 
 const fetchData = () => {
@@ -133,7 +132,6 @@ const fetchData = () => {
         }
         items.value = arr
       }
-      loading.value = false
     })
     .catch(() => {
       ElMessage.error('获取数据失败')

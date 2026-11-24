@@ -1,143 +1,105 @@
 <template>
-  <div class="dashboard" v-loading="loading">
-    <!-- 统计卡片区域：Together AI Stats Bar —— 纯排版大数字，无 icon 盒 -->
-    <el-row class="stats-row" :gutter="24">
-      <el-col :span="6">
-        <el-card class="stats-card" shadow="hover">
-          <div class="card-label">用户总数</div>
-          <div class="card-number">{{ stats.users }}</div>
-          <div class="card-desc">今日新增 {{ stats.todayUsers || 0 }}</div>
-        </el-card>
-      </el-col>
+  <div class="dashboard">
+    <!-- 顶部工具条：刷新 -->
+    <div class="dash-toolbar">
+      <div class="tool-actions">
+        <button class="tool-btn" title="刷新" @click="reloadPage">
+          <el-icon><Refresh /></el-icon>
+        </button>
+      </div>
+    </div>
 
-      <el-col :span="6">
-        <el-card class="stats-card" shadow="hover">
-          <div class="card-label">对话总数</div>
-          <div class="card-number">{{ stats.chats }}</div>
-          <div class="card-desc">今日 {{ stats.todayChats }}</div>
-        </el-card>
-      </el-col>
-
-      <el-col :span="6">
-        <el-card class="stats-card" shadow="hover">
-          <div class="card-label">积分消耗</div>
-          <div class="card-number">{{ formatNumber(stats.power || stats.tokens) }}</div>
-          <div class="card-desc">今日 {{ formatNumber(stats.todayPower || stats.todayTokens) }}</div>
-        </el-card>
-      </el-col>
-
-      <el-col :span="6">
-        <el-card class="stats-card" shadow="hover">
-          <div class="card-label">总收入</div>
-          <div class="card-number">￥{{ stats.income.toFixed(2) }}</div>
-          <div class="card-desc">今日 ￥{{ stats.todayIncome?.toFixed(2) || '0.00' }}</div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <!-- 第二行统计卡片 -->
-    <el-row class="stats-row" :gutter="24">
-      <el-col :span="6">
-        <el-card class="stats-card" shadow="hover">
-          <div class="card-label">图片生成</div>
-          <div class="card-number">{{ stats.imageJobs }}</div>
-          <div class="card-desc">今日 {{ stats.todayImageJobs }}</div>
-        </el-card>
-      </el-col>
-
-      <el-col :span="6">
-        <el-card class="stats-card" shadow="hover">
-          <div class="card-label">视频生成</div>
-          <div class="card-number">{{ stats.videoJobs }}</div>
-          <div class="card-desc">今日 {{ stats.todayVideoJobs }}</div>
-        </el-card>
-      </el-col>
-
-      <el-col :span="6">
-        <el-card class="stats-card" shadow="hover">
-          <div class="card-label">音乐生成</div>
-          <div class="card-number">{{ stats.musicJobs }}</div>
-          <div class="card-desc">今日 {{ stats.todayMusicJobs }}</div>
-        </el-card>
-      </el-col>
-
-      <el-col :span="6">
-        <el-card class="stats-card" shadow="hover">
-          <div class="card-label">订单总数</div>
-          <div class="card-number">{{ stats.orders }}</div>
-          <div class="card-desc">今日 {{ stats.todayOrders }}</div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <!-- 图表和列表区域 -->
-    <el-row :gutter="24" class="content-row">
-      <!-- 图表区域 -->
-      <el-col :span="12">
-        <el-card class="chart-card" shadow="hover">
-          <div class="card-header">
-            <h3>用户增长趋势</h3>
-            <el-button type="text" size="small">30天</el-button>
-          </div>
-          <div id="chart-users" style="height: 280px"></div>
-        </el-card>
-      </el-col>
-
-      <el-col :span="12">
-        <el-card class="chart-card" shadow="hover">
-          <div class="card-header">
-            <h3>收入趋势</h3>
-            <el-button type="text" size="small">7天</el-button>
-          </div>
-          <div id="chart-income" style="height: 280px"></div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <!-- 底部列表区域 -->
-    <el-row :gutter="24" class="content-row">
-      <!-- 最近订单 -->
-      <el-col :span="12">
-        <el-card class="list-card" shadow="hover">
-          <div class="card-header">
-            <h3>最近订单</h3>
-          </div>
-          <div class="order-list">
-            <div class="order-item" v-for="order in recentOrders" :key="order.order_no">
-              <div class="order-info">
-                <div class="order-id">#{{ order.order_no }}</div>
-                <div class="order-amount">￥{{ order.amount }}</div>
-              </div>
-              <div class="order-meta">
-                <div class="order-date">{{ formatTime(order.created_at) }}</div>
-              </div>
+    <!-- 指标卡片 -->
+    <div class="stat-grid">
+      <div class="stat-card" v-for="card in cards" :key="card.title">
+        <div class="stat-head">
+          <el-icon class="stat-head-icon"><component :is="card.icon" /></el-icon>
+          <span>{{ card.title }}</span>
+        </div>
+        <div class="stat-body">
+          <div class="metric" v-for="m in card.metrics" :key="m.label">
+            <span class="metric-badge" :style="{ background: m.color }">
+              <el-icon><component :is="m.icon" /></el-icon>
+            </span>
+            <div class="metric-main">
+              <div class="metric-label">{{ m.label }}</div>
+              <div class="metric-value">{{ m.value }}</div>
+              <div class="metric-sub" v-if="m.sub">{{ m.sub }}</div>
             </div>
           </div>
-        </el-card>
-      </el-col>
+        </div>
+      </div>
+    </div>
 
-      <!-- 最近用户 -->
-      <el-col :span="12">
-        <el-card class="list-card" shadow="hover">
-          <div class="card-header">
-            <h3>最近用户</h3>
-          </div>
-          <div class="user-list">
-            <div class="user-item" v-for="user in recentUsers" :key="user.nickname">
-              <div class="user-avatar">
-                <el-avatar :size="40" :src="user.avatar">{{ user.nickname.charAt(0) }}</el-avatar>
-              </div>
-              <div class="user-info">
-                <div class="user-name">{{ user.nickname }}</div>
-              </div>
-              <div class="user-meta">
-                <div class="user-time">{{ formatTime(user.last_active) }}</div>
-              </div>
+    <!-- 趋势 -->
+    <div class="trend-card">
+      <div class="trend-head">
+        <div class="trend-head-title">
+          <el-icon><Histogram /></el-icon>
+          <h3>趋势</h3>
+        </div>
+        <div class="trend-tabs">
+          <template v-for="(tab, i) in trendTabs" :key="tab.key">
+            <span v-if="i > 0" class="tab-divider">/</span>
+            <button
+              class="trend-tab"
+              :class="{ active: activeTab === tab.key }"
+              @click="activeTab = tab.key"
+            >
+              {{ tab.label }}
+            </button>
+          </template>
+        </div>
+      </div>
+      <div class="trend-body">
+        <div class="trend-caption">
+          <div class="caption-title">{{ currentTab.label }}</div>
+          <div class="caption-total">{{ captionTotal }}</div>
+        </div>
+        <div ref="trendChartEl" class="trend-chart"></div>
+      </div>
+    </div>
+
+    <!-- 最近订单 / 最近用户 -->
+    <div class="bottom-grid">
+      <div class="panel">
+        <div class="panel-head">
+          <el-icon><Tickets /></el-icon>
+          <h3>最近订单</h3>
+        </div>
+        <div class="panel-list">
+          <div class="list-item" v-for="order in recentOrders" :key="order.order_no">
+            <div class="item-main">
+              <span class="item-title mono">#{{ order.order_no }}</span>
+            </div>
+            <div class="item-meta">
+              <span class="item-amount mono">￥{{ order.amount }}</span>
+              <span class="item-time">{{ formatTime(order.created_at) }}</span>
             </div>
           </div>
-        </el-card>
-      </el-col>
-    </el-row>
+          <div class="empty" v-if="!recentOrders.length">暂无数据</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <el-icon><User /></el-icon>
+          <h3>最近用户</h3>
+        </div>
+        <div class="panel-list">
+          <div class="list-item" v-for="user in recentUsers" :key="user.nickname">
+            <div class="item-main">
+              <span class="item-avatar">{{ (user.nickname || '?').charAt(0).toUpperCase() }}</span>
+              <span class="item-title">{{ user.nickname }}</span>
+            </div>
+            <div class="item-meta">
+              <span class="item-time">{{ formatTime(user.last_active) }}</span>
+            </div>
+          </div>
+          <div class="empty" v-if="!recentUsers.length">暂无数据</div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -145,17 +107,23 @@
 import { httpGet } from '@/utils/http'
 import {
   ChatDotRound,
+  Coin,
+  DataAnalysis,
   Headset,
+  Histogram,
+  Lightning,
   Money,
   Picture,
+  Refresh,
   ShoppingCart,
-  TrendCharts,
+  Tickets,
   User,
   VideoPlay,
+  Wallet,
 } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import { ElMessage } from 'element-plus'
-import { onMounted, ref } from 'vue'
+import { computed, nextTick, onActivated, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const stats = ref({
   users: 0,
@@ -178,398 +146,626 @@ const stats = ref({
   todayVideoJobs: 0,
   todayMusicJobs: 0,
 })
-const loading = ref(true)
 
 // 数据列表
 const recentOrders = ref([])
 const recentUsers = ref([])
-const popularJobs = ref([]) // 改为热门任务
 
-const formatNumber = (num) => {
-  if (num >= 10000) {
-    return (num / 10000).toFixed(1) + 'w'
-  }
-  return num
+// 趋势数据源（用于卡片迷你折线）
+const chartData = ref({ users: {}, historyMessage: {}, orders: {} })
+const trendTabs = [
+  { key: 'income', label: '收入趋势', series: 'orders', color: '#22c55e' },
+  { key: 'users', label: '用户增长趋势', series: 'users', color: '#0ea5e9' },
+]
+const activeTab = ref('income')
+const trendChartEl = ref(null)
+let trendChart = null
+
+// 数字格式化
+const fmt = (num) => Number(num || 0).toLocaleString('en-US')
+const fmtMoney = (num) =>
+  Number(num || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const fmtCompact = (num) => {
+  const n = Number(num || 0)
+  if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B'
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M'
+  if (n >= 1e4) return (n / 1e4).toFixed(1) + '万'
+  return fmt(n)
 }
 
 // 时间格式化工具
 const formatTime = (dateStr) => {
+  if (!dateStr) return '-'
   const date = new Date(dateStr)
-  const now = new Date()
-  const diff = (now - date) / 1000
-  if (diff < 60 * 60) {
-    return Math.floor(diff / 60) + '分钟前'
-  } else if (diff < 60 * 60 * 24) {
-    return Math.floor(diff / 3600) + '小时前'
-  } else {
-    return Math.floor(diff / 86400) + '天前'
-  }
+  const diff = (new Date() - date) / 1000
+  if (diff < 60) return '刚刚'
+  if (diff < 60 * 60) return Math.floor(diff / 60) + '分钟前'
+  if (diff < 60 * 60 * 24) return Math.floor(diff / 3600) + '小时前'
+  return Math.floor(diff / 86400) + '天前'
 }
 
-onMounted(() => {
-  const chartUsersEl = document.getElementById('chart-users')
-  const chartIncomeEl = document.getElementById('chart-income')
+// 折线 X 轴日期（升序）
+const chartLabels = computed(() => {
+  const keys = new Set()
+  Object.values(chartData.value).forEach((series) => {
+    if (series) Object.keys(series).forEach((k) => keys.add(k))
+  })
+  return Array.from(keys).sort()
+})
 
-  if (!chartUsersEl || !chartIncomeEl) {
-    ElMessage.error('图表容器未找到')
-    return
+// 指标卡片配置
+const cards = computed(() => {
+  const s = stats.value
+  return [
+    {
+      title: '账户数据',
+      icon: Wallet,
+      metrics: [
+        {
+          label: '总收入',
+          value: '￥' + fmtMoney(s.income),
+          sub: '今日 ￥' + fmtMoney(s.todayIncome),
+          color: '#3b82f6',
+          icon: Money,
+        },
+        {
+          label: '积分消耗',
+          value: fmt(s.power || s.tokens),
+          sub: '今日 ' + fmt(s.todayPower || s.todayTokens),
+          color: '#9ca3af',
+          icon: Coin,
+        },
+      ],
+    },
+    {
+      title: '使用统计',
+      icon: DataAnalysis,
+      metrics: [
+        {
+          label: '用户总数',
+          value: fmt(s.users),
+          sub: '今日新增 ' + fmt(s.todayUsers),
+          color: '#22c55e',
+          icon: User,
+        },
+        {
+          label: '对话总数',
+          value: fmt(s.chats),
+          sub: '今日 ' + fmt(s.todayChats),
+          color: '#14b8a6',
+          icon: ChatDotRound,
+        },
+      ],
+    },
+    {
+      title: '生成任务',
+      icon: Picture,
+      metrics: [
+        {
+          label: '图片生成',
+          value: fmt(s.imageJobs),
+          sub: '今日 ' + fmt(s.todayImageJobs),
+          color: '#f59e0b',
+          icon: Picture,
+        },
+        {
+          label: '视频生成',
+          value: fmt(s.videoJobs),
+          sub: '今日 ' + fmt(s.todayVideoJobs),
+          color: '#eab308',
+          icon: VideoPlay,
+        },
+      ],
+    },
+    {
+      title: '业务指标',
+      icon: Lightning,
+      metrics: [
+        {
+          label: '音乐生成',
+          value: fmt(s.musicJobs),
+          sub: '今日 ' + fmt(s.todayMusicJobs),
+          color: '#06b6d4',
+          icon: Headset,
+        },
+        {
+          label: '订单总数',
+          value: fmt(s.orders),
+          sub: '今日 ' + fmt(s.todayOrders),
+          color: '#64748b',
+          icon: ShoppingCart,
+        },
+      ],
+    },
+  ]
+})
+
+const currentTab = computed(() => trendTabs.find((t) => t.key === activeTab.value) || trendTabs[0])
+
+const trendValues = computed(() => {
+  const series = chartData.value[currentTab.value.series] || {}
+  return chartLabels.value.map((label) => Number(series[label] || 0))
+})
+
+const trendTotal = computed(() => trendValues.value.reduce((a, b) => a + b, 0))
+
+const captionTotal = computed(() => {
+  const prefix = currentTab.value.key === 'income' ? '￥' : ''
+  return '总计：' + prefix + fmtCompact(trendTotal.value)
+})
+
+// 渲染趋势图
+const renderTrend = () => {
+  if (!trendChartEl.value) return
+  if (!trendChart) {
+    trendChart = echarts.init(trendChartEl.value)
   }
+  const tab = currentTab.value
+  trendChart.setOption(
+    {
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(17, 20, 45, 0.92)',
+        borderWidth: 0,
+        padding: [8, 12],
+        textStyle: { color: '#fff', fontSize: 12 },
+        axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(99, 102, 241, 0.06)' } },
+        valueFormatter: (v) => (tab.key === 'income' ? '￥' + fmtMoney(v) : fmt(v)),
+      },
+      grid: { left: 8, right: 16, top: 24, bottom: 6, containLabel: true },
+      xAxis: {
+        type: 'category',
+        data: chartLabels.value,
+        axisLine: { lineStyle: { color: 'rgba(128, 128, 128, 0.25)' } },
+        axisTick: { show: false },
+        axisLabel: { color: '#8c8c8c', fontSize: 11 },
+      },
+      yAxis: {
+        type: 'value',
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: {
+          color: '#8c8c8c',
+          fontSize: 11,
+          formatter: (v) => fmtCompact(v),
+        },
+        splitLine: { lineStyle: { color: 'rgba(128, 128, 128, 0.14)' } },
+      },
+      series: [
+        {
+          type: 'bar',
+          data: trendValues.value,
+          barMaxWidth: 10,
+          itemStyle: { color: tab.color, borderRadius: [3, 3, 0, 0] },
+        },
+      ],
+    },
+    true
+  )
+}
 
-  const chartUsers = echarts.init(chartUsersEl)
-  const chartIncome = echarts.init(chartIncomeEl)
-  httpGet('/api/admin/dashboard/stats')
+const fetchStats = () => {
+  httpGet('/api/admin/dashboard/stats', { days: 7 })
     .then((res) => {
-      // 更新统计数据
       Object.assign(stats.value, res.data)
       recentOrders.value = res.data.recentOrders || []
       recentUsers.value = res.data.recentUsers || []
-      const chartData = res.data.chart || {}
-      loading.value = false
-
-      // 检查图表数据是否存在
-      if (!chartData.users || !chartData.orders) {
-        ElMessage.warning('图表数据不完整')
-        return
-      }
-
-      const x = []
-      const dataUsers = []
-      for (let k in chartData.users) {
-        x.push(k)
-        dataUsers.push(chartData.users[k])
-      }
-      chartUsers.setOption({
-        tooltip: {
-          trigger: 'axis',
-          backgroundColor: '#ffffff',
-          borderColor: 'rgba(0, 0, 0, 0.08)',
-          textStyle: { color: '#010120' },
-          extraCssText: 'box-shadow: rgba(1, 1, 32, 0.1) 0px 4px 10px; border-radius: 4px;',
-        },
-        grid: {
-          left: '3%',
-          right: '4%',
-          bottom: '3%',
-          containLabel: true,
-        },
-        xAxis: {
-          type: 'category',
-          data: x,
-          axisLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.08)' } },
-          axisTick: { show: false },
-          axisLabel: { color: 'rgba(0, 0, 0, 0.6)' },
-        },
-        yAxis: {
-          type: 'value',
-          axisLine: { show: false },
-          axisTick: { show: false },
-          axisLabel: { color: 'rgba(0, 0, 0, 0.6)' },
-          splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.08)' } },
-        },
-        series: [
-          {
-            data: dataUsers,
-            type: 'line',
-            smooth: true,
-            symbol: 'circle',
-            symbolSize: 6,
-            lineStyle: {
-              color: '#010120',
-              width: 2,
-            },
-            itemStyle: {
-              color: '#010120',
-            },
-            areaStyle: {
-              color: {
-                type: 'linear',
-                x: 0,
-                y: 0,
-                x2: 0,
-                y2: 1,
-                colorStops: [
-                  {
-                    offset: 0,
-                    color: 'rgba(1, 1, 32, 0.08)',
-                  },
-                  {
-                    offset: 1,
-                    color: 'rgba(1, 1, 32, 0)',
-                  },
-                ],
-              },
-            },
-          },
-        ],
-      })
-
-      const dataIncome = []
-      for (let k in chartData.orders) {
-        dataIncome.push(chartData.orders[k])
-      }
-      chartIncome.setOption({
-        tooltip: {
-          trigger: 'axis',
-          backgroundColor: '#ffffff',
-          borderColor: 'rgba(0, 0, 0, 0.08)',
-          textStyle: { color: '#010120' },
-          extraCssText: 'box-shadow: rgba(1, 1, 32, 0.1) 0px 4px 10px; border-radius: 4px;',
-        },
-        grid: {
-          left: '3%',
-          right: '4%',
-          bottom: '3%',
-          containLabel: true,
-        },
-        xAxis: {
-          type: 'category',
-          data: x,
-          axisLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.08)' } },
-          axisTick: { show: false },
-          axisLabel: { color: 'rgba(0, 0, 0, 0.6)' },
-        },
-        yAxis: {
-          type: 'value',
-          axisLine: { show: false },
-          axisTick: { show: false },
-          axisLabel: { color: 'rgba(0, 0, 0, 0.6)' },
-          splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.08)' } },
-        },
-        series: [
-          {
-            data: dataIncome,
-            type: 'line',
-            smooth: true,
-            symbol: 'circle',
-            symbolSize: 6,
-            lineStyle: {
-              color: '#bdbbff',
-              width: 2,
-            },
-            itemStyle: {
-              color: '#bdbbff',
-            },
-            areaStyle: {
-              color: {
-                type: 'linear',
-                x: 0,
-                y: 0,
-                x2: 0,
-                y2: 1,
-                colorStops: [
-                  {
-                    offset: 0,
-                    color: 'rgba(189, 187, 255, 0.12)',
-                  },
-                  {
-                    offset: 1,
-                    color: 'rgba(189, 187, 255, 0)',
-                  },
-                ],
-              },
-            },
-          },
-        ],
-      })
+      chartData.value = res.data.chart || { users: {}, historyMessage: {}, orders: {} }
+      nextTick(renderTrend)
     })
     .catch((e) => {
       ElMessage.error('获取统计数据失败：' + e.message)
     })
+}
 
-  window.onresize = function () {
-    // 自适应大小
-    if (chartUsers) chartUsers.resize()
-    if (chartIncome) chartIncome.resize()
+// 刷新相当于浏览器刷新：整页重新加载
+const reloadPage = () => window.location.reload()
+
+const handleResize = () => {
+  if (trendChart) trendChart.resize()
+}
+
+watch(activeTab, () => nextTick(renderTrend))
+
+onMounted(() => {
+  fetchStats()
+  window.addEventListener('resize', handleResize)
+})
+
+onActivated(() => {
+  nextTick(() => trendChart && trendChart.resize())
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  if (trendChart) {
+    trendChart.dispose()
+    trendChart = null
   }
 })
 </script>
 
 <style scoped lang="scss">
 .dashboard {
-  padding: 24px;
-  background: var(--theme-bg-color);
-  min-height: 100vh;
+  --dash-surface: var(--admin-container-bg, #ffffff);
+  --dash-border: rgba(1, 1, 32, 0.04);
+  --dash-shadow: 0 1px 2px rgba(1, 1, 32, 0.04), 0 4px 12px rgba(1, 1, 32, 0.06);
+  --dash-shadow-hover: 0 8px 24px rgba(1, 1, 32, 0.12);
+  --dash-tool-bg: #ffffff;
+  --dash-tool-border: rgba(0, 0, 0, 0.09);
+  --dash-tool-color: #4b5563;
+  --dash-hover: rgba(0, 0, 0, 0.02);
+  --dash-divider: rgba(0, 0, 0, 0.06);
 
-  .stats-row {
-    margin-bottom: 24px;
+  padding: 20px 24px 28px;
+  background: var(--admin-page-bg, #ffffff);
+  min-height: 100%;
+  box-sizing: border-box;
+
+  .dash-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
   }
 
-  .content-row {
-    margin-bottom: 24px;
+  .tool-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
-  // Together AI contained card：hairline 边框 + 8px 圆角 + 深蓝着色阴影
-  .stats-card {
-    --el-card-border-color: rgba(0, 0, 0, 0.08);
-    --el-card-border-radius: 8px;
-    --el-card-bg-color: var(--card-bg);
-    border: 1px solid var(--admin-container-border, rgba(0, 0, 0, 0.08));
+  .tool-btn {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 8px;
-    overflow: hidden;
-    transition: box-shadow 0.2s ease;
-    background: var(--card-bg);
+    border: 1px solid var(--dash-tool-border);
+    background: var(--dash-tool-bg);
+    color: var(--dash-tool-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
 
     &:hover {
-      box-shadow: var(--ta-shadow-lg, rgba(1, 1, 32, 0.14) 0px 8px 24px);
+      color: var(--theme-text-color-primary);
+      background: var(--dash-hover);
     }
 
-    :deep(.el-card__body) {
-      padding: 24px 28px;
+    .el-icon {
+      font-size: 16px;
     }
   }
 
-  // Together AI Stats Bar：Mono 大写小标签在上 → 大数字 → 小说明
-  .card-label {
-    font-family: var(--ta-font-mono, 'PP Neue Montreal Mono', Georgia, monospace);
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.055px;
-    text-transform: uppercase;
-    color: var(--theme-text-color-secondary);
-    margin-bottom: 12px;
+  // 指标卡片
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
   }
 
-  // 大数字：weight 500 负字距，绝不加粗
-  .card-number {
-    font-size: 40px;
-    font-weight: 500;
-    color: var(--theme-text-color-primary);
-    line-height: 1.1;
-    letter-spacing: -1.2px;
-    margin-bottom: 8px;
-  }
-
-  .card-desc {
-    font-size: 13px;
-    letter-spacing: -0.16px;
-    color: var(--theme-text-color-secondary);
-  }
-
-  .chart-card,
-  .list-card {
-    --el-card-border-color: rgba(0, 0, 0, 0.08);
-    --el-card-border-radius: 8px;
-    --el-card-bg-color: var(--card-bg);
-    border: 1px solid var(--admin-container-border, rgba(0, 0, 0, 0.08));
-    border-radius: 8px;
+  .stat-card {
+    position: relative;
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
+    border-radius: 10px;
+    padding: 18px 22px 20px;
     overflow: hidden;
-    height: 100%;
-    background: var(--card-bg);
+    min-height: 176px;
+    box-sizing: border-box;
+    box-shadow: var(--dash-shadow);
+    transition: box-shadow 0.2s ease;
 
-    :deep(.el-card__body) {
-      padding: 24px;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
+    &:hover {
+      box-shadow: var(--dash-shadow-hover);
     }
   }
 
-  .card-header {
+  .stat-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--dash-divider);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--theme-text-color-primary);
+
+    .stat-head-icon {
+      font-size: 17px;
+      color: var(--theme-text-color-secondary);
+    }
+  }
+
+  .stat-body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .metric {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-height: 46px;
+    box-sizing: border-box;
+  }
+
+  .metric-badge {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #fff;
+
+    .el-icon {
+      font-size: 16px;
+    }
+  }
+
+  .metric-main {
+    min-width: 0;
+  }
+
+  .metric-label {
+    font-size: 13px;
+    line-height: 1.2;
+    color: var(--theme-text-color-secondary);
+    margin-bottom: 4px;
+  }
+
+  .metric-value {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.4px;
+    color: var(--theme-text-color-primary);
+    white-space: nowrap;
+  }
+
+  .metric-sub {
+    margin-top: 4px;
+    font-size: 11px;
+    line-height: 1.2;
+    color: var(--theme-text-color-secondary);
+    opacity: 0.85;
+    white-space: nowrap;
+  }
+
+  // 趋势
+  .trend-card {
+    margin-top: 18px;
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
+    border-radius: 10px;
+    padding: 20px 24px 10px;
+    box-shadow: var(--dash-shadow);
+  }
+
+  .trend-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--admin-container-border, rgba(0, 0, 0, 0.08));
+    gap: 16px;
+  }
+
+  .trend-head-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .el-icon {
+      font-size: 20px;
+      color: var(--theme-text-color-primary);
+    }
 
     h3 {
       margin: 0;
       font-size: 18px;
-      font-weight: 500;
-      letter-spacing: -0.36px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
       color: var(--theme-text-color-primary);
     }
   }
 
-  .order-list,
-  .user-list,
-  .app-list {
-    flex: 1;
+  .trend-tabs {
+    display: flex;
+    align-items: center;
+  }
+
+  .tab-divider {
+    margin: 0 10px;
+    color: var(--dash-divider);
+    font-size: 13px;
+  }
+
+  .trend-tab {
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--theme-text-color-secondary);
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--theme-text-color-primary);
+    }
+
+    &.active {
+      color: var(--theme-text-color-primary);
+      font-weight: 600;
+    }
+  }
+
+  .trend-body {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--dash-divider);
+  }
+
+  .trend-caption {
+    padding-left: 2px;
+
+    .caption-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--theme-text-color-primary);
+    }
+
+    .caption-total {
+      margin-top: 5px;
+      font-size: 12px;
+      color: var(--theme-text-color-secondary);
+    }
+  }
+
+  .trend-chart {
+    width: 100%;
+    height: 320px;
+  }
+
+  // 底部列表
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+  }
+
+  .panel {
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
+    border-radius: 10px;
+    padding: 18px 24px 8px;
+    box-shadow: var(--dash-shadow);
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--dash-divider);
+
+    .el-icon {
+      font-size: 17px;
+      color: var(--theme-text-color-secondary);
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--theme-text-color-primary);
+    }
+  }
+
+  .panel-list {
+    max-height: 300px;
     overflow-y: auto;
   }
 
-  .order-item {
+  .list-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--el-border-color);
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--dash-divider);
 
     &:last-child {
       border-bottom: none;
-    }
-
-    .order-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-
-      .order-id {
-        font-family: var(--ta-font-mono, 'PP Neue Montreal Mono', Georgia, monospace);
-        font-size: 13px;
-        color: var(--theme-text-color-secondary);
-      }
-
-      .order-amount {
-        font-family: var(--ta-font-mono, 'PP Neue Montreal Mono', Georgia, monospace);
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--theme-text-color-primary);
-      }
-    }
-
-    .order-meta {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-
-      .order-date {
-        font-size: 12px;
-        color: var(--theme-text-color-secondary);
-      }
     }
   }
 
-  .user-item {
+  .item-main {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--el-border-color);
+    gap: 10px;
+    min-width: 0;
+  }
 
-    &:last-child {
-      border-bottom: none;
-    }
+  .item-avatar {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #5ab0f5;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+  }
 
-    .user-info {
-      flex: 1;
-      min-width: 0;
+  .item-title {
+    font-size: 14px;
+    color: var(--theme-text-color-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-      .user-name {
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--theme-text-color-primary);
-        margin-bottom: 2px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
+  .item-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+  }
 
-      .user-id {
-        font-size: 12px;
-        color: var(--theme-text-color-secondary);
-      }
-    }
+  .item-amount {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--theme-text-color-primary);
+  }
 
-    .user-meta {
-      text-align: right;
+  .item-time {
+    font-size: 12px;
+    color: var(--theme-text-color-secondary);
+  }
 
-      .user-time {
-        font-size: 12px;
-        color: var(--theme-text-color-secondary);
-        margin-bottom: 4px;
-      }
+  .mono {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  }
+
+  .empty {
+    padding: 32px 0;
+    text-align: center;
+    font-size: 13px;
+    color: var(--theme-text-color-secondary);
+  }
+}
+
+:global([data-theme='dark'] .dashboard) {
+  --dash-border: rgba(255, 255, 255, 0.08);
+  --dash-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.35);
+  --dash-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --dash-tool-bg: transparent;
+  --dash-tool-border: rgba(255, 255, 255, 0.14);
+  --dash-tool-color: rgba(255, 255, 255, 0.7);
+  --dash-hover: rgba(255, 255, 255, 0.06);
+  --dash-divider: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 900px) {
+  .dashboard {
+    .stat-grid,
+    .bottom-grid {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 }
+
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="container role-list" v-loading="loading">
+  <div class="container role-list">
     <div class="handle-box">
       <el-button type="primary" :icon="Plus" @click="addRole">新增</el-button>
     </div>
@@ -122,7 +122,6 @@ const sortedTableData = ref([])
 const role = ref({ system_prompt: '' })
 const formRef = ref(null)
 const optTitle = ref('')
-const loading = ref(true)
 
 const rules = reactive({
   name: [{ required: true, message: '请输入应用名称', trigger: 'blur' }],
@@ -171,7 +170,6 @@ const fetchData = () => {
       // }
       tableData.value = res.data
       sortedTableData.value = copyObj(tableData.value)
-      loading.value = false
     })
     .catch(() => {
       ElMessage.error('获取聊天应用失败')
