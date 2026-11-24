@@ -72,9 +72,21 @@ go run main.go
 
 ## 部署
 
-由nginx 提供动静分离能力， 8000端口监听  
+docker-compose 部署
+1. 制作镜像
+```shell
+cd  build
+./build.sh v4.3.1      #  采用默认docker引擎在本地制作镜像
+或
+ENGINE=wslc ./build.sh v4.3.1   #  将会采用wslc引擎在本地制作镜像
+```
+> 由nginx 提供动静分离能力， 8000端口监听
 
-直接在项目根目录运行启动命令:
+2. docker-compose部署
+项目根目录运行启动命令:
 ```shell
    docker-compose up -d
 ```
+
+---
+
