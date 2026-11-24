@@ -57,6 +57,7 @@
           </template>
         </el-table-column>
 
+        <el-table-column prop="platform" label="注册渠道" :formatter="registrationChannel" />
         <el-table-column label="注册时间">
           <template #default="scope">
             <span>{{ dateFormat(scope.row['created_at']) }}</span>
@@ -283,6 +284,12 @@ const rules = reactive({
 const loading = ref(true)
 
 const userEditFormRef = ref(null)
+
+const registrationChannel = ({ platform, openid }) => {
+  if (platform === 'tokengine') return 'Tokengine'
+  if (platform === 'wechat' || (!platform && openid)) return '微信'
+  return platform || '未记录'
+}
 
 onMounted(() => {
   fetchUserList(users.value.page, users.value.page_size)
