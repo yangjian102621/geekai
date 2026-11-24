@@ -35,7 +35,7 @@
     </div>
 
     <!-- 视频列表 - 卡片式布局 -->
-    <div v-if="items.length > 0" v-loading="loading" class="space-y-4">
+    <div v-if="items.length > 0" class="space-y-4">
       <div
         v-for="item in items"
         :key="item.id"
@@ -252,7 +252,6 @@ const query = ref({
 const total = ref(0)
 const page = ref(1)
 const pageSize = ref(10)
-const loading = ref(false)
 const showVideoDialog = ref(false)
 const currentVideoUrl = ref('')
 const videoPlayerRef = ref(null)
@@ -293,7 +292,6 @@ const search = (evt) => {
 }
 
 const fetchData = () => {
-  loading.value = true
   query.value.page = page.value
   query.value.page_size = pageSize.value
   httpPost('/api/admin/video/list', query.value)
@@ -309,7 +307,6 @@ const fetchData = () => {
       ElMessage.error('获取数据失败：' + e.message)
     })
     .finally(() => {
-      loading.value = false
     })
 }
 

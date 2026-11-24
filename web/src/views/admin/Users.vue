@@ -1,109 +1,139 @@
 <template>
-  <div class="container user-list" v-loading="loading">
-    <div class="handle-box flex">
-      <el-input v-model="query.username" placeholder="账号" class="handle-input mr10"></el-input>
-      <el-input v-model="query.mobile" placeholder="手机" class="handle-input mr10"></el-input>
-      <el-input v-model="query.email" placeholder="邮箱" class="handle-input mr10"></el-input>
-      <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
-      <el-button type="success" :icon="Plus" @click="addUser">新增用户</el-button>
-      <el-button type="danger" :icon="Delete" @click="multipleDelete">删除</el-button>
-      <el-button type="warning" @click="showImportDialog = true">导入用户</el-button>
+  <div class="container user-list">
+    <div class="handle-box">
+      <button class="add-btn" @click="addUser">
+        <el-icon><Plus /></el-icon>
+        添加用户
+      </button>
+
+      <div class="filter-box">
+        <el-input
+          v-model="query.username"
+          placeholder="搜索用户 ID、账号"
+          class="filter-input search-input"
+          :prefix-icon="Search"
+          clearable
+          @keyup.enter="handleSearch"
+        />
+        <el-input
+          v-model="query.mobile"
+          placeholder="手机"
+          class="filter-input"
+          clearable
+          @keyup.enter="handleSearch"
+        />
+        <el-input
+          v-model="query.email"
+          placeholder="邮箱"
+          class="filter-input"
+          clearable
+          @keyup.enter="handleSearch"
+        />
+        <button class="query-btn" @click="handleSearch">查询</button>
+      </div>
+
+      <div class="toolbar-right">
+        <button class="text-btn danger" @click="multipleDelete">
+          <el-icon><Delete /></el-icon>
+          批量删除
+        </button>
+        <button class="text-btn" @click="showImportDialog = true">导入用户</button>
+      </div>
     </div>
 
-    <el-row>
-      <el-table
-        :data="users.items"
-        border
-        class="table"
-        :row-key="(row) => row.id"
-        @selection-change="handleSelectionChange"
-        table-layout="auto"
-      >
-        <el-table-column type="selection" width="38"></el-table-column>
-        <el-table-column prop="id" label="ID" />
-        <el-table-column label="账号">
-          <template #default="scope">
-            <span>{{ scope.row.username }}</span>
-            <el-tooltip content="复制用户名" placement="top">
-              <el-icon
-                class="copy-icon"
-                @click="copyUsername(scope.row.username)"
-                style="margin-left: 8px; cursor: pointer; color: #909399"
-              >
-                <DocumentCopy />
-              </el-icon>
-            </el-tooltip>
-            <el-image
-              v-if="scope.row.vip"
-              :src="vipImg"
-              style="height: 20px; position: relative; top: 5px; left: 5px"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column prop="mobile" label="手机" />
-        <el-table-column prop="email" label="邮箱" />
-        <el-table-column prop="nickname" label="昵称" />
-        <el-table-column prop="power" label="剩余积分" />
-        <el-table-column label="状态" width="80">
-          <template #default="scope">
-            <el-tag v-if="scope.row.status" type="success">正常</el-tag>
-            <el-tag type="danger" v-else>停用</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="过期时间">
-          <template #default="scope">
-            <span v-if="scope.row['expired_time']">{{ scope.row['expired_time'] }}</span>
-            <el-tag v-else>长期有效</el-tag>
-          </template>
-        </el-table-column>
-
-        <el-table-column label="注册时间">
-          <template #default="scope">
-            <span>{{ dateFormat(scope.row['created_at']) }}</span>
-          </template>
-        </el-table-column>
-
-        <el-table-column fixed="right" label="操作">
-          <template #default="scope">
-            <el-dropdown>
-              <button
-                class="px-2 py-1 bg-purple-200 hover:bg-purple-300 rounded text-purple-800 text-sm"
-              >
+    <el-table
+      :data="users.items"
+      class="user-table"
+      :row-key="(row) => row.id"
+      @selection-change="handleSelectionChange"
+    >
+      <el-table-column type="selection" width="40"></el-table-column>
+      <el-table-column prop="id" label="ID" width="72" />
+      <el-table-column label="账号" min-width="150">
+        <template #default="scope">
+          <span class="account-name">{{ scope.row.username }}</span>
+          <el-tooltip content="复制用户名" placement="top">
+            <el-icon class="copy-icon" @click="copyUsername(scope.row.username)">
+              <DocumentCopy />
+            </el-icon>
+          </el-tooltip>
+          <el-image v-if="scope.row.vip" :src="vipImg" class="vip-icon" />
+        </template>
+      </el-table-column>
+      <el-table-column prop="mobile" label="手机" min-width="120">
+        <template #default="scope">{{ scope.row.mobile || '-' }}</template>
+      </el-table-column>
+      <el-table-column prop="email" label="邮箱" min-width="150">
+        <template #default="scope">{{ scope.row.email || '-' }}</template>
+      </el-table-column>
+      <el-table-column prop="nickname" label="昵称" min-width="110">
+        <template #default="scope">{{ scope.row.nickname || '-' }}</template>
+      </el-table-column>
+      <el-table-column label="剩余积分" width="110">
+        <template #default="scope">
+          <span class="pill pill-money">{{ scope.row.power }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="状态" width="90">
+        <template #default="scope">
+          <span class="pill" :class="scope.row.status ? 'pill-green' : 'pill-red'">
+            {{ scope.row.status ? '正常' : '停用' }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="过期时间" width="150">
+        <template #default="scope">
+          <span v-if="scope.row.expired_time">{{ scope.row.expired_time }}</span>
+          <span v-else class="pill pill-blue">长期有效</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="注册时间" width="160">
+        <template #default="scope">
+          <span>{{ dateFormat(scope.row['created_at']) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="180" fixed="right">
+        <template #default="scope">
+          <div class="row-actions">
+            <button class="link-btn" @click="userEdit(scope.row)">编辑</button>
+            <button class="link-btn blue" @click="resetPass(scope.row)">重置密码</button>
+            <el-dropdown trigger="click">
+              <button class="link-btn more">
                 <i class="iconfont icon-more-horizontal"></i>
               </button>
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item @click="userEdit(scope.row)">
-                    <i class="iconfont icon-edit mr-1"></i>编辑
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="removeUser(scope.row)" class="text-red-500">
-                    <i class="iconfont icon-remove mr-1"></i>删除
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="resetPass(scope.row)">
-                    <i class="iconfont icon-password mr-1"></i>重置密码
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="genLoginLink(scope.row)">
-                    <i class="iconfont icon-link mr-1"></i>生成登录链接
-                  </el-dropdown-item>
+                  <el-dropdown-item @click="genLoginLink(scope.row)">生成登录链接</el-dropdown-item>
+                  <el-dropdown-item divided @click="removeUser(scope.row)">删除</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-          </template>
-        </el-table-column>
-      </el-table>
+          </div>
+        </template>
+      </el-table-column>
+    </el-table>
 
-      <div class="pagination">
-        <el-pagination
-          v-if="users.total > 0"
-          background
-          layout="total, prev, pager, next"
-          v-model:current-page="users.page"
-          v-model:page-size="users.page_size"
-          :total="users.total"
-          @current-change="fetchUserList(users.page, users.page_size)"
-        />
+    <div class="table-footer" v-if="users.total > 0">
+      <div class="footer-info">
+        显示第 {{ startIndex }} - {{ endIndex }} 条，共 {{ users.total }} 条
       </div>
-    </el-row>
+      <div class="footer-nav">
+        <span class="footer-text">总页数: {{ totalPages }}</span>
+        <el-pagination
+          v-model:current-page="users.page"
+          :page-size="users.page_size"
+          :total="users.total"
+          layout="prev, pager, next"
+          @current-change="(p) => fetchUserList(p, users.page_size)"
+        />
+        <span class="footer-text">每页条数:</span>
+        <el-select v-model="users.page_size" class="page-size-select" @change="changePageSize">
+          <el-option :value="10" label="10" />
+          <el-option :value="20" label="20" />
+          <el-option :value="50" label="50" />
+        </el-select>
+      </div>
+    </div>
 
     <el-dialog
       v-model="showUserEditDialog"
@@ -247,11 +277,26 @@ import { httpDownload, httpGet, httpPost } from '@/utils/http'
 import { dateFormat, disabledDate } from '@/utils/libs'
 import { Delete, DocumentCopy, Plus, Search } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 
 // 变量定义
-const users = ref({ page: 1, page_size: 15, items: [] })
-const query = ref({ username: '', page: 1, page_size: 15 })
+const users = ref({ page: 1, page_size: 10, items: [] })
+const query = ref({ username: '', page: 1, page_size: 10 })
+
+const totalPages = computed(() =>
+  Math.max(1, Math.ceil((users.value.total || 0) / (users.value.page_size || 10)))
+)
+const startIndex = computed(() =>
+  users.value.total ? (users.value.page - 1) * users.value.page_size + 1 : 0
+)
+const endIndex = computed(() =>
+  Math.min(users.value.page * users.value.page_size, users.value.total || 0)
+)
+
+const changePageSize = (size) => {
+  users.value.page = 1
+  fetchUserList(1, size)
+}
 
 const title = ref('添加用户')
 const vipImg = ref('/images/menu/member.png')
@@ -517,46 +562,333 @@ const doImport = (option) => {
 
 <style lang="stylus" scoped>
 .user-list {
-
-  .handle-box {
-    margin-bottom 20px
-    .handle-input {
-      max-width 150px;
-      margin-right 10px;
-    }
-  }
-
-  .table {
-    width 100%
-  }
-
-  .opt-box {
-    padding-bottom: 10px;
-
-    .el-icon {
-      margin-right: 5px;
-    }
-  }
-
-  .pagination {
-    margin-top: 20px;
-    display flex
-    justify-content right
-    width 100%
-  }
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 
   .el-select {
-    width: 100%
+    width: 100%;
+  }
+
+  .handle-box {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid #e2e6ee;
+    border-radius: 6px;
+    background: #f2f4f7;
+    color: #1677ff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #1677ff;
+      background: #e9ebf0;
+    }
+  }
+
+  .filter-box {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .filter-input {
+    width: 150px;
+    font-size: 14px;
+
+    :deep(.el-input__wrapper) {
+      height: 34px;
+      background: #f2f4f7;
+      box-shadow: none;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      padding: 0 12px;
+    }
+
+    :deep(.el-input__wrapper:hover) {
+      border-color: #e2e6ee;
+    }
+
+    :deep(.el-input__wrapper.is-focus) {
+      background: #fff;
+      border-color: #1677ff;
+      box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.08);
+    }
+
+    :deep(.el-input__inner) {
+      font-size: 14px;
+      color: #1d2129;
+    }
+
+    :deep(.el-input__inner::placeholder) {
+      color: #98a2b3;
+    }
+
+    :deep(.el-input__prefix) {
+      color: #98a2b3;
+      font-size: 14px;
+    }
+
+    &.search-input {
+      width: 300px;
+    }
+  }
+
+  .query-btn {
+    height: 34px;
+    padding: 0 16px;
+    border: 1px solid #e2e6ee;
+    border-radius: 6px;
+    background: #f2f4f7;
+    color: #1d2129;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #1677ff;
+      background: #e9ebf0;
+      color: #1677ff;
+    }
+  }
+
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-left: auto;
+  }
+
+  .text-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: none;
+    background: transparent;
+    padding: 4px 0;
+    color: #667085;
+    font-size: 13px;
+    cursor: pointer;
+
+    &:hover {
+      color: #374151;
+    }
+
+    &.danger {
+      color: #ef4444;
+
+      &:hover {
+        color: #dc2626;
+      }
+    }
+  }
+
+  .user-table {
+    width: 100%;
+
+    :deep(.el-table__inner-wrapper::before) {
+      display: none;
+    }
+
+    :deep(th.el-table__cell) {
+      background: #f7f8fa;
+      color: #667085;
+      font-size: 13px;
+      font-weight: 500;
+      border-bottom: none;
+      padding: 10px 0;
+    }
+
+    :deep(td.el-table__cell) {
+      border-bottom: 1px solid #f2f3f5;
+      font-size: 13px;
+      color: #1d2129;
+      padding: 14px 0;
+    }
+
+    :deep(.el-table__body tr:hover > td.el-table__cell) {
+      background: #fafbfc;
+    }
+  }
+
+  .account-name {
+    font-weight: 500;
   }
 
   .copy-icon {
-    transition: all 0.3s ease;
+    margin-left: 8px;
+    color: #b0b3b8;
+    cursor: pointer;
+    vertical-align: middle;
+    transition: all 0.2s ease;
 
     &:hover {
-      color: #409eff !important;
-      transform: scale(1.1);
+      color: #1677ff;
     }
   }
 
+  .vip-icon {
+    height: 18px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    line-height: 1;
+    white-space: nowrap;
+
+    &.pill-green {
+      background: #e9f9ef;
+      color: #22c55e;
+    }
+
+    &.pill-red {
+      background: #fdecec;
+      color: #ef4444;
+    }
+
+    &.pill-blue {
+      background: #e8f2ff;
+      color: #1677ff;
+    }
+
+    &.pill-money {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      color: #374151;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  .row-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .link-btn {
+    border: none;
+    background: transparent;
+    padding: 0;
+    color: #667085;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+      color: #1d2129;
+    }
+
+    &.blue {
+      color: #1677ff;
+
+      &:hover {
+        color: #0958d9;
+      }
+    }
+
+    &.more {
+      display: inline-flex;
+      align-items: center;
+      color: #9ca3af;
+      font-size: 16px;
+    }
+  }
+
+  .table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: #667085;
+  }
+
+  .footer-nav {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .footer-text {
+    color: #667085;
+  }
+
+  :deep(.el-pagination) {
+    padding: 0;
+    --el-pagination-button-bg-color: transparent;
+  }
+
+  :deep(.el-pager li) {
+    min-width: 30px;
+    height: 30px;
+    line-height: 30px;
+    border-radius: 6px;
+    background: transparent;
+    color: #667085;
+    font-weight: 500;
+  }
+
+  :deep(.el-pager li.is-active) {
+    background: #e8f2ff;
+    color: #1677ff;
+  }
+
+  :deep(.btn-prev),
+  :deep(.btn-next) {
+    background: transparent;
+    color: #667085;
+  }
+
+  .page-size-select {
+    width: 90px;
+  }
+}
+
+:global([data-theme='dark'] .user-list) :deep(th.el-table__cell) {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.55);
+}
+
+:global([data-theme='dark'] .user-list) :deep(td.el-table__cell) {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+:global([data-theme='dark'] .user-list) :deep(.el-table__body tr:hover > td.el-table__cell) {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+:global([data-theme='dark'] .user-list) .filter-input :deep(.el-input__wrapper) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme='dark'] .user-list) .pill-money {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.85);
 }
 </style>

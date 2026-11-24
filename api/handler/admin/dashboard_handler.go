@@ -13,6 +13,7 @@ import (
 	"geekai/handler"
 	"geekai/store/model"
 	"geekai/utils/resp"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -182,48 +183,160 @@ func (h *DashboardHandler) Stats(c *gin.Context) {
 		})
 	}
 
-	// 统计7天的订单的图表
-	startDate := now.Add(-7 * 24 * time.Hour).Format("2006-01-02")
+	// 趋势图表筛选：默认最近 7 天，支持 days，或 start/end + granularity + 用户名称
+	days := 7
+	if v, err := strconv.Atoi(c.Query("days")); err == nil && v > 0 && v <= 365 {
+		days = v
+	}
+	granularity := c.DefaultQuery("granularity", "day")
+	var startTime, endTime time.Time
+	if st, err := time.ParseInLocation("2006-01-02 15:04:05", c.Query("start"), now.Location()); err == nil {
+		if et, err2 := time.ParseInLocation("2006-01-02 15:04:05", c.Query("end"), now.Location()); err2 == nil && et.After(st) {
+			startTime, endTime = st, et
+		}
+	}
+	if startTime.IsZero() || endTime.IsZero() {
+		granularity = "day"
+		endTime = time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, now.Location())
+		startTime = time.Date(now.Year(), now.Month(), now.Day()-(days-1), 0, 0, 0, 0, now.Location())
+	}
+	// 按小时统计最多支持 31 天，超出则退化为按天
+	if granularity == "hour" && endTime.Sub(startTime) > 31*24*time.Hour {
+		granularity = "day"
+	}
+	if granularity != "hour" {
+		granularity = "day"
+	}
+
+	// 按用户名称过滤（仅作用于趋势图）
+	var filterUserId uint
+	filterByUser := false
+	if name := c.Query("username"); name != "" {
+		filterByUser = true
+		var filterUser model.User
+		if err := h.DB.Where("username = ? OR nickname = ?", name, name).First(&filterUser).Error; err == nil {
+			filterUserId = filterUser.Id
+		}
+	}
+
+	bucketKey := func(t time.Time) string {
+		if granularity == "hour" {
+			return t.Format("2006-01-02 15:00")
+		}
+		return t.Format("2006-01-02")
+	}
+
 	var statsChart = make(map[string]map[string]float64)
+	chartKeys := []string{"users", "historyMessage", "orders", "orderCount", "chats", "imageJobs", "videoJobs", "musicJobs"}
+	for _, k := range chartKeys {
+		statsChart[k] = make(map[string]float64)
+	}
 	//// 初始化
-	var userStatistic, historyMessagesStatistic, incomeStatistic = make(map[string]float64), make(map[string]float64), make(map[string]float64)
-	for i := 0; i < 7; i++ {
-		var initTime = time.Date(now.Year(), now.Month(), now.Day()-i, 0, 0, 0, 0, now.Location()).Format("2006-01-02")
-		userStatistic[initTime] = float64(0)
-		historyMessagesStatistic[initTime] = float64(0)
-		incomeStatistic[initTime] = float64(0)
+	if granularity == "hour" {
+		for t := startTime.Truncate(time.Hour); !t.After(endTime); t = t.Add(time.Hour) {
+			key := bucketKey(t)
+			for _, k := range chartKeys {
+				statsChart[k][key] = 0
+			}
+		}
+	} else {
+		startDay := time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, startTime.Location())
+		for t := startDay; !t.After(endTime); t = t.AddDate(0, 0, 1) {
+			key := bucketKey(t)
+			for _, k := range chartKeys {
+				statsChart[k][key] = 0
+			}
+		}
 	}
 
-	// 统计用户7天增加的曲线
+	// 统计区间内新增用户曲线
+	userQuery := h.DB.Model(&model.User{}).Where("created_at BETWEEN ? AND ?", startTime, endTime)
+	if filterByUser {
+		userQuery = userQuery.Where("id = ?", filterUserId)
+	}
 	var users []model.User
-	err := h.DB.Model(&model.User{}).Where("created_at > ?", startDate).Find(&users).Error
-	if err == nil {
+	if err := userQuery.Find(&users).Error; err == nil {
 		for _, item := range users {
-			userStatistic[item.CreatedAt.Format("2006-01-02")] += 1
+			statsChart["users"][bucketKey(item.CreatedAt)] += 1
 		}
 	}
 
-	// 统计7天积分消耗
+	// 统计积分消耗曲线
+	powerQuery := h.DB.Where("mark = ?", types.PowerSub).Where("created_at BETWEEN ? AND ?", startTime, endTime)
+	if filterByUser {
+		powerQuery = powerQuery.Where("user_id = ?", filterUserId)
+	}
 	var chartPowerLogs []model.PowerLog
-	err = h.DB.Where("mark = ?", types.PowerSub).Where("created_at > ?", startDate).Find(&chartPowerLogs).Error
-	if err == nil {
+	if err := powerQuery.Find(&chartPowerLogs).Error; err == nil {
 		for _, item := range chartPowerLogs {
-			historyMessagesStatistic[item.CreatedAt.Format("2006-01-02")] += float64(item.Amount)
+			statsChart["historyMessage"][bucketKey(item.CreatedAt)] += float64(item.Amount)
 		}
 	}
 
-	// 统计最近7天的订单
-	var orders []model.Order
-	err = h.DB.Where("status = ?", types.OrderPaidSuccess).Where("created_at > ?", startDate).Find(&orders).Error
-	if err == nil {
-		for _, item := range orders {
-			incomeStatistic[item.CreatedAt.Format("2006-01-02")], _ = decimal.NewFromFloat(incomeStatistic[item.CreatedAt.Format("2006-01-02")]).Add(decimal.NewFromFloat(item.Amount)).Float64()
+	// 统计订单收入与订单数曲线
+	orderQuery := h.DB.Where("status = ?", types.OrderPaidSuccess).Where("created_at BETWEEN ? AND ?", startTime, endTime)
+	if filterByUser {
+		orderQuery = orderQuery.Where("user_id = ?", filterUserId)
+	}
+	var chartOrders []model.Order
+	if err := orderQuery.Find(&chartOrders).Error; err == nil {
+		for _, item := range chartOrders {
+			key := bucketKey(item.CreatedAt)
+			statsChart["orderCount"][key] += 1
+			statsChart["orders"][key], _ = decimal.NewFromFloat(statsChart["orders"][key]).Add(decimal.NewFromFloat(item.Amount)).Float64()
 		}
 	}
 
-	statsChart["users"] = userStatistic
-	statsChart["historyMessage"] = historyMessagesStatistic
-	statsChart["orders"] = incomeStatistic
+	// 统计对话数曲线
+	var chartChats []model.ChatItem
+	if err := h.DB.Where("created_at BETWEEN ? AND ?", startTime, endTime).Find(&chartChats).Error; err == nil {
+		for _, item := range chartChats {
+			statsChart["chats"][bucketKey(item.CreatedAt)] += 1
+		}
+	}
+
+	// 统计图片生成曲线
+	var chartMjJobs []model.MidJourneyJob
+	if err := h.DB.Where("created_at BETWEEN ? AND ?", startTime, endTime).Find(&chartMjJobs).Error; err == nil {
+		for _, item := range chartMjJobs {
+			statsChart["imageJobs"][bucketKey(item.CreatedAt)] += 1
+		}
+	}
+	var chartImageJobs []model.ImageJob
+	if err := h.DB.Where("created_at BETWEEN ? AND ?", startTime, endTime).Find(&chartImageJobs).Error; err == nil {
+		for _, item := range chartImageJobs {
+			statsChart["imageJobs"][bucketKey(item.CreatedAt)] += 1
+		}
+	}
+
+	// 统计视频生成曲线
+	var chartVideoJobs []model.VideoJob
+	if err := h.DB.Where("created_at BETWEEN ? AND ?", startTime, endTime).Find(&chartVideoJobs).Error; err == nil {
+		for _, item := range chartVideoJobs {
+			statsChart["videoJobs"][bucketKey(item.CreatedAt)] += 1
+		}
+	}
+
+	// 即梦任务按类型归入图片/视频曲线
+	var chartJimengJobs []model.JimengJob
+	if err := h.DB.Where("created_at BETWEEN ? AND ?", startTime, endTime).Find(&chartJimengJobs).Error; err == nil {
+		for _, item := range chartJimengJobs {
+			switch item.Type {
+			case "text_to_image", "image_to_image", "image_edit", "image_effects":
+				statsChart["imageJobs"][bucketKey(item.CreatedAt)] += 1
+			case "text_to_video", "image_to_video":
+				statsChart["videoJobs"][bucketKey(item.CreatedAt)] += 1
+			}
+		}
+	}
+
+	// 统计音乐生成曲线
+	var chartSunoJobs []model.SunoJob
+	if err := h.DB.Where("created_at BETWEEN ? AND ?", startTime, endTime).Find(&chartSunoJobs).Error; err == nil {
+		for _, item := range chartSunoJobs {
+			statsChart["musicJobs"][bucketKey(item.CreatedAt)] += 1
+		}
+	}
 
 	stats.Chart = statsChart
 

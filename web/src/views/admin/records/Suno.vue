@@ -27,7 +27,7 @@
       <el-button type="primary" class="ml-2" :icon="Search" @click="fetchData">搜索</el-button>
     </div>
 
-    <div v-if="items.length > 0" v-loading="loading">
+    <div v-if="items.length > 0">
       <el-row>
         <el-table :data="items" :row-key="(row) => row.id" table-layout="auto">
           <el-table-column prop="user_id" label="用户ID" width="100" />
@@ -213,7 +213,6 @@ const query = ref({ prompt: '', title: '', created_at: [], page: 1, page_size: 1
 const total = ref(0)
 const page = ref(1)
 const pageSize = ref(10)
-const loading = ref(true)
 
 const playList = ref([])
 const playerRef = ref(null)
@@ -246,7 +245,6 @@ const fetchData = () => {
         page.value = res.data.page
         pageSize.value = res.data.page_size
       }
-      loading.value = false
     })
     .catch((e) => {
       showMessageError('获取数据失败：' + e.message)

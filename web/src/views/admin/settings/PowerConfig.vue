@@ -1,7 +1,7 @@
 <template>
   <div class="power-config form">
     <div class="container">
-      <el-form :model="firstUseGift" label-position="top" class="px-3 py-5" v-loading="giftLoading">
+      <el-form :model="firstUseGift" label-position="top" class="px-3 py-5">
         <el-form-item label="首次客户端登录赠送订阅">
           <el-switch v-model="firstUseGift.enabled" />
         </el-form-item>
@@ -14,7 +14,7 @@
         </el-button>
       </el-form>
       <el-divider />
-      <el-form :model="rewardQuota" label-position="top" class="px-3 py-5" v-loading="quotaLoading">
+      <el-form :model="rewardQuota" label-position="top" class="px-3 py-5">
         <el-form-item label="签到、邀请积分追加 Token 额度">
           <el-switch v-model="rewardQuota.enabled" />
         </el-form-item>
@@ -158,11 +158,9 @@ import { onMounted, reactive, ref } from 'vue'
 const system = ref({})
 const systemFormRef = ref(null)
 const firstUseGift = ref({ enabled: false, plan_id: 0 })
-const giftLoading = ref(true)
 const giftLoaded = ref(false)
 const giftSaving = ref(false)
 const rewardQuota = ref({ enabled: false, quota_per_point: 1000 })
-const quotaLoading = ref(true)
 const quotaLoaded = ref(false)
 const quotaSaving = ref(false)
 
@@ -173,14 +171,12 @@ onMounted(() => {
       quotaLoaded.value = true
     })
     .catch((e) => ElMessage.error('加载额度换算配置失败：' + e.message))
-    .finally(() => { quotaLoading.value = false })
   httpGet('/api/admin/config/get?key=first_use_gift')
     .then((res) => {
       firstUseGift.value = { enabled: false, plan_id: 0, ...res.data }
       giftLoaded.value = true
     })
     .catch((e) => ElMessage.error('加载订阅赠送配置失败：' + e.message))
-    .finally(() => { giftLoading.value = false })
   // 加载系统配置
   httpGet('/api/admin/config/get?key=system')
     .then((res) => {

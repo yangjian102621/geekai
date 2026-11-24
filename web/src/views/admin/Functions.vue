@@ -1,5 +1,5 @@
 <template>
-  <div class="container function" v-loading="loading">
+  <div class="container function">
     <div class="handle-box">
       <el-button type="primary" :icon="Plus" @click="addRow">新增</el-button>
     </div>
@@ -158,7 +158,6 @@ const tableData = ref([])
 const item = ref({})
 const params = ref([])
 const formRef = ref(null)
-const loading = ref(true)
 const title = ref('新增函数')
 
 const rules = reactive({
@@ -178,7 +177,6 @@ const fetch = () => {
       if (res.data) {
         tableData.value = res.data
       }
-      loading.value = false
     })
     .catch(() => {
       ElMessage.error('获取数据失败')

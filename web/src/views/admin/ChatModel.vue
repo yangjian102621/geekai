@@ -1,5 +1,5 @@
 <template>
-  <div class="container model-list" v-loading="loading">
+  <div class="container model-list">
     <div class="handle-box">
       <el-input v-model="query.name" placeholder="模型名称" class="handle-input" />
 
@@ -249,7 +249,6 @@ const rules = reactive({
   value: [{ required: true, message: '请输入模型值', trigger: 'change' }],
   power: [{ required: true, message: '请输入消耗积分', trigger: 'change' }],
 })
-const loading = ref(true)
 const formRef = ref(null)
 const modelTypes = ref([
   { label: '聊天', value: 'chat' },
@@ -288,7 +287,6 @@ const fetchData = () => {
         })
         items.value = res.data
       }
-      loading.value = false
     })
     .catch((e) => {
       console.error(e)
