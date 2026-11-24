@@ -223,7 +223,9 @@ const rewardAmount = computed(() =>
 )
 const rewardMax = computed(() => rewardAmount.value * inviteLimit)
 const rewardTotal = computed(() => rewardAmount.value * inviteLimit * 2)
-const { summary, isLoading: summaryLoading, isError: summaryError, refetch } = useInviteSummary(!aff.value && !!user.value)
+const { summary, isLoading: summaryLoading, isError: summaryError, refetch } = useInviteSummary(
+  () => !aff.value && !!user.value,
+)
 
 /* InviteeView 的下载选项（mac 架构未知时拆成两个按钮） */
 const macUnknown = currentOs() === 'mac' && currentMacArch() === 'unknown'
