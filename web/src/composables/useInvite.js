@@ -1,9 +1,10 @@
 // * 邀请数据：邀请码 + 统计汇总、系统配置中的邀请奖励。
 
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { buildInviteURL, fetchInviteCode, fetchInviteReward, fetchInviteStats } from '@/services/site'
 
-export function useInviteSummary(shouldLoad) {
+// enabled 支持传函数：登录态是异步恢复的，需要在 user 就绪后自动补拉数据。
+export function useInviteSummary(enabled) {
   const summary = ref(null)
   const isLoading = ref(false)
   const isError = ref(false)
@@ -29,10 +30,14 @@ export function useInviteSummary(shouldLoad) {
     }
   }
 
-  watch(shouldLoad, (enabled) => {
-    if (enabled) load()
-  }, { immediate: true })
-
+  const active = computed(() => (typeof enabled === 'function' ? enabled() : enabled))
+  watch(
+    active,
+    (value) => {
+      if (value) load()
+    },
+    { immediate: true },
+  )
   return { summary, isLoading, isError, refetch: load }
 }
 
