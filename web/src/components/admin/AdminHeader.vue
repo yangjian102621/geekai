@@ -167,12 +167,10 @@ const logout = function () {
   box-sizing: border-box;
   overflow: hidden;
   height: 50px;
-  font-size: 22px;
-  // Together AI nav：白/午夜蓝画布 + hairline 底边
   background: var(--admin-header-bg);
   border-bottom: 1px solid var(--admin-header-border);
   color: var(--theme-text-color-primary);
-  letter-spacing: -0.22px;
+  font-size: 15px;
   transition: background 0.2s ease, border-color 0.2s ease;
 
   .collapse-btn {
@@ -252,13 +250,11 @@ const logout = function () {
           align-items: center;
           gap: 8px;
           height: 34px;
-          padding: 0 12px 0 4px;
-          border-radius: 999px;
-          background: #f1f2f6;
+          padding: 0 12px;
           transition: background 0.2s ease;
 
           &:hover {
-            background: #e9ebf0;
+            background: var(--admin-header-hover);
           }
         }
 
@@ -269,8 +265,8 @@ const logout = function () {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          border-radius: 50%;
-          background: #5ab0f5;
+          border-radius: 4px;
+          background: var(--el-color-primary, #010120);
           color: #fff;
           font-size: 13px;
           font-weight: 600;
@@ -303,10 +299,8 @@ const logout = function () {
 }
 
 :global([data-theme='dark']) .user-chip {
-  background: rgba(255, 255, 255, 0.08);
-
   &:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.08);
   }
 }
 

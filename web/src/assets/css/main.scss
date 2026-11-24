@@ -12,7 +12,7 @@ body,
 }
 
 body {
-  font-family: var(--ta-font-sans, 'The Future', Arial, Helvetica, PingFang SC, Microsoft YaHei, sans-serif);
+  font-family: var(--ta-font-sans, Arial, Helvetica, PingFang SC, Microsoft YaHei, sans-serif);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -58,11 +58,9 @@ body {
 
       .container {
         padding: 15px 20px 30px 20px;
-        // Together AI contained card：hairline 边框 + 8px 圆角 + 深蓝着色阴影
         background: var(--admin-container-bg, #ffffff);
         border: 1px solid var(--admin-container-border, rgba(0, 0, 0, 0.08));
-        border-radius: 8px;
-        box-shadow: var(--ta-shadow, rgba(1, 1, 32, 0.1) 0px 4px 10px);
+        border-radius: 4px;
         margin-bottom: 20px;
         max-width: 100%;
       }

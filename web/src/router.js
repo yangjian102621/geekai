@@ -321,7 +321,7 @@ const router = createRouter({
 router.beforeEach((to) => {
   // 原 router 中对非 /admin 路径的 location.assign 重定向已移除：
   // 门户站点与后台合并为同一个 SPA，/ 与 /admin/* 都在本应用内处理。
-  document.title = to.meta.title || 'ThinkBuddy'
+  document.title = to.meta.title ? `HanyoAI - ${to.meta.title}` : 'HanyoAI'
 })
 
 export { router }

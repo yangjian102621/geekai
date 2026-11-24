@@ -388,11 +388,10 @@ onUnmounted(() => {
 <style scoped lang="scss">
 .dashboard {
   --dash-surface: var(--admin-container-bg, #ffffff);
-  --dash-border: rgba(1, 1, 32, 0.04);
-  --dash-shadow: 0 1px 2px rgba(1, 1, 32, 0.04), 0 4px 12px rgba(1, 1, 32, 0.06);
-  --dash-shadow-hover: 0 8px 24px rgba(1, 1, 32, 0.12);
+  --dash-border: rgba(0, 0, 0, 0.08);
+  --dash-shadow: none;
   --dash-tool-bg: #ffffff;
-  --dash-tool-border: rgba(0, 0, 0, 0.09);
+  --dash-tool-border: rgba(0, 0, 0, 0.12);
   --dash-tool-color: #4b5563;
   --dash-hover: rgba(0, 0, 0, 0.02);
   --dash-divider: rgba(0, 0, 0, 0.06);
@@ -450,17 +449,11 @@ onUnmounted(() => {
     position: relative;
     background: var(--dash-surface);
     border: 1px solid var(--dash-border);
-    border-radius: 10px;
+    border-radius: 4px;
     padding: 18px 22px 20px;
     overflow: hidden;
     min-height: 176px;
     box-sizing: border-box;
-    box-shadow: var(--dash-shadow);
-    transition: box-shadow 0.2s ease;
-
-    &:hover {
-      box-shadow: var(--dash-shadow-hover);
-    }
   }
 
   .stat-head {
@@ -504,7 +497,7 @@ onUnmounted(() => {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
+    border-radius: 4px;
     color: #fff;
 
     .el-icon {
@@ -527,7 +520,6 @@ onUnmounted(() => {
     font-size: 20px;
     font-weight: 600;
     line-height: 1.15;
-    letter-spacing: -0.4px;
     color: var(--theme-text-color-primary);
     white-space: nowrap;
   }
@@ -546,9 +538,8 @@ onUnmounted(() => {
     margin-top: 18px;
     background: var(--dash-surface);
     border: 1px solid var(--dash-border);
-    border-radius: 10px;
+    border-radius: 4px;
     padding: 20px 24px 10px;
-    box-shadow: var(--dash-shadow);
   }
 
   .trend-head {
@@ -572,7 +563,6 @@ onUnmounted(() => {
       margin: 0;
       font-size: 18px;
       font-weight: 600;
-      letter-spacing: -0.3px;
       color: var(--theme-text-color-primary);
     }
   }
@@ -645,9 +635,8 @@ onUnmounted(() => {
   .panel {
     background: var(--dash-surface);
     border: 1px solid var(--dash-border);
-    border-radius: 10px;
+    border-radius: 4px;
     padding: 18px 24px 8px;
-    box-shadow: var(--dash-shadow);
   }
 
   .panel-head {
@@ -702,8 +691,8 @@ onUnmounted(() => {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    background: #5ab0f5;
+    border-radius: 4px;
+    background: var(--el-color-primary, #010120);
     color: #fff;
     font-size: 13px;
     font-weight: 600;
@@ -750,8 +739,6 @@ onUnmounted(() => {
 
 :global([data-theme='dark'] .dashboard) {
   --dash-border: rgba(255, 255, 255, 0.08);
-  --dash-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.35);
-  --dash-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.5);
   --dash-tool-bg: transparent;
   --dash-tool-border: rgba(255, 255, 255, 0.14);
   --dash-tool-color: rgba(255, 255, 255, 0.7);

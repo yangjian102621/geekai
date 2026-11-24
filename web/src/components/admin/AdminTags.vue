@@ -123,7 +123,6 @@ const handleTags = (command) => {
   position: relative;
   height: 30px;
   overflow: hidden;
-  // Together AI：画布表面 + hairline 底边，无模糊无投影
   background: var(--admin-tags-bg);
   padding: 5px 120px 5px 10px;
   border-bottom: 1px solid var(--admin-tags-border);
@@ -156,8 +155,8 @@ const handleTags = (command) => {
     }
 
     .tags-li.active {
-      background: var(--admin-tags-item-bg, transparent);
-      border-color: var(--theme-text-color-primary, #000000);
+      background: var(--admin-header-hover);
+      border-color: transparent;
       .tags-li-title {
         color: var(--theme-text-color-primary);
         font-weight: 500;
@@ -192,7 +191,8 @@ const handleTags = (command) => {
 
 .tags.dark {
   .tags-li.active {
-    border-color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: transparent;
   }
 }
 </style>
