@@ -136,11 +136,13 @@
             <el-switch v-model="system['enabled_register']" />
           </el-form-item>
 
-          <el-form-item label="注册方式" prop="register_ways">
-            <el-checkbox-group v-model="system['register_ways']">
-              <el-checkbox value="mobile">手机注册</el-checkbox>
-              <el-checkbox value="email">邮箱注册</el-checkbox>
-              <el-checkbox value="username">用户名注册</el-checkbox>
+          <el-form-item label="注册 / 登录方式" prop="register_ways">
+            <el-checkbox-group v-model="registrationMethods">
+              <el-checkbox value="mobile">手机号注册 / 登录</el-checkbox>
+              <el-checkbox value="email">邮箱验证码</el-checkbox>
+              <el-checkbox value="username">用户名注册 / 登录</el-checkbox>
+              <el-checkbox value="tokengine">Tokengine 注册 / 登录</el-checkbox>
+              <el-checkbox value="wechat">微信注册 / 登录</el-checkbox>
             </el-checkbox-group>
           </el-form-item>
 
@@ -265,14 +267,29 @@
 
 <script setup>
 import ItemsInput from '@/components/ui/ItemsInput.vue'
+import { removeSystemInfo } from '@/store/cache'
 import { httpGet, httpPost } from '@/utils/http'
 import { copyObj } from '@/utils/libs'
 import { UploadFilled } from '@element-plus/icons-vue'
 import Compressor from 'compressorjs'
 import { ElMessage } from 'element-plus'
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 
 const system = ref({ models: [] })
+const registrationMethods = computed({
+  get() {
+    const config = system.value
+    const methods = Array.isArray(config.register_ways) ? [...config.register_ways] : []
+    if (config.show_tokengine_login) methods.push('tokengine')
+    if (config.show_wechat_login) methods.push('wechat')
+    return methods
+  },
+  set(methods) {
+    system.value.register_ways = methods.filter((method) => method !== 'tokengine' && method !== 'wechat')
+    system.value.show_tokengine_login = methods.includes('tokengine')
+    system.value.show_wechat_login = methods.includes('wechat')
+  },
+})
 const configBak = ref({})
 const systemFormRef = ref(null)
 const models = ref([])
@@ -287,7 +304,12 @@ onMounted(() => {
   // 加载系统配置
   httpGet('/api/admin/config/get?key=system')
     .then((res) => {
-      system.value = res.data
+      const config = res.data ?? {}
+      system.value = {
+        ...config,
+        show_tokengine_login: config.show_tokengine_login !== false,
+        show_wechat_login: config.show_wechat_login !== false,
+      }
       configBak.value = copyObj(system.value)
     })
     .catch((e) => {
@@ -323,6 +345,7 @@ const save = function () {
     if (valid) {
       httpPost('/api/admin/config/update/base', system.value)
         .then(() => {
+          removeSystemInfo()
           // 动态更新手机站路由
           if (system.value['enable_mobile_site']) {
             // addMobileRoutes()

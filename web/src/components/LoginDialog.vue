@@ -1,20 +1,22 @@
 <template>
   <div class="login-dialog w-full">
     <div class="login-box" v-if="login">
-      <div class="primary-login-methods" role="group" aria-label="主要登录方式">
+      <div v-if="hasLocalLogin" class="primary-login-methods" role="group" aria-label="主要登录方式">
         <button
+          v-if="mobileLoginEnabled"
           type="button"
           :class="{ active: loginActiveName === 'mobile' }"
           :aria-pressed="loginActiveName === 'mobile'"
-          @click="loginActiveName = 'mobile'"
+          @click="selectedLoginMethod = 'mobile'"
         >
           手机号登录
         </button>
         <button
+          v-if="accountLoginEnabled"
           type="button"
           :class="{ active: loginActiveName === 'account' }"
           :aria-pressed="loginActiveName === 'account'"
-          @click="loginActiveName = 'account'"
+          @click="selectedLoginMethod = 'account'"
         >
           账号登录
         </button>
@@ -65,7 +67,7 @@
             </el-row>
 
             <div class="flex items-center justify-between pt-1 text-sm" style="color: var(--login-text-color)">
-              <div class="flex items-center gap-1">
+              <div v-if="enableRegister" class="flex items-center gap-1">
                 <span>没有账户？</span>
                 <el-button
                   size="small"
@@ -79,7 +81,7 @@
               </div>
               <el-button
                 type="info"
-                class="forget"
+                class="forget ml-auto"
                 size="small"
                 @click="showResetPass = true"
                 >忘记密码？</el-button
@@ -147,8 +149,11 @@
               :disabled="loading"
               type="submit"
             >
-              {{ loading ? '登录中...' : '登录 / 注册' }}
+              {{ mobileLoginButtonText }}
             </button>
+            <div v-if="enableRegister && !accountLoginEnabled" class="text-center text-sm">
+              <button type="button" class="login-link" @click="login = false">注册</button>
+            </div>
           </el-form>
         </div>
 
@@ -198,26 +203,32 @@
           </button>
           <p v-if="!tokengineEnabled" class="mt-3 text-sm" style="color: var(--login-text-color)">Tokengine 登录暂未开放</p>
         </div>
+
+        <p v-if="enableRegister !== null && !hasLocalLogin && !hasThirdPartyLogin" class="py-4 text-center text-sm">
+          暂无可用的登录方式，请联系管理员。
+        </p>
       </div>
 
-      <div class="other-login-divider"><span>其他登录方式</span></div>
-      <div class="secondary-login-methods" role="group" aria-label="其他登录方式">
+      <div v-if="hasLocalLogin && showThirdPartySwitcher" class="other-login-divider"><span>其他登录方式</span></div>
+      <div v-if="showThirdPartySwitcher" class="secondary-login-methods" role="group" aria-label="第三方登录方式">
         <button
+          v-if="showTokengineLogin"
           type="button"
           aria-label="Tokengine"
           :aria-pressed="loginActiveName === 'tokengine'"
           :class="{ active: loginActiveName === 'tokengine' }"
-          @click="loginActiveName = 'tokengine'"
+          @click="selectedLoginMethod = 'tokengine'"
         >
           <span class="secondary-login-icon"><el-icon><Key /></el-icon></span>
           <span>Tokengine</span>
         </button>
         <button
+          v-if="showWechatLogin"
           type="button"
           aria-label="微信登录"
           :aria-pressed="loginActiveName === 'wechat'"
           :class="{ active: loginActiveName === 'wechat' }"
-          @click="loginActiveName = 'wechat'"
+          @click="selectedLoginMethod = 'wechat'"
         >
           <span class="secondary-login-icon text-green-600"><i class="iconfont icon-wechat" aria-hidden="true"></i></span>
           <span>微信登录</span>
@@ -372,12 +383,15 @@
         </div>
       </el-form>
 
-      <div class="tip-result" v-else>
+      <div class="tip-result" v-else-if="enableRegister === false">
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-result icon="error" title="注册功能已关闭">
+            <el-result icon="error" title="表单注册暂不可用">
               <template #sub-title>
-                <p>抱歉，系统已关闭注册功能，请联系管理员添加账号！</p>
+                <p>如需开通账号，请联系管理员。</p>
+              </template>
+              <template #extra>
+                <el-button @click="login = true">返回登录</el-button>
               </template>
             </el-result>
           </el-col>
@@ -419,7 +433,7 @@ import { ElMessage } from 'element-plus'
 import { marked } from 'marked'
 import QRCode from 'qrcode'
 import { isWechat } from '@/utils/libs'
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 // eslint-disable-next-line no-undef
 const props = defineProps({
@@ -434,7 +448,26 @@ const props = defineProps({
   },
 })
 const login = ref(props.active === 'login')
-const loginActiveName = ref('mobile')
+const registerWays = ref([])
+const mobileLoginEnabled = computed(() => registerWays.value.includes('mobile'))
+const accountLoginEnabled = computed(() => registerWays.value.includes('username'))
+const hasLocalLogin = computed(() => mobileLoginEnabled.value || accountLoginEnabled.value)
+const showTokengineLogin = ref(false)
+const showWechatLogin = ref(false)
+const hasThirdPartyLogin = computed(() => showTokengineLogin.value || showWechatLogin.value)
+const enableRegister = ref(null)
+const selectedLoginMethod = ref('')
+const loginActiveName = computed(() => {
+  if (selectedLoginMethod.value) return selectedLoginMethod.value
+  if (mobileLoginEnabled.value) return 'mobile'
+  if (accountLoginEnabled.value) return 'account'
+  if (showTokengineLogin.value) return 'tokengine'
+  return showWechatLogin.value ? 'wechat' : ''
+})
+const showThirdPartySwitcher = computed(() => {
+  const onLocalLogin = loginActiveName.value === 'mobile' || loginActiveName.value === 'account'
+  return (onLocalLogin && hasThirdPartyLogin.value) || (showTokengineLogin.value && showWechatLogin.value)
+})
 const data = ref({
   username: import.meta.env.VITE_USER,
   password: import.meta.env.VITE_PASS,
@@ -468,8 +501,6 @@ const pollingTimer = ref(null)
 const qrcodeExpired = ref(false)
 const qrcodeTimer = ref(null)
 
-const enableRegister = ref(true)
-
 const wxImg = ref('/images/wx.png')
 const captchaRef = ref(null)
 // eslint-disable-next-line no-undef
@@ -480,6 +511,10 @@ const captchaType = ref('')
 const showResetPass = ref(false)
 const store = useSharedStore()
 const loading = ref(false)
+const mobileLoginButtonText = computed(() => {
+  if (loading.value) return '登录中...'
+  return enableRegister.value ? '登录 / 注册' : '登录'
+})
 const agreeChecked = ref(false)
 const showAgreement = ref(false)
 const showPrivacy = ref(false)
@@ -506,56 +541,53 @@ watch(
   }
 )
 
-onMounted(() => {
+const loginWithWechatBrowser = () => {
   const urlParams = new URLSearchParams(window.location.search)
-  httpGet('/api/user/login/tokengine/config')
-    .then((res) => { tokengineEnabled.value = res.data?.enabled === true })
-    .catch(() => { tokengineEnabled.value = false })
+  if (!isWechat() || urlParams.has('tokengine')) return
 
-  // 如果是微信浏览器，则尝试获取微信公众号授权登录
-  if (isWechat() && !urlParams.has('tokengine')) {
-    // 检查 URL 中是否包含 code 参数
-    const code = urlParams.get('code')
-    if (code) {
-      // 可以在这里将 code 发送到后端进行登录验证
-      httpPost('/api/user/wxAuthLogin', { code: code })
-        .then(handleLoginSuccess)
-        .catch((e) => {
-          ElMessage.error('登录失败，' + e.message)
-        })
-        .finally(() => {
-          loading.value = false
-        })
-    } else {
-      // 如果是微信浏览器，获取微信公众号配置
-      httpGet('/api/config/get?key=wx_gzh')
-        .then((res) => {
-          // 构造微信授权 URL
-          const redirectUri = encodeURIComponent(`${location.protocol}//${location.host}/login`)
-          const authUrl = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${res.data.app_id}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect`
-
-          // 如果是微信浏览器，直接跳转到授权页面
-          window.location.href = authUrl
-        })
-        .catch((e) => {
-          console.error('获取微信公众号配置失败：', e.message)
-        })
-    }
+  const code = urlParams.get('code')
+  if (code) {
+    httpPost('/api/user/wxAuthLogin', { code })
+      .then(handleLoginSuccess)
+      .catch((e) => {
+        ElMessage.error('登录失败，' + e.message)
+      })
+      .finally(() => {
+        loading.value = false
+      })
+    return
   }
 
-  // 获取系统配置
-  getSystemInfo()
+  httpGet('/api/config/get?key=wx_gzh')
     .then((res) => {
-      if (res.data) {
-        // 是否启用注册
-        enableRegister.value = res.data['enabled_register']
-        // 使用后台上传的客服微信二维码
-        if (res.data['wechat_card_url'] !== '') {
-          wxImg.value = res.data['wechat_card_url']
-        }
-      }
+      const redirectUri = encodeURIComponent(`${location.protocol}//${location.host}/login`)
+      window.location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${res.data.app_id}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect`
     })
     .catch((e) => {
+      console.error('获取微信公众号配置失败：', e.message)
+    })
+}
+
+onMounted(() => {
+  getSystemInfo()
+    .then((res) => {
+      const config = res.data
+      registerWays.value = Array.isArray(config?.register_ways) ? config.register_ways : []
+      enableRegister.value = config?.enabled_register === true && hasLocalLogin.value
+      showTokengineLogin.value = config?.show_tokengine_login !== false
+      showWechatLogin.value = config?.show_wechat_login !== false
+      if (config?.wechat_card_url) {
+        wxImg.value = config.wechat_card_url
+      }
+      if (showTokengineLogin.value) {
+        httpGet('/api/user/login/tokengine/config')
+          .then((result) => { tokengineEnabled.value = result.data?.enabled === true })
+          .catch(() => { tokengineEnabled.value = false })
+      }
+      if (showWechatLogin.value) loginWithWechatBrowser()
+    })
+    .catch((e) => {
+      enableRegister.value = false
       ElMessage.error('获取系统配置失败：' + e.message)
     })
 

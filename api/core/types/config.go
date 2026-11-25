@@ -87,6 +87,10 @@ type BaseConfig struct {
 	RegisterWays    []string `json:"register_ways,omitempty"`    // 注册方式：支持手机（mobile），邮箱注册（email），账号密码注册
 	EnabledRegister bool     `json:"enabled_register,omitempty"` // 是否开放注册
 
+	// 未配置时默认展示第三方登录入口。
+	ShowTokengineLogin *bool `json:"show_tokengine_login,omitempty"`
+	ShowWechatLogin    *bool `json:"show_wechat_login,omitempty"`
+
 	OrderPayTimeout int `json:"order_pay_timeout,omitempty"` //订单支付超时时间，单位：分钟
 
 	InitPower         int            `json:"init_power,omitempty"`          // 新用户注册赠送积分值

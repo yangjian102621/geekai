@@ -73,6 +73,10 @@ export function removeAdminInfo() {
   Storage.remove(adminDataKey)
 }
 
+export function removeSystemInfo() {
+  Storage.remove(systemInfoKey)
+}
+
 export function getSystemInfo() {
   const item = Storage.get(systemInfoKey) ?? { expire: 0, data: null }
   if (item.expire > Date.now()) {
