@@ -71,10 +71,9 @@ func NewRewardQuotaService(db *gorm.DB, config *types.AppConfig) *RewardQuotaSer
 }
 
 func (s *RewardQuotaService) Validate() error {
-	base, err := oauthConfigURL(s.oauth.config.BaseURL)
 	token := s.config.TokengineManagementToken()
-	if !s.config.TokengineOAuth.Enabled || err != nil || base.Path != "" || token == "" || strings.ContainsAny(token, "\r\n") {
-		return errors.New("请先配置 Token 平台登录地址和统一管理令牌")
+	if s.oauth.validateProvider() != nil || token == "" || strings.ContainsAny(token, "\r\n") {
+		return errors.New("请先配置 Token 平台登录地址、内网地址和统一管理令牌")
 	}
 	return nil
 }
@@ -164,7 +163,7 @@ func (s *RewardQuotaService) grant(ctx context.Context, reward model.PowerLog) (
 		return QuotaFailed, "identity_provider_mismatch"
 	}
 	body, _ := json.Marshal(map[string]any{"id": id, "action": "add_quota", "mode": "add", "value": reward.QuotaAmount})
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.oauth.config.BaseURL+"/api/user/manage", strings.NewReader(string(body)))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.oauth.config.InternalBaseURL+"/api/user/manage", strings.NewReader(string(body)))
 	if err != nil {
 		return QuotaFailed, "invalid_grant_request"
 	}

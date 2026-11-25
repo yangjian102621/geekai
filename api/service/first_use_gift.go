@@ -21,9 +21,9 @@ import (
 )
 
 type FirstUseGiftService struct {
-	db     *gorm.DB
-	config types.FirstUseGiftConfig
-	client *http.Client
+	db           *gorm.DB
+	oauth        *TokengineOAuth
+	serviceToken string
 }
 
 type FirstUseGiftResult struct {
@@ -49,17 +49,11 @@ type firstUseGiftState struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func NewFirstUseGiftService(db *gorm.DB, config types.FirstUseGiftConfig, oauthBaseURL, serviceToken string) *FirstUseGiftService {
-	if strings.TrimSpace(config.BaseURL) == "" {
-		config.BaseURL = oauthBaseURL
-	}
-	config.BaseURL = strings.TrimRight(strings.TrimSpace(config.BaseURL), "/")
-	config.ServiceToken = strings.TrimSpace(serviceToken)
+func NewFirstUseGiftService(db *gorm.DB, oauth *TokengineOAuth, serviceToken string) *FirstUseGiftService {
 	return &FirstUseGiftService{
-		db: db.Session(&gorm.Session{Logger: db.Logger.LogMode(gormlogger.Silent)}), config: config,
-		client: &http.Client{Timeout: 10 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error {
-			return errTokengineRedirect
-		}},
+		db:           db.Session(&gorm.Session{Logger: db.Logger.LogMode(gormlogger.Silent)}),
+		oauth:        oauth,
+		serviceToken: strings.TrimSpace(serviceToken),
 	}
 }
 
@@ -190,20 +184,20 @@ func saveFirstUseGiftState(db *gorm.DB, login *model.ClientEvent, props map[stri
 }
 
 func (s *FirstUseGiftService) grantSubscription(ctx context.Context, numericID string, planID int) *FirstUseGiftError {
-	base, err := oauthConfigURL(s.config.BaseURL)
-	if err != nil || base.Path != "" || s.config.ServiceToken == "" || strings.ContainsAny(s.config.ServiceToken, "\r\n") {
+	base, err := parseOAuthURL(s.oauth.config.InternalBaseURL)
+	if err != nil || base.Path != "" || s.serviceToken == "" || strings.ContainsAny(s.serviceToken, "\r\n") {
 		return &FirstUseGiftError{Reason: "subscription_not_configured", retryable: true}
 	}
 	body, _ := json.Marshal(map[string]int{"plan_id": planID})
-	endpoint := s.config.BaseURL + "/api/subscription/admin/users/" + numericID + "/subscriptions"
+	endpoint := s.oauth.config.InternalBaseURL + "/api/subscription/admin/users/" + numericID + "/subscriptions"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, strings.NewReader(string(body)))
 	if err != nil {
 		return &FirstUseGiftError{Reason: "invalid_subscription_request", retryable: true}
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", "Bearer "+s.config.ServiceToken)
-	response, err := s.client.Do(req)
+	req.Header.Set("Authorization", "Bearer "+s.serviceToken)
+	response, err := s.oauth.client.Do(req)
 	if err != nil {
 		return &FirstUseGiftError{Reason: tokengineNetworkFailureReason(err)}
 	}

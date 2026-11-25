@@ -46,7 +46,6 @@ type TokengineOAuthConfig struct {
 }
 
 type FirstUseGiftConfig struct {
-	BaseURL      string
 	ServiceToken string // 兼容旧配置，新配置使用 TokengineServiceToken
 }
 

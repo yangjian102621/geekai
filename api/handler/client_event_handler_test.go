@@ -178,7 +178,7 @@ func TestClientEventVerifiesDesktopOAuthWithoutCreatingAccountsOrRewards(t *test
 			}))
 			defer upstream.Close()
 			engine, mock := clientEventRouter(t, types.AppConfig{TokengineOAuth: types.TokengineOAuthConfig{
-				Enabled: true, BaseURL: upstream.URL,
+				Enabled: true, BaseURL: "https://provider.example", InternalBaseURL: upstream.URL,
 			}})
 			if tc.want == http.StatusOK {
 				expectClientEventWrite(mock, "u_148")

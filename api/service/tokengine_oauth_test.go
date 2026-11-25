@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"geekai/core/types"
+	"geekai/store/model"
 	"io"
 	"net"
 	"net/http"
@@ -34,7 +35,7 @@ func TestTokengineExchangeStillValidatesTokenAndIdentity(t *testing.T) {
 	}))
 	defer upstream.Close()
 	oauth := NewTokengineOAuth(types.TokengineOAuthConfig{
-		Enabled: true, BaseURL: upstream.URL, ClientID: "geekai-web",
+		Enabled: true, BaseURL: upstream.URL, InternalBaseURL: upstream.URL, ClientID: "geekai-web",
 		RedirectURL: "http://localhost" + TokengineCallbackPath,
 	})
 	identity, err := oauth.Exchange(context.Background(), "test-code", "test-verifier")
@@ -43,7 +44,7 @@ func TestTokengineExchangeStillValidatesTokenAndIdentity(t *testing.T) {
 	}
 }
 
-func TestTokengineOAuthUsesInternalBaseURLForBackendRequests(t *testing.T) {
+func TestTokengineUsesInternalBaseURLForBackendRequests(t *testing.T) {
 	config := types.TokengineOAuthConfig{
 		Enabled: true, BaseURL: "https://provider.example", ClientID: "thinkbuddy-web",
 		RedirectURL: "https://thinkbuddy.example" + TokengineCallbackPath,
@@ -53,9 +54,7 @@ func TestTokengineOAuthUsesInternalBaseURLForBackendRequests(t *testing.T) {
 	oauth := NewTokengineOAuth(config)
 
 	authorizeURL, err := oauth.AuthorizeURL("test-state", "test-verifier")
-	publicAuthorizeURL, publicErr := publicOAuth.AuthorizeURL("test-state", "test-verifier")
-	if err != nil || publicErr != nil || authorizeURL != publicAuthorizeURL ||
-		!strings.HasPrefix(authorizeURL, config.BaseURL+"/oauth/authorize?") {
+	if err != nil || !strings.HasPrefix(authorizeURL, config.BaseURL+"/oauth/authorize?") {
 		t.Fatalf("authorization must use the public address: %q, %v", authorizeURL, err)
 	}
 	if key := oauth.IdentityKey("u_42"); key == "" || key != publicOAuth.IdentityKey("u_42") {
@@ -84,6 +83,11 @@ func TestTokengineOAuthUsesInternalBaseURLForBackendRequests(t *testing.T) {
 				t.Error("missing management token")
 			}
 			body = `{"success":true,"data":{"id":42,"role":1,"status":1}}`
+		case "/api/subscription/admin/users/42/subscriptions", "/api/user/manage":
+			if r.Method != http.MethodPost || r.Header.Get("Authorization") != "Bearer test-service-token" {
+				t.Errorf("invalid grant request for %s", r.URL.Path)
+			}
+			body = `{"success":true}`
 		default:
 			t.Fatalf("unexpected internal endpoint: %s", r.URL.Path)
 		}
@@ -98,11 +102,26 @@ func TestTokengineOAuthUsesInternalBaseURLForBackendRequests(t *testing.T) {
 	if err != nil || profile == nil || profile.ID != 42 {
 		t.Fatalf("internal profile lookup failed: %+v %v", profile, err)
 	}
+
+	db, _ := clientEventTestDB(t)
+	gift := NewFirstUseGiftService(db, oauth, "test-service-token")
+	if err := gift.grantSubscription(context.Background(), "42", 5); err != nil {
+		t.Fatalf("internal subscription grant failed: %v", err)
+	}
+	quota := NewRewardQuotaService(db, &types.AppConfig{TokengineOAuth: config, TokengineServiceToken: "test-service-token"})
+	quota.oauth.client.Transport = oauth.client.Transport
+	if err := quota.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	reward := model.PowerLog{QuotaSubject: identity.Subject, QuotaIdentity: oauth.IdentityKey(identity.Subject), QuotaAmount: 100}
+	if status, reason := quota.grant(context.Background(), reward); status != QuotaSucceeded {
+		t.Fatalf("internal quota grant failed: %s %s", status, reason)
+	}
 }
 
 func TestTokengineOAuthRejectsInvalidInternalBaseURL(t *testing.T) {
 	for _, address := range []string{
-		"ftp://provider.test", "http://", "/", "//provider.test",
+		"", "ftp://provider.test", "http://", "/", "//provider.test",
 		"http://user:password@provider.test", "http://provider.test/api/",
 		"http://provider.test/?route=api", "http://provider.test?", "http://provider.test#",
 	} {
@@ -131,7 +150,7 @@ func TestTokengineExchangeClassifiesTokenRejections(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			oauth := NewTokengineOAuth(types.TokengineOAuthConfig{
 				Enabled: true, BaseURL: "https://provider.example", ClientID: "thinkbuddy-web",
-				RedirectURL: "http://localhost" + TokengineCallbackPath,
+				InternalBaseURL: "http://provider.test", RedirectURL: "http://localhost" + TokengineCallbackPath,
 			})
 			oauth.client.Transport = tokengineTestTransport(func(r *http.Request) (*http.Response, error) {
 				if r.URL.Path != "/oauth/token" {
@@ -162,7 +181,7 @@ func TestTokengineUserInfoNeverForwardsCredentialsOnRedirect(t *testing.T) {
 		http.Redirect(w, r, target.URL, http.StatusFound)
 	}))
 	defer upstream.Close()
-	oauth := NewTokengineOAuth(types.TokengineOAuthConfig{Enabled: true, BaseURL: upstream.URL})
+	oauth := NewTokengineOAuth(types.TokengineOAuthConfig{Enabled: true, BaseURL: "https://provider.example", InternalBaseURL: upstream.URL})
 	_, err := oauth.UserInfo(context.Background(), "provider-secret")
 	var failure *TokengineOAuthError
 	if !errors.As(err, &failure) || failure.Reason != "redirect_rejected" || forwarded.Load() {
@@ -196,7 +215,7 @@ func TestTokengineUserInfoClassifiesFailuresWithoutLeakingContents(t *testing.T)
 		{"oversized response", nil, 200, strings.Repeat("x", (1<<20)+1), "response_too_large"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			oauth := NewTokengineOAuth(types.TokengineOAuthConfig{Enabled: true, BaseURL: "https://private-provider"})
+			oauth := NewTokengineOAuth(types.TokengineOAuthConfig{Enabled: true, BaseURL: "https://provider.example", InternalBaseURL: "http://private-provider"})
 			oauth.client.Transport = tokengineTestTransport(func(r *http.Request) (*http.Response, error) {
 				if r.Header.Get("Authorization") != "Bearer provider-secret" {
 					t.Error("missing access token")

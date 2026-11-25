@@ -19,10 +19,7 @@ TokengineServiceToken = "" # Token 平台统一管理令牌：用户资料、赠
 
 [TokengineOAuth]
   Enabled = false
-  BaseURL = "https://tokengine.hanyoai.com"
-  InternalBaseURL = "" # 可信集群 Service 地址，用于后端 OAuth 请求，留空复用 BaseURL
+  BaseURL = "https://tokengine.hanyoai.com" # 浏览器 OAuth 授权地址
+  InternalBaseURL = "" # 启用时填写可信内网地址，例如 http://new-api.tokengine.svc.cluster.local:3000
   ClientID = "geekai-web"
   RedirectURL = "http://localhost:3000/api/user/login/tokengine/callback"
-
-[FirstUseGift]
-  BaseURL = "" # 留空复用 TokengineOAuth.BaseURL

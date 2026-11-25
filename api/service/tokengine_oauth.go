@@ -67,15 +67,14 @@ type TokengineUserProfile struct {
 
 func NewTokengineOAuth(config types.TokengineOAuthConfig) *TokengineOAuth {
 	config.BaseURL = strings.TrimRight(config.BaseURL, "/")
-	if config.InternalBaseURL == "" {
-		config.InternalBaseURL = config.BaseURL
-	} else {
-		config.InternalBaseURL = strings.TrimSuffix(config.InternalBaseURL, "/")
-	}
+	config.InternalBaseURL = strings.TrimSuffix(strings.TrimSpace(config.InternalBaseURL), "/")
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.Proxy = nil
 	return &TokengineOAuth{
 		config: config,
 		client: &http.Client{
-			Timeout: 10 * time.Second,
+			Timeout:   10 * time.Second,
+			Transport: transport,
 			CheckRedirect: func(*http.Request, []*http.Request) error {
 				return errTokengineRedirect
 			},
