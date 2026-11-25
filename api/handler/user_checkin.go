@@ -113,7 +113,7 @@ func (h *UserHandler) provisionTokengineCheckinUser(ctx context.Context, subject
 	if profile.Status != 1 {
 		return model.User{}, nil
 	}
-	return h.tokengineUser(ctx, service.TokengineIdentity{Subject: subject, Username: profile.Username}, profile, "", tokengineDesktopCheckin)
+	return h.tokengineUser(ctx, service.TokengineIdentity{Subject: subject, Phone: &profile.Telephone}, "", profile)
 }
 
 func (h *UserHandler) createTokengineCheckinUser(ctx context.Context, subject, key, mobile string, profile *service.TokengineUserProfile) (model.User, error) {
@@ -137,26 +137,24 @@ func (h *UserHandler) createTokengineCheckinUser(ctx context.Context, subject, k
 	return user, err
 }
 
-func (h *UserHandler) checkIn(ctx context.Context, userID uint, localOnly bool) (points int, alreadyCheckedIn bool, err error) {
+func (h *UserHandler) checkIn(ctx context.Context, userID uint, desktopCheckin bool) (points int, alreadyCheckedIn bool, err error) {
 	date := time.Now().Format("2006-01-02")
 	key := fmt.Sprintf("signin/%d/%s", userID, date)
 	power := max(0, h.App.SysConfig.Base.DailyPower)
 	var signedIn bool
 	_ = h.levelDB.Get(key, &signedIn)
-	grant := h.ledgerService.Grant
-	if localOnly {
+	if desktopCheckin {
 		points, alreadyCheckedIn, err := h.existingCheckin(ctx, userID, key, date)
 		if err != nil || alreadyCheckedIn || signedIn || power == 0 {
 			return points, alreadyCheckedIn, err
 		}
-		grant = h.ledgerService.GrantLocalPoints
 	} else if signedIn {
 		return 0, true, nil
 	}
 	var granted bool
 	err = h.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var grantErr error
-		granted, grantErr = grant(tx, userID, power, service.LedgerRef{Type: "signin:" + date, ID: userID}, model.PowerLog{
+		granted, grantErr = h.ledgerService.Grant(tx, userID, power, service.LedgerRef{Type: "signin:" + date, ID: userID}, model.PowerLog{
 			RewardKey: &key,
 			Type:      types.PowerSignIn,
 			Model:     "SignIn",
@@ -169,7 +167,7 @@ func (h *UserHandler) checkIn(ctx context.Context, userID uint, localOnly bool) 
 		return 0, false, err
 	}
 	if !granted {
-		if localOnly {
+		if desktopCheckin {
 			return h.existingCheckin(ctx, userID, key, date)
 		}
 		return 0, true, nil

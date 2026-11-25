@@ -27,7 +27,7 @@ func TestTokengineExchangeStillValidatesTokenAndIdentity(t *testing.T) {
 			if r.Header.Get("Authorization") != "Bearer provider-secret" {
 				t.Error("userinfo request lost its access token")
 			}
-			_, _ = io.WriteString(w, `{"sub":"u_42","username":"desktop-user"}`)
+			_, _ = io.WriteString(w, `{"sub":"u_42","phone":"13800138000","displayName":"测试用户","username":"desktop-user","balance":"$5.00","ai_token":"sk-test"}`)
 		default:
 			t.Error("unexpected OAuth endpoint")
 			w.WriteHeader(http.StatusNotFound)
@@ -41,6 +41,9 @@ func TestTokengineExchangeStillValidatesTokenAndIdentity(t *testing.T) {
 	identity, err := oauth.Exchange(context.Background(), "test-code", "test-verifier")
 	if err != nil || identity.Subject != "u_42" || identity.Username != "desktop-user" {
 		t.Fatalf("OAuth login regression: %+v %v", identity, err)
+	}
+	if identity.Phone == nil || *identity.Phone != "13800138000" || identity.DisplayName != "测试用户" || identity.Balance != "$5.00" {
+		t.Fatalf("OAuth userinfo fields missing: %+v", identity)
 	}
 }
 

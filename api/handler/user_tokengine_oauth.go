@@ -34,15 +34,8 @@ type tokengineState struct {
 
 type tokengineSavedProfile struct {
 	service.TokengineIdentity
-	Profile *service.TokengineUserProfile `json:"profile,omitempty"`
+	Profile json.RawMessage `json:"profile,omitempty"`
 }
-
-type tokengineAccountSource int
-
-const (
-	tokengineOAuthLogin tokengineAccountSource = iota
-	tokengineDesktopCheckin
-)
 
 func oauthHeaders(c *gin.Context) {
 	c.Header("Cache-Control", "no-store")
@@ -132,14 +125,7 @@ func (h *UserHandler) TokengineCallback(c *gin.Context) {
 		h.tokengineFailure(c, "Token 平台验证失败，请重试")
 		return
 	}
-	profile, err := h.tokengineOAuth.UserProfile(c.Request.Context(), identity.Subject, h.App.Config.TokengineManagementToken())
-	if err != nil {
-		var failure *service.TokengineOAuthError
-		if errors.As(err, &failure) {
-			logger.Warnw("tokengine_profile_sync_failed", "subject", identity.Subject, "reason", failure.Reason, "upstream_status", failure.StatusCode)
-		}
-	}
-	user, err := h.tokengineUser(c.Request.Context(), identity, profile, saved.InviteCode, tokengineOAuthLogin)
+	user, err := h.tokengineUser(c.Request.Context(), identity, saved.InviteCode, nil)
 	if err != nil {
 		h.tokengineFailure(c, err.Error())
 		return
@@ -155,7 +141,7 @@ func (h *UserHandler) TokengineCallback(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/login?"+query.Encode())
 }
 
-func (h *UserHandler) tokengineUser(ctx context.Context, identity service.TokengineIdentity, profile *service.TokengineUserProfile, invite string, source tokengineAccountSource) (model.User, error) {
+func (h *UserHandler) tokengineUser(ctx context.Context, identity service.TokengineIdentity, invite string, checkinProfile *service.TokengineUserProfile) (model.User, error) {
 	key := h.tokengineOAuth.IdentityKey(identity.Subject)
 	var user model.User
 	db := h.DB.WithContext(ctx)
@@ -164,23 +150,24 @@ func (h *UserHandler) tokengineUser(ctx context.Context, identity service.Tokeng
 	if err != nil && !newUser {
 		return user, errors.New("查询用户失败，请稍后重试")
 	}
+	phone := ""
+	if identity.Phone != nil {
+		phone = *identity.Phone
+	}
 	lockedMobile := ""
 	if newUser {
-		if profile == nil {
-			return user, errors.New("获取 Token 平台用户资料失败，请稍后重试")
-		}
-		if registrationMobilePattern.MatchString(profile.Telephone) {
-			unlock, err := h.lockMobile(ctx, profile.Telephone)
+		if registrationMobilePattern.MatchString(phone) {
+			unlock, err := h.lockMobile(ctx, phone)
 			if err != nil {
 				return user, errors.New("手机号请求正在处理中，请稍后重试")
 			}
 			defer unlock()
-			lockedMobile = profile.Telephone
+			lockedMobile = phone
 			var matches []model.User
 			if db.Where("mobile = ?", lockedMobile).Limit(2).Find(&matches).Error != nil {
 				return user, errors.New("查询用户失败，请稍后重试")
 			}
-			if source == tokengineDesktopCheckin && len(matches) > 0 {
+			if checkinProfile != nil && len(matches) > 0 {
 				// Linking a different website account requires an authenticated OAuth callback.
 				if len(matches) == 1 && matches[0].TokengineID != nil && *matches[0].TokengineID == key {
 					return matches[0], nil
@@ -199,11 +186,11 @@ func (h *UserHandler) tokengineUser(ctx context.Context, identity service.Tokeng
 			}
 		}
 	}
-	if source == tokengineDesktopCheckin {
+	if checkinProfile != nil {
 		if !newUser {
 			return user, nil
 		}
-		return h.createTokengineCheckinUser(ctx, identity.Subject, key, lockedMobile, profile)
+		return h.createTokengineCheckinUser(ctx, identity.Subject, key, lockedMobile, checkinProfile)
 	}
 	if newUser && !h.App.SysConfig.Base.EnabledRegister {
 		return user, errors.New("注册功能已关闭，请使用已注册的账号登录")
@@ -232,8 +219,8 @@ func (h *UserHandler) tokengineUser(ctx context.Context, identity service.Tokeng
 		username = "token_" + utils.RandString(20)
 	}
 
-	if profile != nil && strings.TrimSpace(profile.DisplayName) != "" {
-		nickname = []rune(strings.TrimSpace(profile.DisplayName))
+	if displayName := strings.TrimSpace(identity.DisplayName); displayName != "" {
+		nickname = []rune(displayName)
 		if len(nickname) > 30 {
 			nickname = nickname[:30]
 		}
@@ -256,9 +243,6 @@ func (h *UserHandler) tokengineUser(ctx context.Context, identity service.Tokeng
 		return user, errors.New("读取 Token 平台用户资料失败，请稍后重试")
 	}
 	saved.TokengineIdentity = identity
-	if profile != nil {
-		saved.Profile = profile
-	}
 	data, err := json.Marshal(saved)
 	if err != nil {
 		return user, errors.New("保存 Token 平台用户资料失败，请稍后重试")
@@ -271,44 +255,33 @@ func (h *UserHandler) tokengineUser(ctx context.Context, identity service.Tokeng
 	if !newUser && username != user.Username {
 		updates["username"] = username
 	}
-	if profile != nil {
-		if user.Nickname == "" {
-			updates["nickname"] = string(nickname)
-		}
-		// Contacts may already belong to another local account; never merge by contact.
-		contacts := map[string]string{}
-		if profile.Email != user.Email && (profile.Email == "" || utils.IsValidEmail(profile.Email) && len([]rune(profile.Email)) <= 50) {
-			contacts["email"] = profile.Email
-		}
-		if profile.Telephone != user.Mobile && (profile.Telephone == "" || registrationMobilePattern.MatchString(profile.Telephone)) {
-			contacts["mobile"] = profile.Telephone
-			// Hold both numbers so an in-flight SMS login cannot restore the old binding.
-			mobiles := []string{user.Mobile, profile.Telephone}
-			sort.Strings(mobiles)
-			for _, mobile := range mobiles {
-				if mobile == "" || mobile == lockedMobile {
-					continue
-				}
-				unlock, err := h.lockMobile(ctx, mobile)
-				if err != nil {
-					return user, errors.New("手机号请求正在处理中，请稍后重试")
-				}
-				defer unlock()
-			}
-		}
-		for column, value := range contacts {
-			updates[column] = ""
-			if value == "" {
+	if user.Nickname == "" && len(nickname) > 0 {
+		updates["nickname"] = string(nickname)
+	}
+	if identity.Phone != nil && phone != user.Mobile && (phone == "" || registrationMobilePattern.MatchString(phone)) {
+		// Hold both numbers so an in-flight SMS login cannot restore the old binding.
+		mobiles := []string{user.Mobile, phone}
+		sort.Strings(mobiles)
+		for _, mobile := range mobiles {
+			if mobile == "" || mobile == lockedMobile {
 				continue
 			}
+			unlock, err := h.lockMobile(ctx, mobile)
+			if err != nil {
+				return user, errors.New("手机号请求正在处理中，请稍后重试")
+			}
+			defer unlock()
+		}
+		updates["mobile"] = ""
+		if phone != "" {
 			var occupied int64
-			if h.DB.Model(&model.User{}).Where(column+" = ? AND id <> ?", value, user.Id).Count(&occupied).Error != nil {
+			if db.Model(&model.User{}).Where("mobile = ? AND id <> ?", phone, user.Id).Count(&occupied).Error != nil {
 				return user, errors.New("查询用户联系方式失败，请稍后重试")
 			}
 			if occupied == 0 {
-				updates[column] = value
+				updates["mobile"] = phone
 			} else {
-				logger.Warnw("tokengine_contact_conflict", "user_id", user.Id, "field", column)
+				logger.Warnw("tokengine_contact_conflict", "user_id", user.Id, "field", "mobile")
 			}
 		}
 	}
@@ -319,9 +292,6 @@ func (h *UserHandler) tokengineUser(ctx context.Context, identity service.Tokeng
 	result := update.Updates(updates)
 	if result.Error != nil || bindExisting && result.RowsAffected == 0 {
 		return user, errors.New("同步 Token 平台用户资料失败，请稍后重试")
-	}
-	if saved.Profile != nil && saved.Profile.Status != 1 {
-		return user, errors.New("该 Token 平台用户已被禁止登录，请联系管理员")
 	}
 	return user, nil
 }

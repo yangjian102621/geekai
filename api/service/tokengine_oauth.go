@@ -42,10 +42,11 @@ type TokengineOAuth struct {
 
 // Only decode identity fields; provider credentials and AI tokens stay out of local sessions.
 type TokengineIdentity struct {
-	Subject  string `json:"sub"`
-	Username string `json:"username"`
-	Phone    string `json:"phone,omitempty"`
-	Balance  string `json:"balance,omitempty"`
+	Subject     string  `json:"sub"`
+	Username    string  `json:"username"`
+	Phone       *string `json:"phone,omitempty"`
+	DisplayName string  `json:"displayName,omitempty"`
+	Balance     string  `json:"balance,omitempty"`
 }
 
 // Explicit fields exclude upstream passwords, management credentials and AI tokens.
@@ -231,7 +232,8 @@ func (s *TokengineOAuth) UserInfo(ctx context.Context, accessToken string) (Toke
 		identity = *payload.Data
 	}
 	if strings.TrimSpace(identity.Subject) == "" || len(identity.Subject) > 256 ||
-		utf8.RuneCountInString(identity.Username) > 64 || utf8.RuneCountInString(identity.Phone) > 32 || len(identity.Balance) > 128 {
+		utf8.RuneCountInString(identity.Username) > 64 || utf8.RuneCountInString(identity.DisplayName) > 128 ||
+		(identity.Phone != nil && utf8.RuneCountInString(*identity.Phone) > 32) || len(identity.Balance) > 128 {
 		return identity, &TokengineOAuthError{Reason: "invalid_identity"}
 	}
 	return identity, nil

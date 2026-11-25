@@ -447,7 +447,7 @@ func (h *UserHandler) applyRegistrationInvite(tx *gorm.DB, user *model.User, cod
 		{inviteCode.UserId, "invite", fmt.Sprintf("邀请用户注册奖励，邀请码：%s，新用户：%s", inviteCode.Code, user.Username)},
 		{user.Id, "invite:invitee", fmt.Sprintf("受邀注册奖励，邀请码：%s", inviteCode.Code)},
 	} {
-		granted, err := h.ledgerService.GrantLocalPoints(tx, reward.userID, invitePower, service.LedgerRef{Type: reward.refType, ID: user.Id}, model.PowerLog{
+		granted, err := h.ledgerService.Grant(tx, reward.userID, invitePower, service.LedgerRef{Type: reward.refType, ID: user.Id}, model.PowerLog{
 			Type:   types.PowerInvite,
 			Model:  "Invite",
 			Remark: reward.remark,
