@@ -9,7 +9,6 @@ import (
 	"geekai/store/model"
 	"geekai/utils"
 	"geekai/utils/resp"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"sort"
@@ -218,38 +217,16 @@ func (h *UserHandler) tokengineUser(ctx context.Context, identity service.Tokeng
 		nickname = nickname[:30]
 	}
 	username := user.Username
-	if (newUser || user.Platform == "tokengine") && len(nickname) > 0 && string(nickname) != user.Username {
-		username = string(nickname)
+	candidate := string(nickname)
+	if (newUser || user.Platform == "tokengine") && candidate != "" && candidate != user.Username {
 		var occupied int64
-		if h.DB.Model(&model.User{}).Where("username = ? AND id <> ?", username, user.Id).Count(&occupied).Error != nil {
+		if db.Model(&model.User{}).Where("username = ? AND id <> ?", candidate, user.Id).Count(&occupied).Error != nil {
 			return user, errors.New("查询用户名失败，请稍后重试")
 		}
-		if occupied > 0 {
-			// A matching name never links an unrelated local account to this provider identity.
-			const suffixes = "abcdefghijklmnopqrstuvwxyz123456789"
-			prefix := nickname
-			if len(prefix) > 29 {
-				prefix = prefix[:29]
-			}
-			current := []rune(user.Username)
-			if !newUser && len(current) == len(prefix)+1 && strings.HasPrefix(user.Username, string(prefix)) && strings.ContainsRune(suffixes, current[len(current)-1]) {
-				username = user.Username
-			} else {
-				username = ""
-				for _, index := range rand.Perm(len(suffixes)) {
-					candidate := string(prefix) + string(suffixes[index])
-					if h.DB.Model(&model.User{}).Where("username = ? AND id <> ?", candidate, user.Id).Count(&occupied).Error != nil {
-						return user, errors.New("查询用户名失败，请稍后重试")
-					}
-					if occupied == 0 {
-						username = candidate
-						break
-					}
-				}
-				if username == "" {
-					return user, errors.New("该平台用户名的单字符后缀已被占用，请修改平台用户名后重试")
-				}
-			}
+		if occupied == 0 {
+			username = candidate
+		} else if newUser {
+			return user, errors.New("用户名已被占用，请修改 Token 平台用户名后重试")
 		}
 	} else if newUser {
 		username = "token_" + utils.RandString(20)
