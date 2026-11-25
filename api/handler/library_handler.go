@@ -19,7 +19,9 @@ func NewLibraryHandler(app *core.AppServer, service *library.Service) *LibraryHa
 
 func (h *LibraryHandler) RegisterRoutes(r *core.Router) {
 	// 公开接口：ThinkBuddy 对外知识库目录，匿名可读，由 cache-control 自行限制缓存
-	r.PublicGroup("/api/v1").GET("/library", h.catalog)
+	public := r.PublicGroup("/api")
+	public.GET("/library", h.catalog)
+	public.GET("/v1/library", h.catalog)
 }
 
 func (h *LibraryHandler) catalog(c *gin.Context) {

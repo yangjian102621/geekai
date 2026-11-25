@@ -44,6 +44,7 @@ func NewClientEventHandler(app *core.AppServer, db *gorm.DB) *ClientEventHandler
 
 func (h *ClientEventHandler) RegisterRoutes(r *core.Router) {
 	public := r.PublicGroup("")
+	public.POST("/api/events", h.Report)
 	public.POST("/api/v1/events", h.Report)
 	// Existing desktop installations post to this path.
 	public.POST("/v1/events", h.Report)

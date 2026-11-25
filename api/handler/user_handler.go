@@ -89,7 +89,9 @@ func (h *UserHandler) RegisterRoutes(r *core.Router) {
 	public.GET("login/status", h.GetWxLoginState)
 	public.GET("logout", h.Logout)
 	public.POST("wxAuthLogin", h.WxAuthLogin)
-	r.PublicGroup("/api/v1").POST("checkin", h.TokengineCheckin)
+	checkin := r.PublicGroup("/api")
+	checkin.POST("/checkin", h.TokengineCheckin)
+	checkin.POST("/v1/checkin", h.TokengineCheckin)
 
 	// 需要用户授权的接口
 	group := r.UserGroup("/api/user/")

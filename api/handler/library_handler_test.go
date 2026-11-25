@@ -59,8 +59,10 @@ func TestPublicLibraryRoutesAndAdminGuard(t *testing.T) {
 	if w := request("GET", "/api/admin/library/sources", ""); w.Code != 401 {
 		t.Fatalf("admin route not protected: %d", w.Code)
 	}
-	if w := request("GET", "/api/v1/library", ""); w.Code != 200 || !strings.Contains(w.Body.String(), "Public gift") || !strings.Contains(w.Body.String(), "read-key") || w.Header().Get("Cache-Control") != "no-store" {
-		t.Fatalf("catalog: %s", w.Body.String())
+	for _, path := range []string{"/api/library", "/api/v1/library"} {
+		if w := request("GET", path, ""); w.Code != 200 || !strings.Contains(w.Body.String(), "Public gift") || !strings.Contains(w.Body.String(), "read-key") || w.Header().Get("Cache-Control") != "no-store" {
+			t.Fatalf("catalog %s: %s", path, w.Body.String())
+		}
 	}
 	for _, path := range []string{"", "/documents", "/documents/d1/preview", "/documents/d1/text", "/search"} {
 		if w := request("GET", "/api/v1/library/2"+path, ""); w.Code != 404 {

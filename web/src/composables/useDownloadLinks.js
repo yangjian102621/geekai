@@ -1,5 +1,5 @@
 // * 下载链接共享状态：多组件（TopNav / Footer / HomePage / InvitePage）共用同一份
-// * /api/v1/latest 数据，模块级 ref 保证只请求一次。
+// * /api/update/latest 数据，模块级 ref 保证只请求一次。
 
 import { computed, ref } from 'vue'
 import { FALLBACK_LINKS } from '@/services/site'
@@ -11,7 +11,7 @@ async function loadLinks() {
   if (loaded) return
   loaded = true
   try {
-    const res = await fetch('/api/v1/latest', { cache: 'no-cache' })
+    const res = await fetch('/api/update/latest', { cache: 'no-cache' })
     if (!res.ok) return
     const data = await res.json()
     // 接口成功但缺 key → 视为暂未提供（null），不伪造链接。

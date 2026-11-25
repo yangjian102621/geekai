@@ -104,13 +104,13 @@ export function formatNumber(value, language) {
 }
 
 /* ---------------- 下载链接 ----------------
-   后端 /api/v1/latest 返回安装包的同源相对路径（如 /update/ThinkBuddySetup-dt1.6.14.exe），
+   后端 /api/update/latest 返回安装包的同源相对路径（如 /update/ThinkBuddySetup-dt1.6.14.exe），
    mac 包按清单 mac.<arch>.url 输出（缺分支/缺包不输出该 key，即“暂未提供”）。
    接口不可用时退回平台下载接口（Windows），mac 不做无依据的推导。 */
 
 export const FALLBACK_LINKS = {
   version: '',
-  windows: '/api/v1/download',
+  windows: '/api/update/download',
   macArm64: null,
   macX64: null,
   unreachable: true,

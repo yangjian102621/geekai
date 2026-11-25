@@ -48,7 +48,7 @@ from desktop.auth.config import telemetry_url
 from desktop.telemetry_reporter import TelemetryReporter
 
 endpoint = telemetry_url()
-assert endpoint == sys.argv[2] + "/v1/events", endpoint
+assert endpoint == sys.argv[2] + "/api/events", endpoint
 reporter = TelemetryReporter(endpoint, {
     "machine_id": "device-1", "session_id": "session-1",
     "app_ver": "1.2.3", "os": "Windows 11",

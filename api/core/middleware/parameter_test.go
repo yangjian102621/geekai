@@ -106,7 +106,11 @@ func TestParameterMiddlewareSkipsMessageOriginalPaths(t *testing.T) {
 	engine.Use(ParameterHandlerMiddleware())
 
 	const body = `{"content":"  keep me  "}`
-	for _, path := range []string{"/v1/events", "/api/v1/events", "/api/v1/library", "/api/admin/library/sources"} {
+	for _, path := range []string{
+		"/api/events", "/api/v1/events", "/v1/events",
+		"/api/checkin", "/api/v1/checkin",
+		"/api/library", "/api/v1/library", "/api/admin/library/sources",
+	} {
 		var gotQuery, gotBody string
 		engine.POST(path, func(c *gin.Context) {
 			raw, _ := io.ReadAll(c.Request.Body)

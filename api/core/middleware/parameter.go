@@ -12,8 +12,8 @@ import (
 )
 
 // skipPathPrefixes 是"消息原文必须逐字保留"的路径，既不 trim query 也不改写 body。
-//   - /api/v1/library、/api/admin/library：资料库接口自行限制并解析请求体。
-var skipPathPrefixes = []string{"/api/v1/library", "/api/admin/library"}
+//   - 资料库接口自行限制并解析请求体。
+var skipPathPrefixes = []string{"/api/library", "/api/v1/library", "/api/admin/library"}
 
 // ParameterHandlerMiddleware 统一参数处理。
 //
@@ -61,10 +61,10 @@ func ParameterHandlerMiddleware() gin.HandlerFunc {
 // shouldSkipPath 判断路径是否属于"原文保留"清单。
 func shouldSkipPath(path string) bool {
 	// 客户端事件自行限制请求体大小，并保留事件属性中的原始 JSON。
-	if path == "/api/v1/events" || path == "/v1/events" {
+	if path == "/api/events" || path == "/api/v1/events" || path == "/v1/events" {
 		return true
 	}
-	if path == "/api/v1/checkin" {
+	if path == "/api/checkin" || path == "/api/v1/checkin" {
 		return true // 签到接口自行限制请求体大小。
 	}
 	for _, prefix := range skipPathPrefixes {

@@ -148,7 +148,8 @@ func TestPlatformLibraryIntegration(t *testing.T) {
 	engine := gin.New()
 	engine.Use(func(c *gin.Context) {
 		c.Next()
-		if strings.HasPrefix(c.Request.URL.Path, "/api/v1/library/") && c.Writer.Status() < 400 {
+		path := c.Request.URL.Path
+		if (strings.HasPrefix(path, "/api/library/") || strings.HasPrefix(path, "/api/v1/library/")) && c.Writer.Status() < 400 {
 			t.Error("ThinkBuddy sent WeKnora content traffic through GeekAI")
 		}
 	})

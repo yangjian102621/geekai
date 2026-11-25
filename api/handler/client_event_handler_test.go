@@ -94,7 +94,7 @@ func clientEventFailureResponse(t *testing.T, w *httptest.ResponseRecorder, code
 
 func TestClientEventRoutesPreserveAnonymousIdentityAndRawJSON(t *testing.T) {
 	engine, mock := clientEventRouter(t, types.AppConfig{})
-	for _, path := range []string{"/api/v1/events", "/v1/events"} {
+	for _, path := range []string{"/api/events", "/api/v1/events", "/v1/events"} {
 		expectClientEventWrite(mock, nil)
 		w := postClientEvent(engine, path, clientEventBody, "")
 		if w.Code != http.StatusOK || w.Body.String() != `{"accepted":1}` {
@@ -135,7 +135,7 @@ func TestClientEventRejectsInvalidJSONAndEnforcesLimitBeforeMiddlewareReads(t *t
 			t.Fatalf("expected invalid batch rejection, got %d %s", w.Code, w.Body.String())
 		}
 	}
-	for _, path := range []string{"/api/v1/events", "/v1/events"} {
+	for _, path := range []string{"/api/events", "/api/v1/events", "/v1/events"} {
 		for _, body := range []string{
 			strings.Replace(clientEventBody, `" 测试 "`, `"`+strings.Repeat("a", 256*1024)+`"`, 1),
 			clientEventBody + strings.Repeat(" ", 256*1024),
