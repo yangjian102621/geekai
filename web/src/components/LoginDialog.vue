@@ -1,6 +1,10 @@
 <template>
   <div class="login-dialog w-full">
-    <div class="login-box" v-if="login">
+    <div v-if="!configReady" class="login-loading">
+      <el-icon class="is-loading"><Loading /></el-icon>
+      <span>正在加载登录方式...</span>
+    </div>
+    <div class="login-box" v-else-if="login">
       <div v-if="hasLocalLogin" class="primary-login-methods" role="group" aria-label="主要登录方式">
         <button
           v-if="mobileLoginEnabled"
@@ -204,7 +208,7 @@
           <p v-if="!tokengineEnabled" class="mt-3 text-sm" style="color: var(--login-text-color)">Tokengine 登录暂未开放</p>
         </div>
 
-        <p v-if="enableRegister !== null && !hasLocalLogin && !hasThirdPartyLogin" class="py-4 text-center text-sm">
+        <p v-if="!hasLocalLogin && !hasThirdPartyLogin" class="py-4 text-center text-sm">
           暂无可用的登录方式，请联系管理员。
         </p>
       </div>
@@ -383,7 +387,7 @@
         </div>
       </el-form>
 
-      <div class="tip-result" v-else-if="enableRegister === false">
+      <div class="tip-result" v-else>
         <el-row :gutter="20">
           <el-col :span="12">
             <el-result icon="error" title="表单注册暂不可用">
@@ -428,7 +432,7 @@ import { useSharedStore } from '@/store/sharedata'
 import { httpGet, httpPost } from '@/utils/http'
 import { safeRedirect } from '@/utils/redirect'
 import { validateMobile } from '@/utils/validate'
-import { Checked, Iphone, Key, Lock, Message, User } from '@element-plus/icons-vue'
+import { Checked, Iphone, Key, Loading, Lock, Message, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { marked } from 'marked'
 import QRCode from 'qrcode'
@@ -455,7 +459,8 @@ const hasLocalLogin = computed(() => mobileLoginEnabled.value || accountLoginEna
 const showTokengineLogin = ref(false)
 const showWechatLogin = ref(false)
 const hasThirdPartyLogin = computed(() => showTokengineLogin.value || showWechatLogin.value)
-const enableRegister = ref(null)
+const enableRegister = ref(false)
+const configReady = ref(false)
 const selectedLoginMethod = ref('')
 const loginActiveName = computed(() => {
   if (selectedLoginMethod.value) return selectedLoginMethod.value
@@ -589,6 +594,9 @@ onMounted(() => {
     .catch((e) => {
       enableRegister.value = false
       ElMessage.error('获取系统配置失败：' + e.message)
+    })
+    .finally(() => {
+      configReady.value = true
     })
 
   // 获取验证码配置
@@ -874,6 +882,20 @@ onUnmounted(clearWechatTimers)
 }
 
 .login-dialog {
+  .login-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 48px 0;
+    color: var(--login-text-color);
+    font-size: 14px;
+
+    .el-icon {
+      font-size: 24px;
+    }
+  }
+
   .login-submit {
     width: 100%;
     height: 48px;
